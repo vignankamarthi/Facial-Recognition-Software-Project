@@ -51,7 +51,7 @@ def run_face_detection_demo(anonymize=False):
     Returns:
         None
     """
-    print("\n=== Face Detection Demo ===")
+    print("\n--- Face Detection Demo ---")
     print("Starting webcam for face detection...")
 
     if anonymize:
@@ -73,7 +73,7 @@ def run_face_matching_demo():
     Returns:
         None
     """
-    print("\n=== Face Matching Demo ===")
+    print("\n--- Face Matching Demo ---")
 
     # Check if sample faces directory exists and has images
     sample_dir = os.path.abspath(
@@ -105,7 +105,7 @@ def run_bias_testing_demo():
     Returns:
         None
     """
-    print("\n=== Bias Testing Demo ===")
+    print("\n--- Bias Testing Demo ---")
 
     analyzer = BiasAnalyzer()
     analyzer.run_bias_demonstration()
@@ -118,10 +118,10 @@ def main():
     Returns:
         None
     """
-    print("=" * 50)
+    print("-" * 50)
     print("Facial Recognition System")
     print("A demonstration of technology and ethics")
-    print("=" * 50)
+    print("-" * 50)
 
     while True:
         print("\nMain Menu:")
