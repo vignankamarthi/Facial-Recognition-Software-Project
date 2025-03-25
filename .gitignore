@@ -1,20 +1,25 @@
 # Dataset files and directories
 data/datasets/
 src/data/datasets/
+src/data/datasets/lfw/
+src/data/datasets/lfw/lfw/
 data/sample_faces/
 data/test_images/
 data/test_datasets/
 *.tgz
 *.tar.gz
 *.zip
+*.jpg
 
 # Explicitly ignore the large dataset file
 src/data/datasets/lfw/lfw.tgz
 
 # Python cache files
 __pycache__/
+src/utilities/__pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 *.so
 .Python
 env/
