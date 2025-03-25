@@ -10,8 +10,8 @@ This project implements a facial recognition system with the following features:
 - Face matching against stored reference images
 - Anonymization mode to protect privacy (face blurring/masking)
 - Bias testing to demonstrate accuracy variations across different demographics
-- **NEW: Static image processing** for analyzing photos without webcam
-- **NEW: Dataset management tools** for working with public face datasets
+- Static image processing for analyzing photos without webcam
+- Dataset management tools for working with public face datasets
 
 ## Ethical Considerations
 
@@ -37,6 +37,18 @@ cd Facial-Recognition-Software-Project
 
 ```
 pip install -r requirements.txt
+```
+
+**Note:** If you encounter an error about missing `face_recognition_models`, run the provided patch:
+
+```
+python src/api_patch.py
+```
+
+Alternatively, use the run script which handles all dependencies:
+
+```
+python src/run.py
 ```
 
 ## Usage
@@ -84,13 +96,52 @@ python src/main.py --bias
 
 ## Working with Datasets
 
-This project includes tools to work with the LFW (Labeled Faces in the Wild) dataset:
+This project includes command-line tools to work with the LFW (Labeled Faces in the Wild) dataset:
 
 1. **Download a sample** of the LFW dataset
 2. **Prepare reference faces** for face matching
 3. **Create test datasets** with known and unknown faces
 
 These features allow for testing without capturing many faces via webcam.
+
+### Running an LFW Dataset Demo
+
+1. **Set up the dataset**:
+   ```
+   # Download and set up LFW dataset samples
+   python src/main.py --setup-dataset
+   ```
+   When prompted:
+   - Enter a number (e.g., 20) when asked for people to include in the dataset
+   - Enter a number (e.g., 5) when asked for people to include as known faces
+   - Enter numbers when asked about test images
+
+2. **Run face matching with the dataset**:
+   ```
+   # Test with webcam against LFW known faces
+   python src/main.py --match
+   ```
+
+3. **Process test images from the dataset**:
+   ```
+   # Process test images with face matching
+   python src/main.py --dir data/test_images --match
+   ```
+
+4. **Test bias with different demographic groups**:
+   ```
+   # Run bias testing demonstration
+   python src/main.py --bias
+   ```
+
+5. **Other useful command combinations**:
+   ```
+   # Process images with anonymization
+   python src/main.py --dir data/test_images --anonymize
+   
+   # Combine matching and anonymization
+   python src/main.py --dir data/test_images --match --anonymize
+   ```
 
 ## Project Structure
 

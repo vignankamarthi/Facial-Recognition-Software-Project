@@ -8,7 +8,6 @@ It provides a unified interface for using the system's various features.
 import os
 import argparse
 import cv2
-import shutil
 from face_detection import FaceDetector
 from face_matching import FaceMatcher
 from anonymization import FaceAnonymizer
@@ -162,7 +161,7 @@ def run_static_image_demo(image_path=None, directory_path=None, detect=True, mat
         print("No valid image path or directory provided.")
         print("Please specify a valid image file or directory.")
 
-
+# TODO: PLEASE REVIEW THIS
 def run_dataset_setup_demo():
     """
     Run the dataset setup demo.
