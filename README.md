@@ -1,5 +1,7 @@
 # Facial Recognition Software Project
 
+ [ ] Make sure the directions are IRON CLAD for a demonstration
+
 A facial recognition system that demonstrates both technical capabilities and ethical considerations in AI-based recognition technologies.
 
 ## Project Overview
@@ -240,7 +242,9 @@ Facial-Recognition-Software-Project/
 │   ├── utilities/          # Utility modules
 │   │   ├── image_processing.py      # Static image processing
 │   │   ├── fix_imports.py           # Import fixer utility
-│   │   ├── cleanup.py              # Project cleanup utility
+│   │   ├── face_recognition_patch.py # Shared face recognition patching utility
+│   │   ├── api_patch.py             # Face recognition API patching wrapper
+│   │   ├── cleanup.py               # Project cleanup utility
 │   │   └── quick_setup.py           # Setup script
 │   └── main.py             # Main application entry point
 ├── run_demo.py             # Demo launcher script
@@ -312,14 +316,24 @@ python src/utilities/quick_setup.py
 python src/utilities/fix_imports.py
 ```
 
+## Advanced Features
+
+### Face Recognition Patching System
+
+This project includes a robust system for handling face recognition library compatibility issues:
+
+- `face_recognition_patch.py`: A centralized utility that applies monkey patches to the face_recognition library when needed
+- This prevents crashes when the face_recognition_models package is not properly installed
+- The patching system is used by both api_patch.py and run.py, ensuring consistent behavior across the application
+
 ## Demo Preparation Checklist
 
 Before presenting a demo:
 
-- [ ] Clean up unnecessary files: `python src/utilities/cleanup.py`
-- [ ] Run the setup script: `python src/utilities/quick_setup.py`
-- [ ] Test webcam availability: `python run_demo.py --detect`
-- [ ] Download a sample dataset: `python run_demo.py --setup-dataset`
-- [ ] Prepare reference faces for matching
-- [ ] Test all anonymization modes
-- [ ] Run a bias test to ensure analysis works
+- Clean up unnecessary files: `python src/utilities/cleanup.py`
+- Run the setup script: `python src/utilities/quick_setup.py`
+- Test webcam availability: `python run_demo.py --detect`
+- Download a sample dataset: `python run_demo.py --setup-dataset`
+- Prepare reference faces for matching
+- Test all anonymization modes
+- Run a bias test to ensure analysis works

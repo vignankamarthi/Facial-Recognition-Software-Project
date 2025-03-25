@@ -4,7 +4,7 @@ Image Processing Module
 This module provides functionality for loading and processing static images
 for face detection, matching, and anonymization.
 """
-
+# TODO: PLEASE REVIEW THIS MORE CAREFULLY AND ANALYZE CHANGES REFLECTING PACKAGE MANAGEMENT
 import os
 import cv2
 import shutil
@@ -155,6 +155,13 @@ class ImageProcessor:
 
             output_path = os.path.join(output_dir, f"{name}{suffix}{ext}")
 
+            # Check if file already exists to avoid overwriting
+            if os.path.exists(output_path):
+                # Add timestamp to filename to make it unique
+                import time
+                timestamp = int(time.time())
+                output_path = os.path.join(output_dir, f"{name}{suffix}_{timestamp}{ext}")
+
             # Save the image
             cv2.imwrite(output_path, processed_image)
             results["output_path"] = output_path
@@ -284,49 +291,72 @@ class ImageProcessor:
         extract_dir = os.path.join(target_dir, "lfw")
 
         try:
-            # Download the dataset if not already downloaded
-            if not os.path.exists(tgz_file):
+            # Check if dataset is already downloaded
+            if os.path.exists(tgz_file) and os.path.getsize(tgz_file) > 100000000:  # >100MB
+                print(f"LFW dataset already downloaded at {tgz_file}")
+            else:
+                # Download the dataset if not already downloaded or incomplete
+                if os.path.exists(tgz_file):
+                    print(f"Removing incomplete download: {tgz_file}")
+                    os.remove(tgz_file)
+                
                 print(f"Downloading LFW dataset from {lfw_url}...")
                 urllib.request.urlretrieve(lfw_url, tgz_file)
                 print("Download complete!")
 
-            # Extract the dataset if not already extracted
-            if not os.path.exists(extract_dir):
+            # Check if dataset is already extracted
+            if os.path.exists(extract_dir) and os.path.isdir(extract_dir) and len(os.listdir(extract_dir)) > 1000:
+                print(f"LFW dataset already extracted at {extract_dir}")
+            else:
+                # Remove any partial extraction
+                if os.path.exists(extract_dir):
+                    print(f"Removing incomplete extraction: {extract_dir}")
+                    shutil.rmtree(extract_dir)
+                
+                # Extract the dataset
                 print("Extracting dataset...")
                 with tarfile.open(tgz_file) as tar:
                     tar.extractall(path=target_dir)
                 print("Extraction complete!")
 
             # If sample_size is specified, create a random sample
+            sample_dir = os.path.join(target_dir, "lfw_sample")
+            
             if sample_size is not None:
-                print(f"Creating sample of {sample_size} people...")
+                # Check if sample already exists with correct size
+                if os.path.exists(sample_dir) and len(os.listdir(sample_dir)) >= sample_size:
+                    print(f"Sample dataset already exists at {sample_dir}")
+                else:
+                    print(f"Creating sample of {sample_size} people...")
+                    
+                    # Remove any existing sample directory
+                    if os.path.exists(sample_dir):
+                        shutil.rmtree(sample_dir)
+                    
+                    # Get all person directories
+                    person_dirs = [
+                        d
+                        for d in os.listdir(extract_dir)
+                        if os.path.isdir(os.path.join(extract_dir, d))
+                    ]
 
-                # Get all person directories
-                person_dirs = [
-                    d
-                    for d in os.listdir(extract_dir)
-                    if os.path.isdir(os.path.join(extract_dir, d))
-                ]
+                    # Select a random sample
+                    if sample_size > len(person_dirs):
+                        print(f"Warning: Requested {sample_size} people but only {len(person_dirs)} available")
+                        sample_size = len(person_dirs)
 
-                # Select a random sample
-                if sample_size > len(person_dirs):
-                    sample_size = len(person_dirs)
+                    selected_persons = random.sample(person_dirs, sample_size)
 
-                selected_persons = random.sample(person_dirs, sample_size)
+                    # Create sample directory
+                    os.makedirs(sample_dir)
 
-                # Create sample directory
-                sample_dir = os.path.join(target_dir, "lfw_sample")
-                if os.path.exists(sample_dir):
-                    shutil.rmtree(sample_dir)
-                os.makedirs(sample_dir)
+                    # Copy selected person directories to sample directory
+                    for person in selected_persons:
+                        src_dir = os.path.join(extract_dir, person)
+                        dst_dir = os.path.join(sample_dir, person)
+                        shutil.copytree(src_dir, dst_dir)
 
-                # Copy selected person directories to sample directory
-                for person in selected_persons:
-                    src_dir = os.path.join(extract_dir, person)
-                    dst_dir = os.path.join(sample_dir, person)
-                    shutil.copytree(src_dir, dst_dir)
-
-                print(f"Sample dataset created at {sample_dir}")
+                    print(f"Sample dataset created at {sample_dir}")
 
             return True
 
@@ -386,8 +416,18 @@ class ImageProcessor:
 
             selected_people = random.sample(people, num_people)
 
+            # Check for existing files to avoid duplicates
+            existing_files = os.listdir(output_dir) if os.path.exists(output_dir) else []
+            processed_count = 0
+
             # Copy images to output directory
             for person, _ in selected_people:
+                # Skip if this person already has a face image
+                person_filename = f"{person}.jpg"
+                if person_filename in existing_files:
+                    print(f"Skipping {person} - already in known faces")
+                    continue
+
                 # Get all images for this person
                 person_dir = os.path.join(lfw_dir, person)
                 images = [
@@ -397,15 +437,22 @@ class ImageProcessor:
                 ]
 
                 # Select random images
-                selected_images = random.sample(images, num_images_per_person)
+                selected_images = random.sample(images, min(num_images_per_person, len(images)))
 
                 # Copy each selected image
                 for img in selected_images:
                     src_path = os.path.join(person_dir, img)
                     dst_path = os.path.join(output_dir, f"{person}.jpg")
+                    
+                    # Check if file exists to avoid overwriting
+                    if os.path.exists(dst_path):
+                        # Add index to filename
+                        dst_path = os.path.join(output_dir, f"{person}_{processed_count}.jpg")
+                    
                     shutil.copy2(src_path, dst_path)
+                    processed_count += 1
 
-            print(f"Prepared {num_people} known faces in {output_dir}")
+            print(f"Prepared {processed_count} known faces in {output_dir}")
             return True
 
         except Exception as e:
@@ -465,12 +512,23 @@ class ImageProcessor:
                 if filename.lower().endswith((".jpg", ".jpeg", ".png")):
                     # Extract person name from filename
                     person = os.path.splitext(filename)[0]
+                    # Handle case where filename might have an index (person_1.jpg)
+                    if '_' in person:
+                        person = person.split('_')[0]
                     known_people.add(person)
+
+            # Keep track of files we've already copied
+            processed_known = set()
+            processed_unknown = set()
 
             # Prepare test images for known people
             import random
 
             for person in list(known_people)[:num_people]:
+                # Skip if we've already processed this person
+                if person in processed_known:
+                    continue
+                
                 # Get all images for this person
                 person_dir = os.path.join(lfw_dir, person)
                 if not os.path.exists(person_dir):
@@ -505,7 +563,16 @@ class ImageProcessor:
                     for i, img in enumerate(selected_images):
                         src_path = os.path.join(person_dir, img)
                         dst_path = os.path.join(known_output_dir, f"{person}_{i+1}.jpg")
+                        
+                        # Check if file already exists
+                        if os.path.exists(dst_path):
+                            import time
+                            timestamp = int(time.time())
+                            dst_path = os.path.join(known_output_dir, f"{person}_{i+1}_{timestamp}.jpg")
+                        
                         shutil.copy2(src_path, dst_path)
+                    
+                    processed_known.add(person)
 
             # Prepare test images for unknown people
             all_people = set()
@@ -514,27 +581,48 @@ class ImageProcessor:
                     all_people.add(person_dir)
 
             unknown_people = all_people - known_people
-            selected_unknown = random.sample(list(unknown_people), num_people)
+            
+            # Check if we already have enough unknown face images
+            existing_unknown = len(os.listdir(unknown_output_dir))
+            if existing_unknown >= num_people:
+                print(f"Already have {existing_unknown} unknown face images (requested {num_people})")
+            else:
+                # Select more unknown people to reach the desired number
+                num_needed = num_people - existing_unknown
+                if num_needed > 0:
+                    selected_unknown = random.sample(list(unknown_people - processed_unknown), 
+                                                  min(num_needed, len(unknown_people - processed_unknown)))
 
-            for person in selected_unknown:
-                # Get all images for this person
-                person_dir = os.path.join(lfw_dir, person)
-                images = [
-                    f
-                    for f in os.listdir(person_dir)
-                    if f.lower().endswith((".jpg", ".jpeg", ".png"))
-                ]
+                    for person in selected_unknown:
+                        # Get all images for this person
+                        person_dir = os.path.join(lfw_dir, person)
+                        images = [
+                            f
+                            for f in os.listdir(person_dir)
+                            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+                        ]
 
-                # Select one random image
-                if images:
-                    selected_image = random.choice(images)
-                    src_path = os.path.join(person_dir, selected_image)
-                    dst_path = os.path.join(unknown_output_dir, f"{person}.jpg")
-                    shutil.copy2(src_path, dst_path)
+                        # Select one random image
+                        if images:
+                            selected_image = random.choice(images)
+                            src_path = os.path.join(person_dir, selected_image)
+                            dst_path = os.path.join(unknown_output_dir, f"{person}.jpg")
+                            
+                            # Check if file already exists
+                            if os.path.exists(dst_path):
+                                import time
+                                timestamp = int(time.time())
+                                dst_path = os.path.join(unknown_output_dir, f"{person}_{timestamp}.jpg")
+                            
+                            shutil.copy2(src_path, dst_path)
+                            processed_unknown.add(person)
 
+            # Print summary of what was actually done
             print(f"Prepared test dataset in {output_dir}")
             print(f"  - Known people: {len(os.listdir(known_output_dir))} images")
             print(f"  - Unknown people: {len(os.listdir(unknown_output_dir))} images")
+            print(f"  - {len(processed_known)} new known faces added")
+            print(f"  - {len(processed_unknown)} new unknown faces added")
 
             return True
 
