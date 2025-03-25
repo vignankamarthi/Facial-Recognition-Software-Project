@@ -226,6 +226,16 @@ def main():
 
     while True:
         print("\nMain Menu:")
+        print("--- Webcam Required ---")
+        print("1. Face Detection (Webcam)")
+        print("2. Face Detection with Anonymization (Webcam)")
+        print("3. Face Matching (Webcam)")
+        print("--- No Webcam Required ---")
+        print("4. Static Image Processing")
+        print("5. Dataset Setup & Management")
+        print("6. Bias Testing Demonstration")
+        print("7. Exit")
+        
         options = [
             "Face Detection (Webcam)",
             "Face Detection with Anonymization (Webcam)",
@@ -235,9 +245,6 @@ def main():
             "Bias Testing Demonstration",
             "Exit",
         ]
-
-        for i, option in enumerate(options, 1):
-            print(f"{i}. {option}")
 
         try:
             choice = int(input(f"Enter your choice (1-{len(options)}): "))
