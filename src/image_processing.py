@@ -279,7 +279,7 @@ class ImageProcessor:
             os.makedirs(target_dir)
 
         # URL for the LFW dataset
-        lfw_url = "http://vis-www.cs.umass.edu/lfw/lfw.tgz"
+        lfw_url = "https://ndownloader.figshare.com/files/5976018"
         tgz_file = os.path.join(target_dir, "lfw.tgz")
         extract_dir = os.path.join(target_dir, "lfw")
 
