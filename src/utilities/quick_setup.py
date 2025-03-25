@@ -1,6 +1,6 @@
 """
 Quick Setup Script
-# TODO: PLEASE REVIEW THIS MORE CAREFULLY AND MAKE SURE DATADUPLICATION ADDITIONAS ARE WORKING
+# TODO: PLEASE REVIEW THIS MORE CAREFULLY AND MAKE SURE DATA DUPLICATION PREVENTION CODE ADDITIONS ARE WORKING
 This script performs a comprehensive setup of the facial recognition project,
 preparing it for immediate demonstration.
 """
