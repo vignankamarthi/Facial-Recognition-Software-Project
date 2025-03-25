@@ -52,6 +52,8 @@ def create_init_files():
     
     # Base project directory
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # Change to the project root directory to ensure relative paths work
+    os.chdir(base_dir)
     
     for directory in directories:
         init_path = os.path.join(base_dir, directory, "__init__.py")

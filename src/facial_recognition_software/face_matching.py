@@ -15,7 +15,7 @@ from .face_detection import FaceDetector
 class FaceMatcher:
     """A class to handle face matching operations."""
 
-    def __init__(self, known_faces_dir="../data/sample_faces"):
+    def __init__(self, known_faces_dir="./data/sample_faces"):
         """
         Initialize the face matcher with known faces.
 

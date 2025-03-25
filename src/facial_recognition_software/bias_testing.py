@@ -14,7 +14,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 class BiasAnalyzer:
     """A class to analyze bias in facial recognition systems."""
 
-    def __init__(self, test_datasets_dir="../data/test_datasets"):
+    def __init__(self, test_datasets_dir="./data/test_datasets"):
         """
         Initialize the bias analyzer.
 
@@ -78,8 +78,29 @@ class BiasAnalyzer:
             if not os.path.exists(group_dir):
                 os.makedirs(group_dir)
 
-        print(f"Created sample dataset structure at {sample_dataset_dir}")
-        print("Please add test images to each demographic group directory.")
+        # Create a results directory
+        results_dir = os.path.join(self.test_datasets_dir, "results")
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+            
+        print(f"\nCreated sample dataset structure at {sample_dataset_dir}")
+        print("\nFor bias testing to work correctly:")
+        print("1. Add test images with faces to each demographic group directory:")
+        for group in groups:
+            print(f"   - {os.path.join(sample_dataset_dir, group)}")
+        print("2. Each group should represent a different demographic category")
+        print("   (e.g., group_a = light skin, group_b = medium skin, group_c = dark skin)")
+        print("3. Make sure faces are clearly visible in the images\n")
+        
+        # Try to find images from dataset setup in LFW directory
+        try:
+            lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
+            if os.path.exists(lfw_path):
+                print(f"Tip: You can copy sample images from the LFW dataset at:")
+                print(f"  {lfw_path}")
+                print("  Run option 5 (Dataset Setup & Management) to download this dataset if needed.\n")
+        except Exception:
+            pass
 
     def test_recognition_accuracy(self, dataset_name):
         """
@@ -94,12 +115,26 @@ class BiasAnalyzer:
         dataset = self.load_test_dataset(dataset_name)
 
         if not dataset:
+            print(f"Error: Could not load dataset '{dataset_name}'")
             return None
+            
+        if len(dataset["images"]) == 0:
+            print(f"Error: Dataset '{dataset_name}' contains no images")
+            print(f"Please add test images to each demographic group directory in: {os.path.join(self.test_datasets_dir, dataset_name)}")
+            return None
+
+        # Check if we have images for each demographic group
+        demographics = set(dataset["demographics"])
+        if len(demographics) == 0:
+            print(f"Error: No valid demographic groups found in dataset '{dataset_name}'")
+            return None
+            
+        print(f"Found {len(demographics)} demographic groups: {', '.join(demographics)}")
 
         results = {"overall": {"detected": 0, "total": 0}, "by_demographic": {}}
 
         # Initialize results for each demographic group
-        for demographic in set(dataset["demographics"]):
+        for demographic in demographics:
             results["by_demographic"][demographic] = {"detected": 0, "total": 0}
 
         # Process each image
@@ -124,15 +159,31 @@ class BiasAnalyzer:
             except Exception as e:
                 print(f"Error processing {image_path}: {e}")
 
-        # Calculate accuracy metrics
-        if results["overall"]["total"] > 0:
-            results["overall"]["accuracy"] = (
-                results["overall"]["detected"] / results["overall"]["total"]
-            )
+        # Calculate accuracy metrics safely
+        try:
+            if results["overall"]["total"] > 0:
+                results["overall"]["accuracy"] = (
+                    results["overall"]["detected"] / results["overall"]["total"]
+                )
+            else:
+                results["overall"]["accuracy"] = 0
+                print("Warning: No valid images processed for overall accuracy calculation")
 
-        for demographic, stats in results["by_demographic"].items():
-            if stats["total"] > 0:
-                stats["accuracy"] = stats["detected"] / stats["total"]
+            for demographic, stats in results["by_demographic"].items():
+                if stats["total"] > 0:
+                    stats["accuracy"] = stats["detected"] / stats["total"]
+                else:
+                    stats["accuracy"] = 0
+                    print(f"Warning: No valid images processed for demographic '{demographic}'")
+                    
+            # Verify that we have valid accuracy values
+            if all(stats["total"] == 0 for _, stats in results["by_demographic"].items()):
+                print("Error: No valid images could be processed in any demographic group")
+                return None
+                
+        except Exception as e:
+            print(f"Error calculating accuracy metrics: {e}")
+            return None
 
         self.results[dataset_name] = results
         return results
@@ -147,70 +198,99 @@ class BiasAnalyzer:
         Returns:
             matplotlib.figure.Figure: The generated figure
         """
-        if not dataset_name:
-            # Use the most recent result if none specified
-            if not self.results:
-                print("No test results available to visualize.")
+        try:
+            if not dataset_name:
+                # Use the most recent result if none specified
+                if not self.results:
+                    print("No test results available to visualize.")
+                    return None
+                dataset_name = list(self.results.keys())[-1]
+
+            if dataset_name not in self.results:
+                print(f"No results found for dataset '{dataset_name}'.")
                 return None
-            dataset_name = list(self.results.keys())[-1]
 
-        if dataset_name not in self.results:
-            print(f"No results found for dataset '{dataset_name}'.")
+            results = self.results[dataset_name]
+
+            # Check if we have demographic data with accuracy values
+            if not results["by_demographic"]:
+                print("No demographic data available for visualization.")
+                return None
+
+            # Extract demographic groups and their accuracy
+            demographics = list(results["by_demographic"].keys())
+            if not demographics:
+                print("No demographic groups found for visualization.")
+                return None
+
+            # Check if we have accuracy metrics
+            missing_accuracy = False
+            for demo in demographics:
+                if "accuracy" not in results["by_demographic"][demo]:
+                    print(f"Warning: Missing accuracy data for demographic '{demo}'")
+                    missing_accuracy = True
+
+            if missing_accuracy:
+                print("Cannot visualize results due to missing accuracy metrics.")
+                return None
+
+            accuracies = [
+                results["by_demographic"][demo]["accuracy"] * 100 for demo in demographics
+            ]
+
+            # Create the figure
+            plt.figure(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            # Plot the bar chart
+            bars = ax.bar(demographics, accuracies, color="skyblue")
+
+            # Add the overall accuracy line
+            if "accuracy" in results["overall"]:
+                overall_accuracy = results["overall"]["accuracy"] * 100
+                ax.axhline(
+                    y=overall_accuracy,
+                    color="red",
+                    linestyle="-",
+                    label=f"Overall: {overall_accuracy:.1f}%",
+                )
+
+            # Add labels and title
+            ax.set_xlabel("Demographic Group")
+            ax.set_ylabel("Face Detection Accuracy (%)")
+            ax.set_title(f"Face Detection Accuracy by Demographic Group - {dataset_name}")
+            ax.set_ylim(0, 105)  # Set y-axis limit to 0-105%
+
+            # Add data labels on top of bars
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height + 1,
+                    f"{height:.1f}%",
+                    ha="center",
+                    va="bottom",
+                )
+
+            ax.legend()
+            plt.tight_layout()
+
+            # Save the figure
+            output_dir = os.path.join(self.test_datasets_dir, "results")
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            output_path = os.path.join(output_dir, f"{dataset_name}_bias_results.png")
+            plt.savefig(output_path)
+
+            print(f"Results visualization saved to {output_path}")
+            return fig
+            
+        except Exception as e:
+            print(f"Error visualizing results: {e}")
+            import traceback
+            traceback.print_exc()
             return None
-
-        results = self.results[dataset_name]
-
-        # Extract demographic groups and their accuracy
-        demographics = list(results["by_demographic"].keys())
-        accuracies = [
-            results["by_demographic"][demo]["accuracy"] * 100 for demo in demographics
-        ]
-
-        # Create the figure
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        # Plot the bar chart
-        bars = ax.bar(demographics, accuracies, color="skyblue")
-
-        # Add the overall accuracy line
-        overall_accuracy = results["overall"]["accuracy"] * 100
-        ax.axhline(
-            y=overall_accuracy,
-            color="red",
-            linestyle="-",
-            label=f"Overall: {overall_accuracy:.1f}%",
-        )
-
-        # Add labels and title
-        ax.set_xlabel("Demographic Group")
-        ax.set_ylabel("Face Detection Accuracy (%)")
-        ax.set_title(f"Face Detection Accuracy by Demographic Group - {dataset_name}")
-        ax.set_ylim(0, 105)  # Set y-axis limit to 0-105%
-
-        # Add data labels on top of bars
-        for bar in bars:
-            height = bar.get_height()
-            ax.text(
-                bar.get_x() + bar.get_width() / 2.0,
-                height + 1,
-                f"{height:.1f}%",
-                ha="center",
-                va="bottom",
-            )
-
-        ax.legend()
-        plt.tight_layout()
-
-        # Save the figure
-        output_dir = os.path.join(self.test_datasets_dir, "results")
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        output_path = os.path.join(output_dir, f"{dataset_name}_bias_results.png")
-        plt.savefig(output_path)
-
-        print(f"Results visualization saved to {output_path}")
-        return fig
 
     def run_bias_demonstration(self):
         """
@@ -219,41 +299,174 @@ class BiasAnalyzer:
         Returns:
             None
         """
-        # Create sample dataset structure if needed
-        if not os.path.exists(os.path.join(self.test_datasets_dir, "sample_dataset")):
-            self.create_sample_dataset()
-            print(
-                "Please add test images to the sample dataset directories, then run again."
-            )
-            return
+        try:
+            # Create sample dataset structure if needed
+            sample_dataset_path = os.path.join(self.test_datasets_dir, "sample_dataset")
+            if not os.path.exists(sample_dataset_path):
+                self.create_sample_dataset()
+                print("\nSample dataset structure created at:")
+                print(f"  {sample_dataset_path}")
+                print("\nPlease follow these steps before running bias testing again:")
+                print("1. Add test images to each demographic group directory:")
+                for group in ["group_a", "group_b", "group_c"]:
+                    print(f"   - {os.path.join(sample_dataset_path, group)}")
+                print("2. Images should contain faces from different demographic groups")
+                print("3. Then run the bias testing demonstration again\n")
+                return
+            
+            # Check if the sample directories have any images
+            has_images = False
+            for group in ["group_a", "group_b", "group_c"]:
+                group_dir = os.path.join(sample_dataset_path, group)
+                if os.path.exists(group_dir):
+                    image_files = [f for f in os.listdir(group_dir) 
+                                 if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+                    if image_files:
+                        has_images = True
+                        break
+            
+            if not has_images:
+                print("\nNo test images found in the sample dataset directories.")
+                
+                # Try to copy sample images from LFW dataset if it exists
+                lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
+                if os.path.exists(lfw_path):
+                    print("\nFound LFW dataset. Attempting to create sample test data...")
+                    success = self.copy_sample_images_from_lfw()
+                    if success:
+                        print("Successfully created sample test data. Continuing with bias testing...")
+                    else:
+                        print("\nCould not automatically create sample test data.")
+                        print("Please add test images manually to at least one demographic group directory:")
+                        for group in ["group_a", "group_b", "group_c"]:
+                            print(f"  - {os.path.join(sample_dataset_path, group)}")
+                        return
+                else:
+                    print("Please add test images to at least one demographic group directory:")
+                    for group in ["group_a", "group_b", "group_c"]:
+                        print(f"  - {os.path.join(sample_dataset_path, group)}")
+                    print("\nTip: You can run option 5 (Dataset Setup & Management) to download")
+                    print("     the LFW dataset, which can be used for bias testing.")
+                    return
 
-        # Test recognition accuracy
-        results = self.test_recognition_accuracy("sample_dataset")
+            # Test recognition accuracy
+            print("\nRunning recognition accuracy tests...")
+            results = self.test_recognition_accuracy("sample_dataset")
 
-        if not results:
-            return
+            if not results:
+                print("\nBias testing failed. Please check the error messages above.")
+                return
 
-        # Print results summary
-        print("\nBias Testing Results:")
-        print(f"Overall Accuracy: {results['overall']['accuracy']*100:.1f}%")
-        print("\nAccuracy by Demographic Group:")
+            # Print results summary
+            print("\nBias Testing Results:")
+            print(f"Overall Accuracy: {results['overall']['accuracy']*100:.1f}%")
+            print("\nAccuracy by Demographic Group:")
 
-        for demographic, stats in results["by_demographic"].items():
-            print(f"  {demographic}: {stats['accuracy']*100:.1f}%")
+            for demographic, stats in results["by_demographic"].items():
+                print(f"  {demographic}: {stats['accuracy']*100:.1f}%")
 
-        # Check for potential bias
-        accuracies = [stats["accuracy"] for stats in results["by_demographic"].values()]
-        if max(accuracies) - min(accuracies) > 0.1:  # More than 10% difference
-            print(
-                "\nPotential bias detected: Significant accuracy difference between demographic groups."
-            )
+            # Check for potential bias
+            accuracies = [stats["accuracy"] for stats in results["by_demographic"].values()]
+            if len(accuracies) >= 2:  # Need at least 2 groups to compare
+                if max(accuracies) - min(accuracies) > 0.1:  # More than 10% difference
+                    print(
+                        "\nPotential bias detected: Significant accuracy difference between demographic groups."
+                    )
+                else:
+                    print("\nNo significant bias detected between demographic groups.")
+            else:
+                print("\nNot enough demographic groups to detect bias. Need at least 2 groups.")
 
-        # Visualize the results
-        self.visualize_results("sample_dataset")
+            # Visualize the results
+            print("\nGenerating visualization...")
+            self.visualize_results("sample_dataset")
 
-        print("\nBias testing demonstration complete.")
+            print("\nBias testing demonstration complete.")
+            
+        except Exception as e:
+            print(f"\nBias Testing Results:\nAn error occurred: {str(e)}")
+            import traceback
+            traceback.print_exc()
 
 
+    def copy_sample_images_from_lfw(self):
+        """
+        Try to copy sample images from LFW dataset to the test dataset groups.
+        This is a convenience function for quick demo setup.
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            import random
+            import shutil
+            
+            # Find the LFW dataset
+            lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
+            if not os.path.exists(lfw_path):
+                print(f"LFW dataset not found at: {lfw_path}")
+                print("Run option 5 (Dataset Setup & Management) to download this dataset first.")
+                return False
+                
+            # Get list of person directories with multiple images
+            person_dirs = []
+            for person in os.listdir(lfw_path):
+                person_dir = os.path.join(lfw_path, person)
+                if os.path.isdir(person_dir):
+                    images = [f for f in os.listdir(person_dir) 
+                             if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+                    if len(images) >= 2:
+                        person_dirs.append((person, person_dir, images))
+            
+            if not person_dirs:
+                print("No suitable person directories found in LFW dataset.")
+                return False
+                
+            # Sample up to 10 people for each demographic group
+            if len(person_dirs) < 3:
+                print("Not enough people in LFW dataset to create sample groups.")
+                return False
+                
+            # Shuffle the person directories
+            random.shuffle(person_dirs)
+            
+            # Create sample dataset directory
+            sample_dataset_dir = os.path.join(self.test_datasets_dir, "sample_dataset")
+            if not os.path.exists(sample_dataset_dir):
+                os.makedirs(sample_dataset_dir)
+            
+            # Copy images to each demographic group
+            groups = ["group_a", "group_b", "group_c"]
+            people_per_group = min(5, len(person_dirs) // 3)
+            
+            for i, group in enumerate(groups):
+                group_dir = os.path.join(sample_dataset_dir, group)
+                if not os.path.exists(group_dir):
+                    os.makedirs(group_dir)
+                    
+                # Get people for this group
+                start_idx = i * people_per_group
+                end_idx = start_idx + people_per_group
+                group_people = person_dirs[start_idx:end_idx]
+                
+                # Copy one image from each person to this group
+                for person, person_dir, images in group_people:
+                    # Choose a random image
+                    image = random.choice(images)
+                    src_path = os.path.join(person_dir, image)
+                    dst_path = os.path.join(group_dir, f"{person}_{image}")
+                    shutil.copy2(src_path, dst_path)
+            
+            print(f"\nCopied sample images from LFW dataset to {sample_dataset_dir}")
+            print(f"- Added {people_per_group} people to each demographic group")
+            print("Note: These groups don't represent real demographic differences.")
+            print("      For real bias testing, use appropriately labeled datasets.\n")
+            return True
+            
+        except Exception as e:
+            print(f"Error copying sample images: {e}")
+            return False
+        
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
     analyzer = BiasAnalyzer()

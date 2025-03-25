@@ -16,7 +16,7 @@ from facial_recognition_software.anonymization import FaceAnonymizer
 class ImageProcessor:
     """A class to handle static image processing operations."""
 
-    def __init__(self, known_faces_dir="../data/sample_faces"):
+    def __init__(self, known_faces_dir="./data/sample_faces"):
         """
         Initialize the image processor.
 
@@ -255,7 +255,7 @@ class ImageProcessor:
         return all_results
 
     def download_and_extract_lfw_dataset(
-        self, target_dir="../data/datasets/lfw", sample_size=None
+        self, target_dir="./data/datasets/lfw", sample_size=None
     ):
         """
         Download and extract a sample of the LFW dataset.
@@ -338,8 +338,8 @@ class ImageProcessor:
         self,
         num_people=5,
         num_images_per_person=1,
-        lfw_dir="../data/datasets/lfw/lfw",
-        output_dir="../data/sample_faces",
+        lfw_dir="./data/datasets/lfw/lfw",
+        output_dir="./data/sample_faces",
     ):
         """
         Prepare a set of known faces from the LFW dataset.
@@ -416,9 +416,9 @@ class ImageProcessor:
         self,
         num_people=5,
         num_test_images=3,
-        lfw_dir="../data/datasets/lfw/lfw",
-        known_faces_dir="../data/sample_faces",
-        output_dir="../data/test_images",
+        lfw_dir="./data/datasets/lfw/lfw",
+        known_faces_dir="./data/sample_faces",
+        output_dir="./data/test_images",
     ):
         """
         Prepare a test dataset from the LFW dataset.

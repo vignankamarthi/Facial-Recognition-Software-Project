@@ -13,6 +13,9 @@ import subprocess
 base_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, base_dir)
 
+# Make sure all code uses the correct working directory
+os.chdir(base_dir)
+
 def main():
     """Launch the main application with proper path settings."""
     print("=" * 60)
