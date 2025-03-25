@@ -42,13 +42,42 @@ pip install -r requirements.txt
 **Note:** If you encounter an error about missing `face_recognition_models`, run the provided patch:
 
 ```
-python src/api_patch.py
+python src/utilities/api_patch.py
 ```
 
 Alternatively, use the run script which handles all dependencies:
 
 ```
-python src/run.py
+python src/utilities/run.py
+```
+
+## Project Structure
+
+The project is organized as follows:
+
+```
+Facial-Recognition-Software-Project/
+├── data/                   # Data directory for faces and datasets
+│   ├── datasets/           # Downloaded datasets (LFW, etc.)
+│   ├── sample_faces/       # Reference faces for matching
+│   ├── test_datasets/      # Datasets for bias testing
+│   ├── test_images/        # Test images for matching
+│   └── results/            # Processed images output
+├── docs/                   # Documentation
+│   └── ethical_discussion.md
+├── src/                    # Source code
+│   ├── facial_recognition_software/  # Core recognition modules
+│   │   ├── face_detection.py        # Face detection functionality
+│   │   ├── face_matching.py         # Face matching/identification
+│   │   ├── anonymization.py         # Face anonymization features
+│   │   └── bias_testing.py          # Bias analysis tools
+│   ├── utilities/          # Utility modules
+│   │   ├── image_processing.py      # Static image processing
+│   │   ├── cleanup.py               # Project cleanup utilities
+│   │   ├── setup_project.py         # Directory setup tools
+│   │   └── update_paths.py          # Path correction utilities
+│   └── main.py             # Main application entry point
+└── requirements.txt        # Required dependencies
 ```
 
 ## Usage
@@ -143,11 +172,19 @@ These features allow for testing without capturing many faces via webcam.
    python src/main.py --dir data/test_images --match --anonymize
    ```
 
-## Project Structure
+## First-time Setup
 
-- `src/`: Source code for the facial recognition system
-- `data/`: Sample faces and test datasets
-- `docs/`: Documentation including ethical discussions
+If you've just cloned the repository, run the setup script to create all necessary directories:
+
+```
+python src/utilities/setup_project.py
+```
+
+And to fix any import issues after refactoring, run:
+
+```
+python src/utilities/fix_imports.py
+```
 
 ## License
 

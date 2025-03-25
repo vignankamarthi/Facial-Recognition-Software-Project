@@ -8,11 +8,11 @@ It provides a unified interface for using the system's various features.
 import os
 import argparse
 import cv2
-from face_detection import FaceDetector
-from face_matching import FaceMatcher
-from anonymization import FaceAnonymizer
-from bias_testing import BiasAnalyzer
-from image_processing import ImageProcessor
+from src.facial_recognition_software.face_detection import FaceDetector
+from src.facial_recognition_software.face_matching import FaceMatcher
+from src.facial_recognition_software.anonymization import FaceAnonymizer
+from src.facial_recognition_software.bias_testing import BiasAnalyzer
+from src.utilities.image_processing import ImageProcessor
 
 
 def get_user_choice(prompt, options):
