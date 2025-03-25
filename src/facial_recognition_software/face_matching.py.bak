@@ -9,7 +9,7 @@ import os
 import cv2
 import numpy as np
 import face_recognition
-from .face_detection import FaceDetector
+from src.facial_recognition_software.face_detection import FaceDetector
 
 
 class FaceMatcher:

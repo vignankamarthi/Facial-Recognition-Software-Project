@@ -29,11 +29,11 @@ def fix_imports_in_file(file_path):
     
     # Define replacements for imports
     replacements = [
-        (r'from anonymization import', 'from facial_recognition_software.anonymization import'),
-        (r'from face_detection import', 'from facial_recognition_software.face_detection import'),
-        (r'from face_matching import', 'from facial_recognition_software.face_matching import'),
-        (r'from bias_testing import', 'from facial_recognition_software.bias_testing import'),
-        (r'from image_processing import', 'from .image_processing import')
+        (r'from anonymization import', 'from src.facial_recognition_software.anonymization import'),
+        (r'from face_detection import', 'from src.facial_recognition_software.face_detection import'),
+        (r'from face_matching import', 'from src.facial_recognition_software.face_matching import'),
+        (r'from bias_testing import', 'from src.facial_recognition_software.bias_testing import'),
+        (r'from image_processing import', 'from src.utilities.image_processing import')
     ]
     
     # Apply replacements

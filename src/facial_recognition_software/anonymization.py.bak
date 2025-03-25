@@ -203,7 +203,7 @@ class FaceAnonymizer:
 
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
-    from .face_detection import FaceDetector
+    from src.facial_recognition_software.face_detection import FaceDetector
 
     detector = FaceDetector()
     anonymizer = FaceAnonymizer()

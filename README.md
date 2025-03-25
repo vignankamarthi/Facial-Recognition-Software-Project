@@ -13,6 +13,28 @@ This project implements a facial recognition system with the following features:
 - Static image processing for analyzing photos without webcam
 - Dataset management tools for working with public face datasets
 
+## Quick Start
+
+**IMPORTANT**: To run the demos, use the launcher script:
+
+```bash
+# Fix imports (one-time setup)
+python fix_imports_now.py
+
+# Run the demo launcher
+python run_demo.py
+```
+
+The demo launcher adds the project to the Python path so that imports work correctly. You can pass any arguments to the launcher:
+
+```bash
+# Launch with specific demo
+python run_demo.py --detect
+python run_demo.py --match
+python run_demo.py --anonymize
+python run_demo.py --bias
+```
+
 ## Ethical Considerations
 
 This project serves as both a functional demonstration and an ethical case study. Key ethical aspects explored:
@@ -28,27 +50,21 @@ For more detailed discussion, see [Ethical Discussion](docs/ethical_discussion.m
 
 1. Clone this repository:
 
-```
+```bash
 git clone https://github.com/your-username/Facial-Recognition-Software-Project.git
 cd Facial-Recognition-Software-Project
 ```
 
 2. Install required dependencies:
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
-**Note:** If you encounter an error about missing `face_recognition_models`, run the provided patch:
+3. Fix imports and prepare your environment:
 
-```
-python src/utilities/api_patch.py
-```
-
-Alternatively, use the run script which handles all dependencies:
-
-```
-python src/utilities/run.py
+```bash
+python fix_imports_now.py
 ```
 
 ## Project Structure
@@ -73,19 +89,19 @@ Facial-Recognition-Software-Project/
 │   │   └── bias_testing.py          # Bias analysis tools
 │   ├── utilities/          # Utility modules
 │   │   ├── image_processing.py      # Static image processing
-│   │   ├── cleanup.py               # Project cleanup utilities
-│   │   ├── setup_project.py         # Directory setup tools
-│   │   └── update_paths.py          # Path correction utilities
+│   │   └── api_patch.py             # Dependency fixes
 │   └── main.py             # Main application entry point
+├── run_demo.py             # Demo launcher script
+├── fix_imports_now.py      # Import fixer script
 └── requirements.txt        # Required dependencies
 ```
 
 ## Usage
 
-Run the main application:
+Run the main application using the launcher:
 
-```
-python src/main.py
+```bash
+python run_demo.py
 ```
 
 Follow the on-screen instructions to:
@@ -98,29 +114,29 @@ Follow the on-screen instructions to:
 
 ### Command-line Arguments
 
-The application also supports command-line arguments:
+The application supports command-line arguments through the launcher:
 
-```
+```bash
 # Process a single image file
-python src/main.py --image path/to/image.jpg
+python run_demo.py --image path/to/image.jpg
 
 # Process all images in a directory
-python src/main.py --dir path/to/directory
+python run_demo.py --dir path/to/directory
 
 # Process images with face matching
-python src/main.py --image path/to/image.jpg --match
+python run_demo.py --image path/to/image.jpg --match
 
 # Process images with anonymization
-python src/main.py --image path/to/image.jpg --anonymize
+python run_demo.py --image path/to/image.jpg --anonymize
 
 # Run dataset setup and management tools
-python src/main.py --setup-dataset
+python run_demo.py --setup-dataset
 
 # Run original webcam-based demos
-python src/main.py --detect
-python src/main.py --anonymize
-python src/main.py --match
-python src/main.py --bias
+python run_demo.py --detect
+python run_demo.py --anonymize
+python run_demo.py --match
+python run_demo.py --bias
 ```
 
 ## Working with Datasets
@@ -136,9 +152,9 @@ These features allow for testing without capturing many faces via webcam.
 ### Running an LFW Dataset Demo
 
 1. **Set up the dataset**:
-   ```
+   ```bash
    # Download and set up LFW dataset samples
-   python src/main.py --setup-dataset
+   python run_demo.py --setup-dataset
    ```
    When prompted:
    - Enter a number (e.g., 20) when asked for people to include in the dataset
@@ -146,45 +162,33 @@ These features allow for testing without capturing many faces via webcam.
    - Enter numbers when asked about test images
 
 2. **Run face matching with the dataset**:
-   ```
+   ```bash
    # Test with webcam against LFW known faces
-   python src/main.py --match
+   python run_demo.py --match
    ```
 
 3. **Process test images from the dataset**:
-   ```
+   ```bash
    # Process test images with face matching
-   python src/main.py --dir data/test_images --match
+   python run_demo.py --dir data/test_images --match
    ```
 
 4. **Test bias with different demographic groups**:
-   ```
+   ```bash
    # Run bias testing demonstration
-   python src/main.py --bias
+   python run_demo.py --bias
    ```
 
-5. **Other useful command combinations**:
-   ```
-   # Process images with anonymization
-   python src/main.py --dir data/test_images --anonymize
-   
-   # Combine matching and anonymization
-   python src/main.py --dir data/test_images --match --anonymize
-   ```
+## Demo Preparation Checklist
 
-## First-time Setup
+Before presenting your demo:
 
-If you've just cloned the repository, run the setup script to create all necessary directories:
-
-```
-python src/utilities/setup_project.py
-```
-
-And to fix any import issues after refactoring, run:
-
-```
-python src/utilities/fix_imports.py
-```
+- [x] Run `python fix_imports_now.py` to fix import statements
+- [ ] Test webcam availability with `python run_demo.py --detect`
+- [ ] Download a sample dataset with `python run_demo.py --setup-dataset`
+- [ ] Prepare a few test images in `data/test_images` folder
+- [ ] Practice the demo flow to ensure smooth transitions
+- [ ] Check that all ethical points from the project plan are demonstrated
 
 ## License
 

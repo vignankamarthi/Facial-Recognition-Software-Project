@@ -96,7 +96,7 @@ class FaceDetector:
 
             if anonymize:
                 # If anonymization is enabled, blur the faces
-                from .anonymization import FaceAnonymizer
+                from src.facial_recognition_software.anonymization import FaceAnonymizer
 
                 anonymizer = FaceAnonymizer()
                 display_frame = anonymizer.anonymize_frame(frame, face_locations)
