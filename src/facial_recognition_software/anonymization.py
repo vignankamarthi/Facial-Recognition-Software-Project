@@ -17,8 +17,8 @@ class FaceAnonymizer:
         Initialize the face anonymizer.
 
         Args:
-            method (str): Anonymization method ('blur', 'pixelate', or 'mask')
-            intensity (int): Intensity of the anonymization effect
+            method (str): Anonymization method ('blur', 'pixelate', or 'mask') with default 'blur'
+            intensity (int): Intensity of the anonymization effect with range 1-100 with default 25
         """
         self.method = method
         self.intensity = intensity
@@ -47,9 +47,11 @@ class FaceAnonymizer:
 
         if current_method == "blur":
             # Apply Gaussian blur
-            blurred_face = cv2.GaussianBlur(
-                face_img, (self.intensity, self.intensity), 0
+            # Ensure kernel size is odd (required by GaussianBlur)
+            kernel_size = (
+                self.intensity if self.intensity % 2 == 1 else self.intensity + 1
             )
+            blurred_face = cv2.GaussianBlur(face_img, (kernel_size, kernel_size), 0)
             result_frame[top:bottom, left:right] = blurred_face
 
         elif current_method == "pixelate":

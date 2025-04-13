@@ -34,7 +34,7 @@ class FaceMatcher:
         """
         # Create known_faces_dir if it doesn't exist (for safety)
         if not os.path.exists(self.known_faces_dir):
-            print(f"Creating directory: {self.known_faces_dir}")
+            print(f"Creating directory since existing one wasn't found: {self.known_faces_dir}")
             os.makedirs(self.known_faces_dir)
             print(f"Please add reference face images to {self.known_faces_dir}")
             return
@@ -128,7 +128,7 @@ class FaceMatcher:
             ):
                 # Compare the face with known faces
                 matches = face_recognition.compare_faces(
-                    self.known_face_encodings, face_encoding
+                    self.known_face_encodings, face_encoding, 0.6
                 )
                 name = "Unknown"
 
@@ -206,7 +206,7 @@ class FaceMatcher:
             face_locations, face_encodings = detector.detect_faces(frame)
 
             # Identify the faces
-            display_frame, face_names = self.identify_faces(
+            display_frame = self.identify_faces(
                 frame, face_locations, face_encodings
             )
 
