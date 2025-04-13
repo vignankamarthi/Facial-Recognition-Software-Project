@@ -82,16 +82,16 @@ class BiasAnalyzer:
         results_dir = os.path.join(self.test_datasets_dir, "results")
         if not os.path.exists(results_dir):
             os.makedirs(results_dir)
-            
+
         print(f"\nCreated demographic split set structure at {demographic_split_dir}")
         print("\nFor bias testing to work correctly:")
         print("1. Add test images with faces to each demographic group directory:")
         for group in groups:
             print(f"   - {os.path.join(demographic_split_dir, group)}")
         print("2. Each group should represent a different demographic category")
-        print("   (e.g., group_a = light skin, group_b = medium skin, group_c = dark skin)")
+        print("   (e.g., group_a = asian, group_b = african, group_c = european)")
         print("3. Make sure faces are clearly visible in the images\n")
-        
+
         # Try to find images from dataset setup in LFW directory
         try:
             lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
@@ -117,7 +117,7 @@ class BiasAnalyzer:
         if not dataset:
             print(f"Error: Could not load dataset '{dataset_name}'")
             return None
-            
+
         if len(dataset["images"]) == 0:
             print(f"Error: Dataset '{dataset_name}' contains no images")
             print(f"Please add test images to each demographic group directory in: {os.path.join(self.test_datasets_dir, dataset_name)}")
@@ -128,7 +128,7 @@ class BiasAnalyzer:
         if len(demographics) == 0:
             print(f"Error: No valid demographic groups found in dataset '{dataset_name}'")
             return None
-            
+
         print(f"Found {len(demographics)} demographic groups: {', '.join(demographics)}")
 
         results = {"overall": {"detected": 0, "total": 0}, "by_demographic": {}}
@@ -175,12 +175,12 @@ class BiasAnalyzer:
                 else:
                     stats["accuracy"] = 0
                     print(f"Warning: No valid images processed for demographic '{demographic}'")
-                    
+
             # Verify that we have valid accuracy values
             if all(stats["total"] == 0 for _, stats in results["by_demographic"].items()):
                 print("Error: No valid images could be processed in any demographic group")
                 return None
-                
+
         except Exception as e:
             print(f"Error calculating accuracy metrics: {e}")
             return None
@@ -235,7 +235,8 @@ class BiasAnalyzer:
                 return None
 
             accuracies = [
-                results["by_demographic"][demo]["accuracy"] * 100 for demo in demographics
+                results["by_demographic"][demographic]["accuracy"] * 100
+                for demographic in demographics
             ]
 
             # Create the figure
@@ -285,7 +286,7 @@ class BiasAnalyzer:
 
             print(f"Results visualization saved to {output_path}")
             return fig
-            
+
         except Exception as e:
             print(f"Error visualizing results: {e}")
             import traceback
@@ -313,7 +314,7 @@ class BiasAnalyzer:
                 print("2. Images should contain faces from different demographic groups")
                 print("3. Then run the bias testing demonstration again\n")
                 return
-            
+
             # Check if the sample directories have any images
             has_images = False
             for group in ["group_a", "group_b", "group_c"]:
@@ -324,10 +325,10 @@ class BiasAnalyzer:
                     if image_files:
                         has_images = True
                         break
-            
+
             if not has_images:
                 print("\nNo test images found in the sample dataset directories.")
-                
+
                 # Try to copy sample images from LFW dataset if it exists
                 lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
                 if os.path.exists(lfw_path):
@@ -382,12 +383,11 @@ class BiasAnalyzer:
             self.visualize_results("demographic_split_set")
 
             print("\nBias testing demonstration complete.")
-            
+
         except Exception as e:
             print(f"\nBias Testing Results:\nAn error occurred: {str(e)}")
             import traceback
             traceback.print_exc()
-
 
     def copy_sample_images_from_lfw(self):
         """
@@ -400,14 +400,14 @@ class BiasAnalyzer:
         try:
             import random
             import shutil
-            
+
             # Find the LFW dataset
             lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
             if not os.path.exists(lfw_path):
                 print(f"LFW dataset not found at: {lfw_path}")
                 print("Run option 5 (Dataset Setup & Management) to download this dataset first.")
                 return False
-                
+
             # Get list of person directories with multiple images
             person_dirs = []
             for person in os.listdir(lfw_path):
@@ -417,38 +417,38 @@ class BiasAnalyzer:
                              if f.lower().endswith((".jpg", ".jpeg", ".png"))]
                     if len(images) >= 2:
                         person_dirs.append((person, person_dir, images))
-            
+
             if not person_dirs:
                 print("No suitable person directories found in LFW dataset.")
                 return False
-                
+
             # Sample up to 10 people for each demographic group
             if len(person_dirs) < 3:
                 print("Not enough people in LFW dataset to create sample groups.")
                 return False
-                
+
             # Shuffle the person directories
             random.shuffle(person_dirs)
-            
+
             # Create demographic split set directory
             demographic_split_dir = os.path.join(self.test_datasets_dir, "demographic_split_set")
             if not os.path.exists(demographic_split_dir):
                 os.makedirs(demographic_split_dir)
-            
+
             # Copy images to each demographic group
             groups = ["group_a", "group_b", "group_c"]
             people_per_group = min(5, len(person_dirs) // 3)
-            
+
             for i, group in enumerate(groups):
                 group_dir = os.path.join(demographic_split_dir, group)
                 if not os.path.exists(group_dir):
                     os.makedirs(group_dir)
-                    
+
                 # Get people for this group
                 start_idx = i * people_per_group
                 end_idx = start_idx + people_per_group
                 group_people = person_dirs[start_idx:end_idx]
-                
+
                 # Copy one image from each person to this group
                 for person, person_dir, images in group_people:
                     # Choose a random image
@@ -456,17 +456,17 @@ class BiasAnalyzer:
                     src_path = os.path.join(person_dir, image)
                     dst_path = os.path.join(group_dir, f"{person}_{image}")
                     shutil.copy2(src_path, dst_path)
-            
+
             print(f"\nCopied sample images from LFW dataset to {demographic_split_dir}")
             print(f"- Added {people_per_group} people to each demographic group")
             print("Note: These groups don't represent real demographic differences.")
             print("      For real bias testing, use appropriately labeled datasets.\n")
             return True
-            
+
         except Exception as e:
             print(f"Error copying sample images: {e}")
             return False
-        
+
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
     analyzer = BiasAnalyzer()
