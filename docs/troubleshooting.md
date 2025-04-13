@@ -141,7 +141,7 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 **Solution**:
 1. Create or check the sample dataset structure:
    ```
-   data/test_datasets/sample_dataset/
+   data/test_datasets/demographic_split_set/
    ├── group_a/  # First demographic group
    ├── group_b/  # Second demographic group
    └── group_c/  # Third demographic group

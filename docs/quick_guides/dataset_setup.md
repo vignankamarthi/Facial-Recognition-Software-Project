@@ -86,7 +86,7 @@ data/
 │       └── lfw_sample/  # Sampled subset of LFW
 ├── known_faces/        # Reference faces for matching
 ├── test_datasets/       # Datasets for bias testing
-│   └── sample_dataset/  # Demographic groups for bias testing
+│   └── demographic_split_set/  # Demographic groups for bias testing
 └── test_images/         # Test images for static processing
     ├── known/           # Known people (should match)
     └── unknown/         # Unknown people (should not match)
@@ -101,7 +101,7 @@ You can also add your own images to the system:
    - Name files with the person's name (e.g., john_smith.jpg)
 
 2. For bias testing:
-   - Add images to data/test_datasets/sample_dataset/ subfolders
+   - Add images to data/test_datasets/demographic_split_set/ subfolders
    - Organize by demographic groups in separate folders
 
 3. For general testing:

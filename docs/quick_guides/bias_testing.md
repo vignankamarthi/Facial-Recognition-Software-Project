@@ -16,9 +16,9 @@ This feature:
 ## Setup Process
 
 The first time you run bias testing:
-1. The system creates a sample dataset structure:
+1. The system creates a demographic split set structure:
    ```
-   data/test_datasets/sample_dataset/
+   data/test_datasets/demographic_split_set/
    ├── group_a/  # First demographic group
    ├── group_b/  # Second demographic group
    └── group_c/  # Third demographic group
