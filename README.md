@@ -1,12 +1,11 @@
 # Facial Recognition Software Project
-[ ] GO OVER NEW README FILE
 A facial recognition system demonstrating technical capabilities and ethical considerations in AI-based recognition technologies.
 
 ## Quick Start Guide
 
 ### Installation
 ```bash
-git clone <repository-url>
+git clone https://github.com/vignankamarthi/Facial-Recognition-Software-Project.git
 cd Facial-Recognition-Software-Project
 pip install -r requirements.txt
 python src/utilities/quick_setup.py
@@ -77,7 +76,7 @@ Facial-Recognition-Software-Project/
 
 For detailed usage instructions, see [docs/quick_guides/](docs/quick_guides/).
 
-For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discussion.md).
+For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discussion_draft.md).
 
 ## Troubleshooting
 

@@ -4,7 +4,6 @@ Main Application Module
 This module ties together all components of the facial recognition system.
 It provides a unified interface for using the system's various features.
 """
-# TODO: GO OVER NEW MENU SYSTEM AND MAKE SURE IT IS WORKING CORRECTLY
 import os
 import argparse
 import cv2
@@ -78,7 +77,7 @@ def run_face_matching_demo():
 
     # Check if sample faces directory exists and has images
     sample_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "data", "sample_faces")
+        os.path.join(os.path.dirname(__file__), "..", "data", "known_faces")
     )
 
     if not os.path.exists(sample_dir):
@@ -226,7 +225,7 @@ def run_dataset_setup_demo():
     print("Dataset Setup & Management")
     print("=" * 50)
     print("This tool helps prepare datasets for face matching and bias testing.\n")
-    
+
     processor = ImageProcessor()
 
     # Menu options
@@ -250,7 +249,7 @@ def run_dataset_setup_demo():
                 print("\n--- Downloading LFW Dataset Sample ---")
                 print("This will download a subset of the Labeled Faces in the Wild dataset.")
                 print("The download is about 200MB and may take several minutes.")
-                
+
                 try:
                     sample_size = int(input("\nEnter number of people to include (10-100 recommended): "))
                     print("\nDownloading and extracting dataset...")
@@ -260,13 +259,13 @@ def run_dataset_setup_demo():
                     print("Invalid input. Please enter a number.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
-                    
+
             elif choice == 2:
                 # Prepare known faces
                 print("\n--- Preparing Known Faces ---")
                 print("This will create reference faces for the face matching feature.")
-                print("Images will be saved to data/sample_faces/")
-                
+                print("Images will be saved to data/known_faces/")
+
                 try:
                     num_people = int(input("\nEnter number of people to include as known faces: "))
                     print("\nPreparing known faces...")
@@ -275,13 +274,13 @@ def run_dataset_setup_demo():
                     print("Invalid input. Please enter a number.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
-                    
+
             elif choice == 3:
                 # Prepare test dataset
                 print("\n--- Preparing Test Dataset ---")
                 print("This will create test images for face recognition evaluation.")
                 print("Images will be saved to data/test_images/")
-                
+
                 try:
                     num_people = int(input("\nEnter number of known people to include in test set: "))
                     num_images = int(input("Enter number of test images per person: "))
@@ -291,17 +290,17 @@ def run_dataset_setup_demo():
                     print("Invalid input. Please enter a number.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
-                    
+
             elif choice == 4:
                 # Return to main menu
                 print("Returning to main menu...")
                 break
             else:
                 print(f"Invalid choice. Please enter a number between 1 and {len(options)}.")
-                
+
             # Pause after operation completes
             input("\nPress Enter to continue...")
-            
+
         except ValueError:
             print("Invalid input. Please enter a number.")
         except KeyboardInterrupt:

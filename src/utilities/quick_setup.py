@@ -1,6 +1,5 @@
 """
 Quick Setup Script
-# TODO: PLEASE REVIEW THIS MORE CAREFULLY AND MAKE SURE DATA DUPLICATION PREVENTION CODE ADDITIONS ARE WORKING
 This script performs a comprehensive setup of the facial recognition project,
 preparing it for immediate demonstration.
 """
@@ -80,10 +79,10 @@ def create_init_files():
 def create_directories():
     """Create all necessary data directories."""
     print_section("Creating data directories")
-    
+
     directories = [
         "data",
-        "data/sample_faces",
+        "data/known_faces",
         "data/test_images",
         "data/test_images/known",
         "data/test_images/unknown",
@@ -95,15 +94,15 @@ def create_directories():
         "data/test_datasets/results",
         "data/datasets",
         "data/datasets/lfw",
-        "data/results"
+        "data/results",
     ]
-    
+
     # Base project directory
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    
+
     # Store the list of newly created directories for confirmation message
     created_dirs = []
-    
+
     for directory in directories:
         dir_path = os.path.join(base_dir, directory)
         if not os.path.exists(dir_path):
@@ -112,7 +111,7 @@ def create_directories():
             created_dirs.append(directory)
         else:
             print(f"Already exists: {dir_path}")
-    
+
     # Report what was actually created vs what already existed
     if created_dirs:
         print(f"\nCreated {len(created_dirs)} new directories:")
@@ -270,21 +269,21 @@ def check_if_setup_already_done():
     """Check if setup has already been completed to avoid duplicate setup."""
     # Base project directory
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    
+
     # Check for key indicators that setup is already done
     indicators = [
         os.path.join(base_dir, "src", "__init__.py"),
         os.path.join(base_dir, "src", "facial_recognition_software", "__init__.py"),
-        os.path.join(base_dir, "data", "sample_faces"),
-        os.path.join(base_dir, "data", "test_images")
+        os.path.join(base_dir, "data", "known_faces"),
+        os.path.join(base_dir, "data", "test_images"),
     ]
-    
+
     exist_count = sum(1 for path in indicators if os.path.exists(path))
-    
+
     # If most indicators exist, setup is likely already done
     if exist_count >= 3:
         return True
-    
+
     return False
 
 def main():

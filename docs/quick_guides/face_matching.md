@@ -6,7 +6,7 @@ Before using face matching, you need reference faces:
 
 1. Create a directory for reference faces:
    ```bash
-   mkdir -p data/sample_faces
+   mkdir -p data/known_faces
    ```
 
 2. Add reference images to this directory:
@@ -26,7 +26,7 @@ python run_demo.py --match
 ```
 
 - **What it does**: Identifies faces against known reference images
-- **Setup**: Automatically loads reference faces from data/sample_faces
+- **Setup**: Automatically loads reference faces from data/known_faces
 - **Display**:
   - Green box: Known face (with name and confidence score)
   - Red box: Unknown face
@@ -40,7 +40,7 @@ python run_demo.py --image path/to/image.jpg --match
 
 - **What it does**: Tries to identify faces in a static image
 - **Process**:
-  1. Loads reference faces from data/sample_faces
+  1. Loads reference faces from data/known_faces
   2. Detects faces in the specified image
   3. Compares each face against known references
   4. Labels faces with names and confidence scores
@@ -65,7 +65,7 @@ The system uses facial encoding to identify people:
 
 ## Common Issues
 
-- **"No known faces found"**: Add reference images to data/sample_faces
+- **"No known faces found"**: Add reference images to data/known_faces
 - **False positives**: Try using better quality reference images
 - **Low confidence scores**: Improve lighting and face positioning
 

@@ -41,13 +41,14 @@ class FaceDetector:
 
     def draw_face_boxes(self, frame, face_locations, color=(0, 255, 0), thickness=2):
         """
-        Draw boxes around detected faces.
+        Draw green boxes around detected faces.
 
         Args:
             frame (numpy.ndarray): Image frame to draw on
             face_locations (list): List of face location tuples (top, right, bottom, left)
-            color (tuple): BGR color for the box
-            thickness (int): Line thickness
+            color (tuple): BGR color for the box (green is the default)
+            thickness (int): Line thickness (default is 2)
+    
 
         Returns:
             numpy.ndarray: Frame with boxes drawn
@@ -66,7 +67,8 @@ class FaceDetector:
         Start a webcam feed and detect faces in real-time.
 
         Args:
-            anonymize (bool): Whether to blur detected faces
+            anonymize (bool): Whether to blur detected faces (default is False)
+        If True, the detected faces will be anonymized using a blurring effect.
 
         Returns:
             None

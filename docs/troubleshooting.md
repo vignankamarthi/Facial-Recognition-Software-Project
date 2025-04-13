@@ -86,7 +86,7 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 **Problem**: Face matching finds no matches even with known faces.
 
 **Solution**:
-1. Ensure you've added reference images to data/sample_faces/
+1. Ensure you've added reference images to data/known_faces/
 2. Check that reference images contain clear, well-lit faces
 3. Try setting up sample faces from LFW dataset:
    ```bash

@@ -1,4 +1,5 @@
 # Ethical Discussion: Facial Recognition Technology
+[ ] TODO: Format this well according to final presentation
 
 ## Introduction
 

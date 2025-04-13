@@ -1,5 +1,4 @@
 # Bias Testing Guide
-[ ] PLEASE GO OVER ALL QUICK GUIDES AND NEW DOCUMENTATION IN THE QUICK GUIDES FOLDER
 The bias testing feature demonstrates how facial recognition systems can have varying accuracy across different demographic groups.
 
 ## Quick Start

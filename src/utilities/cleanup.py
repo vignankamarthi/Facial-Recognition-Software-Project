@@ -109,15 +109,15 @@ def delete_backup_files(project_dir, dry_run=False):
 def cleanup_datasets(project_dir, reset_all=False, dry_run=False):
     """Clean up dataset files and directories."""
     print_section("Cleaning Datasets")
-    
+
     # Get the data directory
     data_dir = os.path.join(project_dir, "data")
     if not os.path.exists(data_dir):
         print(f"Data directory not found: {data_dir}")
         return 0
-    
+
     deleted_count = 0
-    
+
     # Always clean these temporary/generated files
     temp_patterns = [
         "**/*.tgz",
@@ -128,7 +128,7 @@ def cleanup_datasets(project_dir, reset_all=False, dry_run=False):
         "**/results/*.jpeg",
         "**/lfw_sample/**/*"
     ]
-    
+
     # Delete temporary files
     for pattern in temp_patterns:
         for path in Path(data_dir).glob(pattern):
@@ -146,16 +146,11 @@ def cleanup_datasets(project_dir, reset_all=False, dry_run=False):
             else:
                 print(f"Would delete: {path}")
                 deleted_count += 1
-    
+
     # Optional: Reset all datasets
     if reset_all:
-        dataset_dirs = [
-            "datasets",
-            "sample_faces",
-            "test_datasets",
-            "test_images"
-        ]
-        
+        dataset_dirs = ["datasets", "known_faces", "test_datasets", "test_images"]
+
         for dir_name in dataset_dirs:
             dir_path = os.path.join(data_dir, dir_name)
             if os.path.exists(dir_path):
@@ -175,7 +170,7 @@ def cleanup_datasets(project_dir, reset_all=False, dry_run=False):
                 else:
                     print(f"Would reset dataset directory: {dir_path}")
                     deleted_count += 1
-    
+
     print(f"\nTotal dataset items {'that would be ' if dry_run else ''}cleaned: {deleted_count}")
     return deleted_count
 

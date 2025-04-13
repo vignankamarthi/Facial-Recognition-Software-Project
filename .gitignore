@@ -3,7 +3,7 @@ data/datasets/
 src/data/datasets/
 src/data/datasets/lfw/
 src/data/datasets/lfw/lfw/
-data/sample_faces/
+data/known_faces/
 data/test_images/
 data/test_datasets/
 *.tgz

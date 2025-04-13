@@ -48,7 +48,7 @@ python run_demo.py --setup-dataset
 **Process**:
 1. Prompts for number of people to include as known faces
 2. Selects random people from the LFW dataset with multiple images
-3. Copies one image per person to data/sample_faces/
+3. Copies one image per person to data/known_faces/
 
 **Result**:
 - Creates a set of labeled face images for the face matching feature
@@ -84,7 +84,7 @@ data/
 ├── datasets/            # Raw datasets
 │   └── lfw/             # Labeled Faces in the Wild dataset
 │       └── lfw_sample/  # Sampled subset of LFW
-├── sample_faces/        # Reference faces for matching
+├── known_faces/        # Reference faces for matching
 ├── test_datasets/       # Datasets for bias testing
 │   └── sample_dataset/  # Demographic groups for bias testing
 └── test_images/         # Test images for static processing
@@ -97,7 +97,7 @@ data/
 You can also add your own images to the system:
 
 1. For face matching references:
-   - Add clear face images to data/sample_faces/
+   - Add clear face images to data/known_faces/
    - Name files with the person's name (e.g., john_smith.jpg)
 
 2. For bias testing:
