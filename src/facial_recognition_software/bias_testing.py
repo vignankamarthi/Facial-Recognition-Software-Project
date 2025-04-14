@@ -320,6 +320,23 @@ class BiasAnalyzer:
                 )
 
             ax.legend()
+            
+            # Add sample size information to bottom right corner
+            sample_sizes_text = "Images used per group:\n"
+            for demo in demographics:
+                count = results["by_demographic"][demo]["total"]
+                sample_sizes_text += f"{demo}: {count}\n"
+            
+            # Add the text box with sample sizes
+            plt.figtext(
+                0.95, 0.05,  # x, y position (bottom right)
+                sample_sizes_text,
+                horizontalalignment='right',
+                verticalalignment='bottom',
+                fontsize=9,
+                bbox=dict(facecolor='white', alpha=0.7, boxstyle='round,pad=0.5')
+            )
+            
             plt.tight_layout()
 
             # Save the figure
