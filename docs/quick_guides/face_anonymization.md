@@ -13,10 +13,7 @@ python run_demo.py --anonymize
      - **pixelate**: Creates a pixelated effect over faces
      - **mask**: Replaces faces with a black mask and simple face icon
 - **Controls during operation**:
-  - 'b' - Switch to blur mode
-  - 'p' - Switch to pixelate mode
-  - 'm' - Switch to mask mode
-  - 'q' - Quit and return to the main menu
+  - Press Ctrl+C to quit and return to the main menu
 
 ## With Static Images
 ```bash

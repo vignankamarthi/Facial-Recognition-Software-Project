@@ -57,11 +57,7 @@ def run_face_detection_demo(anonymize=False):
             return
     
     print("\nControls:")
-    if anonymize:
-        print("- Press 'b' to switch to blur mode")
-        print("- Press 'p' to switch to pixelate mode")
-        print("- Press 'm' to switch to mask mode")
-    print("- Press 'q' to quit")
+    print("- Press Ctrl+C to quit")
     print("\nStarting camera...\n")
 
     try:

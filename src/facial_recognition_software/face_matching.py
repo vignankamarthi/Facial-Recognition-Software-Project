@@ -226,7 +226,12 @@ class FaceMatcher:
                     frame, face_locations, face_encodings
                 )
 
-                # Display information
+                # Add semi-transparent background for instructions
+                overlay = display_frame.copy()
+                cv2.rectangle(overlay, (5, 5), (270, 95), (0, 0, 0), -1)
+                cv2.addWeighted(overlay, 0.6, display_frame, 0.4, 0, display_frame)
+                
+                # Display information with better visibility
                 text = f"Faces detected: {len(face_locations)}"
                 cv2.putText(
                     display_frame,
@@ -234,15 +239,15 @@ class FaceMatcher:
                     (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7,
-                    (0, 0, 255),
+                    (255, 255, 255),
                     2,
                 )
                 
-                # Add controls reminder
+                # Add controls reminder with better spacing
                 cv2.putText(
                     display_frame,
                     "Press 'q' to quit",
-                    (10, 60),
+                    (10, 70),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7,
                     (255, 255, 255),
