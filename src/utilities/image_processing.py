@@ -323,7 +323,7 @@ class ImageProcessor:
 
             if sample_size is not None:
                 # Check if sample already exists with correct size
-                if os.path.exists(sample_dir) and len(os.listdir(sample_dir)) >= sample_size:
+                if os.path.exists(sample_dir) and len(os.listdir(sample_dir)) == sample_size:
                     print(f"Sample dataset already exists at {sample_dir}")
                 else:
                     print(f"Creating sample of {sample_size} people...")
@@ -371,7 +371,7 @@ class ImageProcessor:
         output_dir="./data/known_faces",
     ):
         """
-        Prepare a set of known faces from the LFW dataset.
+        Prepare a random sample set of known faces from the LFW dataset.
 
         Args:
             num_people (int): Number of people to include
