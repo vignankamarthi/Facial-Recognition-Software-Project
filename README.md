@@ -45,7 +45,7 @@ If you don't have a webcam, you can still use these features:
 
 3. **Run demographic bias testing**:
    ```bash
-   python run_demo.py --bias --utkface
+   python run_demo.py --bias
    ```
    
    This will demonstrate how facial recognition accuracy can vary across different ethnic groups, providing statistical analysis and visualizations of potential algorithmic bias.
@@ -57,8 +57,7 @@ If you don't have a webcam, you can still use these features:
 | `--detect` | Run face detection demo |
 | `--anonymize` | Run face anonymization demo |
 | `--match` | Run face matching demo |
-| `--bias` | Run bias testing demo |
-| `--utkface` | Use UTKFace dataset for bias testing |
+| `--bias` | Run bias testing demo with UTKFace dataset |
 | `--image PATH` | Process a single image |
 | `--dir PATH` | Process all images in a directory |
 | `--setup-dataset` | Download and prepare sample datasets |

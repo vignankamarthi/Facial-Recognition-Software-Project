@@ -69,7 +69,7 @@ class BiasAnalyzer:
         print(f"Loaded {len(dataset['images'])} images from dataset '{dataset_name}'")
         return dataset
 
-    def create_demographic_split_set(self, use_utkface=True):
+    def create_demographic_split_set(self):
         """
         Create a sample dataset structure for demographic bias testing.
         
@@ -93,12 +93,8 @@ class BiasAnalyzer:
         if not os.path.exists(results_dir):
             os.makedirs(results_dir)
 
-        if use_utkface:
-            # Create ethnicity-based directories for UTKFace
-            groups = ["white", "black", "asian", "indian", "others"]
-        else:
-            # Use generic group names
-            groups = ["group_a", "group_b", "group_c"]
+        # Create ethnicity-based directories for UTKFace
+        groups = ["white", "black", "asian", "indian", "others"]
 
         # Create the group directories
         for group in groups:
@@ -113,29 +109,14 @@ class BiasAnalyzer:
             print(f"   - {os.path.join(demographic_split_dir, group)}")
         print("2. Each group should represent a different demographic category")
 
-        if not use_utkface:
-            print(
-                "   (e.g., group_a = self-defined, group_b = self-defined, group_c = self-defined)"
-            )
+
 
         print("3. Make sure faces are clearly visible in the images\n")
 
         # Suggest UTKFace dataset
-        if use_utkface:
-            print("Tip: You can use the UTKFace dataset for ethical bias testing:")
-            print("     Run: processor.download_and_extract_utkface_dataset()")
-            print("     Then: processor.prepare_utkface_for_bias_testing()")
-        else:
-            # Try to find images from dataset setup in UTKFace directory
-            try:
-                utkface_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
-                                          "datasets", "utkface", "utkface_aligned")
-                if os.path.exists(utkface_path):
-                    print(f"Tip: You can use the UTKFace dataset at:")
-                    print(f"  {utkface_path}")
-                    print("  Run option 5 (Dataset Setup & Management) to set up the UTKFace dataset if needed.\n")
-            except Exception:
-                pass
+        print("Tip: You can use the UTKFace dataset for ethical bias testing:")
+        print("     Run: processor.download_and_extract_utkface_dataset()")
+        print("     Then: processor.prepare_utkface_for_bias_testing()")
 
         return demographic_split_dir
 
@@ -276,9 +257,9 @@ class BiasAnalyzer:
                 for demographic in demographics
             ]
 
-            # Create the figure
-            plt.figure(figsize=(10, 6))
-            fig, ax = plt.subplots(figsize=(10, 6))
+            # Create the figure with enough space for legend
+            plt.figure(figsize=(12, 8))
+            fig, ax = plt.subplots(figsize=(12, 8))
 
             # Get colors for each demographic
             colors = []
@@ -299,7 +280,7 @@ class BiasAnalyzer:
                     y=overall_accuracy,
                     color="red",
                     linestyle="-",
-                    label=f"Overall: {overall_accuracy:.1f}%",
+                    label=f"Overall: {overall_accuracy:.2f}%",
                 )
 
             # Add labels and title
@@ -307,6 +288,9 @@ class BiasAnalyzer:
             ax.set_ylabel("Face Detection Accuracy as a %")
             ax.set_title(f"Face Detection Accuracy by Demographic Group - {dataset_name}")
             ax.set_ylim(0, 105)  # Set y-axis limit to 0-105%
+            
+            # Make more room for the legend by adjusting bottom margin
+            plt.subplots_adjust(bottom=0.2)
 
             # Add data labels on top of bars
             for bar in bars:
@@ -314,12 +298,13 @@ class BiasAnalyzer:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
                     height + 1,
-                    f"{height:.1f}%",
+                    f"{height:.2f}%",
                     ha="center",
                     va="bottom",
                 )
 
-            ax.legend()
+            # Position legend below the chart
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2)
             
             # Add sample size information to bottom right corner
             sample_sizes_text = "Images used per group:\n"
@@ -356,7 +341,7 @@ class BiasAnalyzer:
             traceback.print_exc()
             return None
 
-    def run_bias_demonstration(self, use_utkface=True):
+    def run_bias_demonstration(self):
         """
         Run a complete bias testing demonstration.
         
@@ -370,7 +355,7 @@ class BiasAnalyzer:
             # Create demographic split set structure if needed
             demographic_split_path = os.path.join(self.test_datasets_dir, "demographic_split_set")
             if not os.path.exists(demographic_split_path):
-                self.create_demographic_split_set(use_utkface)
+                self.create_demographic_split_set()
                 print("\nDemographic split set structure created at:")
                 print(f"  {demographic_split_path}")
                 print("\nPlease follow these steps before running bias testing again:")
@@ -425,11 +410,11 @@ class BiasAnalyzer:
 
             # Print results summary
             print("\nBias Testing Results:")
-            print(f"Overall Accuracy: {results['overall']['accuracy']*100:.1f}%")
+            print(f"Overall Accuracy: {results['overall']['accuracy']*100:.2f}%")
             print("\nAccuracy by Demographic Group:")
 
             for demographic, stats in results["by_demographic"].items():
-                print(f"  {demographic}: {stats['accuracy']*100:.1f}%")
+                print(f"  {demographic}: {stats['accuracy']*100:.2f}%")
 
             # Check for potential bias
             accuracies = [stats["accuracy"] for stats in results["by_demographic"].values()]
@@ -451,9 +436,9 @@ class BiasAnalyzer:
                             min_group = group
 
                     if max_group and min_group:
-                        print(f"  - Highest accuracy: {max_group} ({max_acc*100:.1f}%)")
-                        print(f"  - Lowest accuracy: {min_group} ({min_acc*100:.1f}%)")
-                        print(f"  - Difference: {(max_acc-min_acc)*100:.1f}%")
+                        print(f"  - Highest accuracy: {max_group} ({max_acc*100:.2f}%)")
+                        print(f"  - Lowest accuracy: {min_group} ({min_acc*100:.2f}%)")
+                        print(f"  - Difference: {(max_acc-min_acc)*100:.2f}%")
                 else:
                     print("\nNo significant bias detected between demographic groups.")
             else:

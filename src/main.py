@@ -215,7 +215,7 @@ def process_image_directory():
         cv2.destroyAllWindows()
 
 
-def run_bias_testing_demo(use_utkface=True):
+def run_bias_testing_demo():
     """
     Run the bias testing demo.
 
@@ -231,13 +231,9 @@ def run_bias_testing_demo(use_utkface=True):
     print("This feature demonstrates how facial recognition accuracy")
     print("can vary across different demographic groups.\n")
 
-    if use_utkface:
-        print("Using UTKFace dataset with actual demographic categories")
-        print("This provides a realistic demonstration of potential bias in")
-        print("facial recognition systems across different ethnicities.\n")
-    else:
-        print("Using generic dataset groups")
-        print("This is a simplified demonstration without real demographic data.\n")
+    print("Using UTKFace dataset with demographic categories")
+    print("This provides a realistic demonstration of potential bias in")
+    print("facial recognition systems across different ethnicities.\n")
 
     # Option to perform detailed analysis
     detailed = False
@@ -252,7 +248,7 @@ def run_bias_testing_demo(use_utkface=True):
         analyzer = BiasAnalyzer()
         
         # Run the standard bias demonstration
-        analyzer.run_bias_demonstration(use_utkface=use_utkface)
+        analyzer.run_bias_demonstration()
         
         # If detailed analysis was requested and we have results
         if detailed and analyzer.results:
@@ -472,8 +468,7 @@ def main():
         # Non-webcam features
         {"name": "🖼️ Process Single Image", "webcam": False, "function": process_single_image, "args": {}},
         {"name": "📁 Process Image Directory", "webcam": False, "function": process_image_directory, "args": {}},
-        {"name": "📊 Demographic Bias Testing (UTKFace)", "webcam": False, "function": run_bias_testing_demo, "args": {"use_utkface": True}},
-        {"name": "📊 Generic Bias Testing (Legacy)", "webcam": False, "function": run_bias_testing_demo, "args": {"use_utkface": False}},
+        {"name": "📊 Demographic Bias Testing", "webcam": False, "function": run_bias_testing_demo, "args": {}},
         {"name": "💾 Dataset Management", "webcam": False, "function": run_dataset_setup_demo, "args": {}},
         
         # Exit option
@@ -536,7 +531,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--match", action="store_true", help="Run face matching demo")
     parser.add_argument("--bias", action="store_true", help="Run bias testing demo")
-    parser.add_argument("--utkface", action="store_true", help="Use UTKFace dataset for bias testing")
+    # UTKFace is now used by default for all bias testing
     parser.add_argument("--image", type=str, help="Process a single image file")
     parser.add_argument("--dir", type=str, help="Process a directory of images")
     parser.add_argument("--setup-dataset", action="store_true", help="Run dataset setup and management")
@@ -565,7 +560,7 @@ if __name__ == "__main__":
         elif args.match:
             run_face_matching_demo()
         elif args.bias:
-            run_bias_testing_demo(use_utkface=args.utkface)
+            run_bias_testing_demo()
         else:
             # If no arguments are provided, run the interactive menu
             main()

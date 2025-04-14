@@ -3,7 +3,7 @@ The bias testing feature demonstrates how facial recognition systems can have va
 
 ## Quick Start
 ```bash
-python run_demo.py --bias --utkface
+python run_demo.py --bias
 ```
 
 ## What It Does
@@ -88,13 +88,7 @@ For more in-depth bias investigation:
    - Mean absolute deviation from average accuracy
    - Bias level categorization (Low/Moderate/High)
 
-## Legacy Mode
 
-For backward compatibility, you can still run the bias testing with generic groups:
-```bash
-python run_demo.py --bias
-```
-Without the `--utkface` flag, the system will use generic group_a, group_b, and group_c directories that don't represent actual demographic categories. This is less useful for real bias testing but maintains compatibility with previous versions.
 
 ## Technical Implementation
 
