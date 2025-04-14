@@ -1,6 +1,6 @@
 # Dataset Setup Guide
 
-This guide explains how to set up and manage datasets for the facial recognition project.
+This guide explains how to set up and manage datasets for the facial recognition project, including the new UTKFace dataset for ethical bias testing.
 
 ## Quick Start
 ```bash
@@ -9,20 +9,48 @@ python run_demo.py --setup-dataset
 
 ## Available Operations
 
-The dataset setup menu provides four options:
+The dataset setup menu provides several options:
 
-1. **Download LFW dataset sample**
-2. **Prepare known faces from LFW**
-3. **Prepare test dataset from LFW**
-4. **Return to main menu**
+1. **Download UTKFace dataset** - Main dataset with demographic labels
+2. **Download LFW dataset sample** - Alternative dataset without demographics
+3. **Set up bias testing with UTKFace** - Prepare data for demographic analysis
+4. **Prepare known faces from UTKFace** - Create reference faces for matching
+5. **Prepare known faces from LFW** - Alternative reference faces
+6. **Prepare test dataset** - Create test images for evaluation
+7. **Return to main menu**
 
-## 1. Download LFW Dataset Sample
+## 1. Download UTKFace Dataset
 
-This option downloads a subset of the Labeled Faces in the Wild (LFW) dataset:
+This option downloads the UTKFace (University of Tennessee, Knoxville Face) dataset with demographic annotations:
 
 ```bash
 python run_demo.py --setup-dataset
 # Select option 1
+```
+
+**Process**:
+1. Prompts for sample size (number of images to include)
+2. Asks which ethnicities to include:
+   - All ethnicities
+   - White and Black only (for pronounced contrast)
+   - White, Black, and Asian (most common groups)
+   - Custom selection (choose specific ethnicities)
+3. Downloads the UTKFace aligned dataset
+4. Organizes images by demographic categories
+
+**Dataset Information**:
+- UTKFace contains over 20,000 face images with age, gender, and ethnicity annotations
+- Each image filename follows the format: [age]_[gender]_[race]_[date&time].jpg
+- Gender: 0 (male), 1 (female)
+- Ethnicity: 0 (White), 1 (Black), 2 (Asian), 3 (Indian), 4 (Others)
+
+## 2. Download LFW Dataset Sample
+
+This legacy option downloads a subset of the Labeled Faces in the Wild (LFW) dataset:
+
+```bash
+python run_demo.py --setup-dataset
+# Select option 2
 ```
 
 **Process**:
@@ -31,32 +59,11 @@ python run_demo.py --setup-dataset
 3. Extracts files to data/datasets/lfw/
 4. Creates a random sample in data/datasets/lfw/lfw_sample/
 
-**Notes**:
-- Downloads may take several minutes depending on internet speed
-- The full LFW dataset contains over 13,000 images of 5,749 people
-- The sample uses a random subset to save space
+**Note**: Unlike UTKFace, the LFW dataset does not contain demographic annotations, making it less suitable for bias testing.
 
-## 2. Prepare Known Faces from LFW
+## 3. Set Up Bias Testing with UTKFace
 
-This option creates reference faces for face matching:
-
-```bash
-python run_demo.py --setup-dataset
-# Select option 2
-```
-
-**Process**:
-1. Prompts for number of people to include as known faces
-2. Selects random people from the LFW dataset with multiple images
-3. Copies one image per person to data/known_faces/
-
-**Result**:
-- Creates a set of labeled face images for the face matching feature
-- These images will be used as reference for identification
-
-## 3. Prepare Test Dataset from LFW
-
-This option creates test images for evaluating face recognition:
+This option prepares the UTKFace dataset for bias testing:
 
 ```bash
 python run_demo.py --setup-dataset
@@ -64,16 +71,70 @@ python run_demo.py --setup-dataset
 ```
 
 **Process**:
-1. Prompts for:
+1. Prompts for number of images per ethnicity group
+2. Copies a balanced sample of images from each ethnicity
+3. Organizes them into demographic directories:
+   - white/
+   - black/
+   - asian/
+   - indian/
+   - others/
+
+**Result**:
+- Creates a structured dataset in data/test_datasets/demographic_split_set/
+- This dataset is used by the bias testing feature to measure recognition accuracy across ethnicities
+
+## 4. Prepare Known Faces from UTKFace
+
+This option creates reference faces for face matching from the UTKFace dataset:
+
+```bash
+python run_demo.py --setup-dataset
+# Select option 4
+```
+
+**Process**:
+1. Prompts for number of people to include as known faces
+2. Asks whether to balance faces across ethnic groups
+3. Creates demographically diverse reference faces
+
+**Features**:
+- Option to balance ethnicity representation in the reference set
+- Each face is labeled with ethnicity information
+- Maintains diverse representation for more fair matching
+
+## 5. Prepare Known Faces from LFW
+
+This legacy option creates reference faces from the LFW dataset:
+
+```bash
+python run_demo.py --setup-dataset
+# Select option 5
+```
+
+**Process**:
+1. Prompts for number of people to include as known faces
+2. Copies one image per person to data/known_faces/
+
+**Note**: LFW contains mostly celebrity faces with limited diversity.
+
+## 6. Prepare Test Dataset
+
+This option creates test images for evaluating face recognition:
+
+```bash
+python run_demo.py --setup-dataset
+# Select option 6
+```
+
+**Process**:
+1. Asks to select source dataset (UTKFace or LFW)
+2. Prompts for:
    - Number of known people to include in test set
-   - Number of test images per person
-2. Copies images to:
+   - Number of unknown people to include
+3. Creates test images in:
    - data/test_images/known/: Additional images of people in the known set
    - data/test_images/unknown/: Images of people not in the known set
-
-**Purpose**:
-- Creates a structured test set for evaluating face matching accuracy
-- Includes both known faces (should match) and unknown faces (should not match)
 
 ## Directory Structure
 
@@ -81,15 +142,23 @@ After setup, your data directory will contain:
 
 ```
 data/
-├── datasets/            # Raw datasets
-│   └── lfw/             # Labeled Faces in the Wild dataset
-│       └── lfw_sample/  # Sampled subset of LFW
-├── known_faces/        # Reference faces for matching
-├── test_datasets/       # Datasets for bias testing
-│   └── demographic_split_set/  # Demographic groups for bias testing
-└── test_images/         # Test images for static processing
-    ├── known/           # Known people (should match)
-    └── unknown/         # Unknown people (should not match)
+├── datasets/
+│   ├── utkface/              # UTKFace dataset
+│   │   ├── utkface_aligned/  # Raw aligned images
+│   │   └── demographic_split/# Images organized by ethnicity
+│   └── lfw/                  # Labeled Faces in the Wild dataset (legacy)
+│       └── lfw_sample/       # Sampled subset of LFW
+├── known_faces/              # Reference faces for matching
+├── test_datasets/            # Datasets for bias testing
+│   └── demographic_split_set/# Ethnicity groups for bias testing
+│       ├── white/            # White ethnicity group
+│       ├── black/            # Black ethnicity group
+│       ├── asian/            # Asian ethnicity group
+│       ├── indian/           # Indian ethnicity group
+│       └── others/           # Other ethnicities
+└── test_images/              # Test images for static processing
+    ├── known/                # Known people (should match)
+    └── unknown/              # Unknown people (should not match)
 ```
 
 ## Using Your Own Images
@@ -102,16 +171,17 @@ You can also add your own images to the system:
 
 2. For bias testing:
    - Add images to data/test_datasets/demographic_split_set/ subfolders
-   - Organize by demographic groups in separate folders
+   - Organize by demographic groups in appropriate folders
 
 3. For general testing:
    - Add test images to data/test_images/
 
 ## Troubleshooting
 
-- **Download failures**: Check your internet connection and try again
+- **Download failures**: The UTKFace dataset is hosted on Google Drive, which may cause download issues. Consider installing the 'gdown' package (`pip install gdown`) for better Google Drive support
 - **"Missing dataset directory"**: Run the quick setup script first
 - **Permission errors**: Check file system permissions on the data directory
+- **Demographic categorization**: UTKFace ethnicities are based on the dataset's original categorization, which may have limitations. Use this for educational purposes about algorithmic bias.
 
 For more information on the technical implementation, see:
 - `src/utilities/image_processing.py`

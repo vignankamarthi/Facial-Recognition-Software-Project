@@ -8,6 +8,7 @@ across different demographic groups to identify potential biases.
 import os
 import face_recognition
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
 
 
@@ -23,6 +24,17 @@ class BiasAnalyzer:
         """
         self.test_datasets_dir = test_datasets_dir
         self.results = {}
+        self.ethnicity_colors = {
+            'white': '#3498db',  # Blue
+            'black': '#2ecc71',  # Green
+            'asian': '#e74c3c',  # Red
+            'indian': '#f39c12',  # Orange
+            'others': '#9b59b6',  # Purple
+            # Fallbacks for generic group names
+            'group_a': '#3498db',
+            'group_b': '#2ecc71',
+            'group_c': '#e74c3c'
+        }
 
     def load_test_dataset(self, dataset_name):
         """
@@ -47,7 +59,7 @@ class BiasAnalyzer:
             for file in files:
                 if file.lower().endswith((".jpg", ".jpeg", ".png")):
                     # Get demographic information from directory structure
-                    # --**Assuming structure like: dataset_name/demographic_group/image.jpg**--
+                    # -- Assuming structure like: dataset_name/demographic_group/image.jpg --
                     demographic = os.path.basename(root)
 
                     image_path = os.path.join(root, file)
@@ -57,31 +69,42 @@ class BiasAnalyzer:
         print(f"Loaded {len(dataset['images'])} images from dataset '{dataset_name}'")
         return dataset
 
-    def create_demographic_split_set(self):
+    def create_demographic_split_set(self, use_utkface=True):
         """
-        Create a sample dataset structure for demonstration purposes.
-        This is a placeholder for actual diverse datasets.
+        Create a sample dataset structure for demographic bias testing.
+        
+        Args:
+            use_utkface (bool): If True, suggests UTKFace dataset instead of generic groups
+            
+        Returns:
+            str: Path to the created demographic directory
         """
-        # Create base directory if it doesn't exist (for safety)
+        # Create base directory if it doesn't exist
         if not os.path.exists(self.test_datasets_dir):
             os.makedirs(self.test_datasets_dir)
 
-        # Create demographic split set directory (for safety)
+        # Create demographic split set directory
         demographic_split_dir = os.path.join(self.test_datasets_dir, "demographic_split_set")
         if not os.path.exists(demographic_split_dir):
             os.makedirs(demographic_split_dir)
-
-        # Create demographic group directories
-        groups = ["group_a", "group_b", "group_c"]
-        for group in groups:
-            group_dir = os.path.join(demographic_split_dir, group)
-            if not os.path.exists(group_dir):
-                os.makedirs(group_dir)
 
         # Create a results directory
         results_dir = os.path.join(self.test_datasets_dir, "results")
         if not os.path.exists(results_dir):
             os.makedirs(results_dir)
+
+        if use_utkface:
+            # Create ethnicity-based directories for UTKFace
+            groups = ["white", "black", "asian", "indian", "others"]
+        else:
+            # Use generic group names
+            groups = ["group_a", "group_b", "group_c"]
+
+        # Create the group directories
+        for group in groups:
+            group_dir = os.path.join(demographic_split_dir, group)
+            if not os.path.exists(group_dir):
+                os.makedirs(group_dir)
 
         print(f"\nCreated demographic split set structure at {demographic_split_dir}")
         print("\nFor bias testing to work correctly:")
@@ -89,18 +112,43 @@ class BiasAnalyzer:
         for group in groups:
             print(f"   - {os.path.join(demographic_split_dir, group)}")
         print("2. Each group should represent a different demographic category")
-        print("   (e.g., group_a = asian, group_b = african, group_c = european)")
+
+        if not use_utkface:
+            print(
+                "   (e.g., group_a = self-defined, group_b = self-defined, group_c = self-defined)"
+            )
+
         print("3. Make sure faces are clearly visible in the images\n")
 
-        # Try to find images from dataset setup in LFW directory
-        try:
-            lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
-            if os.path.exists(lfw_path):
-                print(f"Tip: You can copy sample images from the LFW dataset at:")
-                print(f"  {lfw_path}")
-                print("  Run option 5 (Dataset Setup & Management) to download this dataset if needed.\n")
-        except Exception:
-            pass
+        # Suggest UTKFace dataset
+        if use_utkface:
+            print("Tip: You can use the UTKFace dataset for ethical bias testing:")
+            print("     Run: processor.download_and_extract_utkface_dataset()")
+            print("     Then: processor.prepare_utkface_for_bias_testing()")
+        else:
+            # Try to find images from dataset setup in UTKFace directory
+            try:
+                utkface_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
+                                          "datasets", "utkface", "utkface_aligned")
+                if os.path.exists(utkface_path):
+                    print(f"Tip: You can use the UTKFace dataset at:")
+                    print(f"  {utkface_path}")
+                    print("  Run option 5 (Dataset Setup & Management) to set up the UTKFace dataset if needed.\n")
+            except Exception:
+                pass
+
+            # Check LFW as fallback
+            try:
+                lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
+                                      "datasets", "lfw", "lfw")
+                if os.path.exists(lfw_path):
+                    print(f"Tip: You can also copy sample images from the LFW dataset at:")
+                    print(f"  {lfw_path}")
+                    print("  Run option 5 (Dataset Setup & Management) to download this dataset if needed.\n")
+            except Exception:
+                pass
+
+        return demographic_split_dir
 
     def test_recognition_accuracy(self, dataset_name):
         """
@@ -243,8 +291,17 @@ class BiasAnalyzer:
             plt.figure(figsize=(10, 6))
             fig, ax = plt.subplots(figsize=(10, 6))
 
-            # Plot the bar chart
-            bars = ax.bar(demographics, accuracies, color="skyblue")
+            # Get colors for each demographic
+            colors = []
+            for demo in demographics:
+                demo_lower = demo.lower()
+                if demo_lower in self.ethnicity_colors:
+                    colors.append(self.ethnicity_colors[demo_lower])
+                else:
+                    colors.append('skyblue')  # Default color
+
+            # Plot the bar chart with demographic-specific colors
+            bars = ax.bar(demographics, accuracies, color=colors)
 
             # Add the overall accuracy line
             if "accuracy" in results["overall"]:
@@ -258,7 +315,7 @@ class BiasAnalyzer:
 
             # Add labels and title
             ax.set_xlabel("Demographic Group")
-            ax.set_ylabel("Face Detection Accuracy (%)")
+            ax.set_ylabel("Face Detection Accuracy as a %")
             ax.set_title(f"Face Detection Accuracy by Demographic Group - {dataset_name}")
             ax.set_ylim(0, 105)  # Set y-axis limit to 0-105%
 
@@ -293,9 +350,12 @@ class BiasAnalyzer:
             traceback.print_exc()
             return None
 
-    def run_bias_demonstration(self):
+    def run_bias_demonstration(self, use_utkface=True):
         """
         Run a complete bias testing demonstration.
+        
+        Args:
+            use_utkface (bool): Whether to use UTKFace dataset (True) or generic groups (False)
 
         Returns:
             None
@@ -304,20 +364,35 @@ class BiasAnalyzer:
             # Create demographic split set structure if needed
             demographic_split_path = os.path.join(self.test_datasets_dir, "demographic_split_set")
             if not os.path.exists(demographic_split_path):
-                self.create_demographic_split_set()
+                self.create_demographic_split_set(use_utkface)
                 print("\nDemographic split set structure created at:")
                 print(f"  {demographic_split_path}")
                 print("\nPlease follow these steps before running bias testing again:")
-                print("1. Add test images to each demographic group directory:")
-                for group in ["group_a", "group_b", "group_c"]:
-                    print(f"   - {os.path.join(demographic_split_path, group)}")
-                print("2. Images should contain faces from different demographic groups")
-                print("3. Then run the bias testing demonstration again\n")
+
+                if use_utkface:
+                    print("1. Run the following commands to prepare the dataset:")
+                    print("   processor = ImageProcessor()")
+                    print("   processor.download_and_extract_utkface_dataset()")
+                    print("   processor.prepare_utkface_for_bias_testing()")
+                    print("2. Then run the bias testing demonstration again\n")
+                else:
+                    print("1. Add test images to each demographic group directory:")
+                    for group in ["group_a", "group_b", "group_c"]:
+                        print(f"   - {os.path.join(demographic_split_path, group)}")
+                    print("2. Images should contain faces from different demographic groups")
+                    print("3. Then run the bias testing demonstration again\n")
+
                 return
+
+            # Determine which group names to check based on dataset type
+            if use_utkface:
+                groups = ["white", "black", "asian", "indian", "others"]
+            else:
+                groups = ["group_a", "group_b", "group_c"]
 
             # Check if the sample directories have any images
             has_images = False
-            for group in ["group_a", "group_b", "group_c"]:
+            for group in groups:
                 group_dir = os.path.join(demographic_split_path, group)
                 if os.path.exists(group_dir):
                     image_files = [f for f in os.listdir(group_dir) 
@@ -329,26 +404,47 @@ class BiasAnalyzer:
             if not has_images:
                 print("\nNo test images found in the sample dataset directories.")
 
-                # Try to copy sample images from LFW dataset if it exists
-                lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
-                if os.path.exists(lfw_path):
-                    print("\nFound LFW dataset. Attempting to create sample test data...")
-                    success = self.copy_sample_images_from_lfw()
-                    if success:
-                        print("Successfully created sample test data. Continuing with bias testing...")
+                if use_utkface:
+                    # Try to find UTKFace dataset
+                    utkface_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
+                                               "datasets", "utkface", "utkface_aligned")
+                    if os.path.exists(utkface_path):
+                        print("\nUTKFace dataset found. Please prepare it for bias testing:")
+                        print("   processor = ImageProcessor()")
+                        print("   processor.prepare_utkface_for_bias_testing()")
                     else:
-                        print("\nCould not automatically create sample test data.")
-                        print("Please add test images manually to at least one demographic group directory:")
-                        for group in ["group_a", "group_b", "group_c"]:
-                            print(f"  - {os.path.join(demographic_split_path, group)}")
-                        return
+                        print("\nUTKFace dataset not found. Please download and extract it:")
+                        print("   processor = ImageProcessor()")
+                        print("   processor.download_and_extract_utkface_dataset()")
+                        print("   processor.prepare_utkface_for_bias_testing()")
                 else:
-                    print("Please add test images to at least one demographic group directory:")
-                    for group in ["group_a", "group_b", "group_c"]:
-                        print(f"  - {os.path.join(demographic_split_path, group)}")
-                    print("\nTip: You can run option 5 (Dataset Setup & Management) to download")
-                    print("     the LFW dataset, which can be used for bias testing.")
-                    return
+                    # Try to copy sample images from LFW dataset if it exists (legacy fallback)
+                    lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
+                                           "datasets", "lfw", "lfw")
+                    if os.path.exists(lfw_path):
+                        print("\nFound LFW dataset. Attempting to create sample test data...")
+                        success = self.copy_sample_images_from_lfw()
+                        if success:
+                            print("Successfully created sample test data. Continuing with bias testing...")
+                        else:
+                            print("\nCould not automatically create sample test data.")
+                            print("Please add test images manually to at least one demographic group directory:")
+                            for group in groups:
+                                print(f"  - {os.path.join(demographic_split_path, group)}")
+                            return
+                    else:
+                        print("Please add test images to at least one demographic group directory:")
+                        for group in groups:
+                            print(f"  - {os.path.join(demographic_split_path, group)}")
+                        if use_utkface:
+                            print("\nTip: Run the following commands to set up the UTKFace dataset:")
+                            print("   processor = ImageProcessor()")
+                            print("   processor.download_and_extract_utkface_dataset()")
+                            print("   processor.prepare_utkface_for_bias_testing()")
+                        else:
+                            print("\nTip: You can run option 5 (Dataset Setup & Management) to download")
+                            print("     a sample dataset that can be used for bias testing.")
+                        return
 
             # Test recognition accuracy
             print("\nRunning recognition accuracy tests...")
@@ -369,10 +465,26 @@ class BiasAnalyzer:
             # Check for potential bias
             accuracies = [stats["accuracy"] for stats in results["by_demographic"].values()]
             if len(accuracies) >= 2:  # Need at least 2 groups to compare
-                if max(accuracies) - min(accuracies) > 0.1:  # More than 10% difference
+                max_acc = max(accuracies)
+                min_acc = min(accuracies)
+                if max_acc - min_acc > 0.1:  # More than 10% difference
                     print(
                         "\nPotential bias detected: Significant accuracy difference between demographic groups."
                     )
+
+                    # Get the groups with highest and lowest accuracy
+                    max_group = None
+                    min_group = None
+                    for group, stats in results["by_demographic"].items():
+                        if stats["accuracy"] == max_acc:
+                            max_group = group
+                        if stats["accuracy"] == min_acc:
+                            min_group = group
+
+                    if max_group and min_group:
+                        print(f"  - Highest accuracy: {max_group} ({max_acc*100:.1f}%)")
+                        print(f"  - Lowest accuracy: {min_group} ({min_acc*100:.1f}%)")
+                        print(f"  - Difference: {(max_acc-min_acc)*100:.1f}%")
                 else:
                     print("\nNo significant bias detected between demographic groups.")
             else:
@@ -392,7 +504,7 @@ class BiasAnalyzer:
     def copy_sample_images_from_lfw(self):
         """
         Try to copy sample images from LFW dataset to the test dataset groups.
-        This is a convenience function for quick demo setup.
+        This is a legacy convenience function for quick demo setup.
         
         Returns:
             bool: True if successful, False otherwise
@@ -467,7 +579,87 @@ class BiasAnalyzer:
             print(f"Error copying sample images: {e}")
             return False
 
+    def analyze_demographic_bias(self, dataset_name="demographic_split_set", detailed=False):
+        """
+        Perform a more detailed analysis of demographic bias in the dataset.
+        
+        Args:
+            dataset_name (str): Name of the dataset to analyze
+            detailed (bool): Whether to perform detailed statistical analysis
+            
+        Returns:
+            dict: Results of bias analysis
+        """
+        # First run the standard accuracy test
+        results = self.test_recognition_accuracy(dataset_name)
+        if not results:
+            return None
+
+        # Extract demographic groups
+        demographics = list(results["by_demographic"].keys())
+        if len(demographics) < 2:
+            print("Not enough demographic groups for bias analysis")
+            return results
+
+        # Calculate basic statistics
+        accuracies = [results["by_demographic"][d]["accuracy"] for d in demographics]
+        avg_accuracy = results["overall"]["accuracy"]
+        max_accuracy = max(accuracies)
+        min_accuracy = min(accuracies)
+        accuracy_range = max_accuracy - min_accuracy
+
+        # For detailed analysis, use standard deviation and variance
+        if detailed:
+            try:
+                std_dev = np.std(accuracies)
+                variance = np.var(accuracies)
+
+                # Additional metrics
+                mean_abs_deviation = np.mean([abs(acc - avg_accuracy) for acc in accuracies])
+
+                # Add detailed stats to results
+                results["bias_analysis"] = {
+                    "std_deviation": std_dev,
+                    "variance": variance,
+                    "mean_abs_deviation": mean_abs_deviation,
+                    "accuracy_range": accuracy_range,
+                    "max_accuracy": max_accuracy,
+                    "min_accuracy": min_accuracy
+                }
+
+                # Print detailed analysis
+                print("\nDetailed Bias Analysis:")
+                print(f"Standard Deviation: {std_dev:.4f}")
+                print(f"Variance: {variance:.4f}")
+                print(f"Mean Absolute Deviation: {mean_abs_deviation:.4f}")
+                print(f"Accuracy Range: {accuracy_range:.4f}")
+
+                # Interpretation guide
+                if accuracy_range > 0.15:
+                    bias_level = "High"
+                elif accuracy_range > 0.05:
+                    bias_level = "Moderate"
+                else:
+                    bias_level = "Low"
+
+                print(f"\nBias Level: {bias_level}")
+                print(f"  - Range > 0.15: High bias potential")
+                print(f"  - Range 0.05-0.15: Moderate bias potential")
+                print(f"  - Range < 0.05: Low bias potential")
+
+            except Exception as e:
+                print(f"Error in detailed analysis: {e}")
+        else:
+            # Basic analysis
+            results["bias_analysis"] = {
+                "accuracy_range": accuracy_range,
+                "max_accuracy": max_accuracy,
+                "min_accuracy": min_accuracy
+            }
+
+        return results
+
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
     analyzer = BiasAnalyzer()
-    analyzer.run_bias_demonstration()
+    analyzer.run_bias_demonstration(use_utkface=True)
