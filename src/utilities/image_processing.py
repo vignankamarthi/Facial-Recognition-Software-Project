@@ -293,10 +293,10 @@ class ImageProcessor:
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
 
-        # URL for the UTKFace dataset aligned & cropped version
-        utkface_url = "https://drive.google.com/uc?id=0BxYys69jI14kYVM3aVhKS1VhRUk"
-        zip_file = os.path.join(target_dir, "utkface.zip")
-        extract_dir = os.path.join(target_dir, "utkface_aligned")
+        # URL for the UTKFace dataset - using the "in the wild" folder
+        utkface_folder_url = "https://drive.google.com/drive/folders/1HROmgviy4jUUUaCdvvrQ8PcqtNg2jn3G?usp=share_link"
+        archive_dir = os.path.join(target_dir, "archives")
+        extract_dir = os.path.join(target_dir, "utkface_data")
 
         # Dictionary to map race codes to ethnicity names
         ethnicity_names = {0: "White", 1: "Black", 2: "Asian", 3: "Indian", 4: "Others"}
@@ -323,57 +323,50 @@ class ImageProcessor:
 
             # Download if needed
             if not extract_complete:
-                if (
-                    os.path.exists(zip_file) and os.path.getsize(zip_file) > 100000000
-                ):  # >100MB!!
-                    print(f"UTKFace zip file already downloaded at {zip_file}")
-                else:
-                    print(f"Downloading UTKFace dataset...")
-                    print("This may take several minutes. Please be patient.")
+                # Create archive directory
+                if not os.path.exists(archive_dir):
+                    os.makedirs(archive_dir)
+                    
+                print(f"Downloading UTKFace dataset...")
+                print("This may take several minutes. Please be patient.")
 
-                    # Direct download can be problematic for Google Drive
-                    # Instead, we'll use gdown if available, or suggest manual download
-                    try:
-                        import gdown
-
-                        gdown.download(utkface_url, zip_file, quiet=False)
-                    except ImportError:
-                        print("Note: The 'gdown' package is not installed.")
-                        print(
-                            "For automatic download from Google Drive, install it with:"
-                        )
-                        print("  pip install gdown")
-                        print("\nAlternatively, you can download manually from:")
-                        print("  https://susanqq.github.io/UTKFace/")
-                        print(f"And place the zip file at: {zip_file}")
-
-                        # Ask user if they want to proceed with manual download
-                        response = input(
-                            "Would you like to try downloading without gdown? (y/n): "
-                        )
-                        if response.lower() == "y":
-                            print(
-                                "Attempting direct download (this may fail with Google Drive)..."
-                            )
-                            urllib.request.urlretrieve(utkface_url, zip_file)
-                        else:
-                            print("Download skipped. Please download manually.")
-                            return False
-
-                # Extract if zip file exists
-                if os.path.exists(zip_file):
-                    # Create or clear the extraction directory
-                    if os.path.exists(extract_dir):
-                        shutil.rmtree(extract_dir)
-                    os.makedirs(extract_dir)
-
-                    print("Extracting dataset...")
-                    with zipfile.ZipFile(zip_file, "r") as zip_ref:
-                        zip_ref.extractall(extract_dir)
-                    print("Extraction complete!")
-                else:
-                    print("Zip file not found. Download may have failed.")
+                # Alternative to using gdown for a folder - we'll use a manual approach
+                print("\nDue to download limitations, please follow these steps:")
+                print(f"1. Visit: {utkface_folder_url}")
+                print("2. Download the available files manually")
+                print(f"3. Place them in: {archive_dir}")
+                
+                manual_download = input("\nHave you downloaded the files manually? (y/n): ")
+                if manual_download.lower() != 'y':
+                    print("Download process cancelled.")
                     return False
+                    
+                # Check if files were actually downloaded
+                archive_files = [f for f in os.listdir(archive_dir) if f.endswith(('.zip', '.tar.gz', '.tgz'))]
+                if not archive_files:
+                    print(f"No archive files found in {archive_dir}. Please download the files manually.")
+                    return False
+                    
+                # Create extraction directory
+                if os.path.exists(extract_dir):
+                    shutil.rmtree(extract_dir)
+                os.makedirs(extract_dir)
+                
+                # Extract all archive files
+                for archive_file in archive_files:
+                    archive_path = os.path.join(archive_dir, archive_file)
+                    print(f"Extracting {archive_file}...")
+                    
+                    # Handle different archive types
+                    if archive_file.endswith('.zip'):
+                        with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                            zip_ref.extractall(extract_dir)
+                    elif archive_file.endswith(('.tar.gz', '.tgz')):
+                        import tarfile
+                        with tarfile.open(archive_path, 'r:gz') as tar_ref:
+                            tar_ref.extractall(extract_dir)
+                            
+                print("Extraction complete!")
 
             # Create demographic directories
             demographics_dir = os.path.join(target_dir, "demographic_split")
@@ -398,16 +391,22 @@ class ImageProcessor:
                         os.remove(os.path.join(ethnicity_dir, file))
 
             # Process and organize images
-            files = [
-                f
-                for f in os.listdir(extract_dir)
-                if f.lower().endswith((".jpg", ".jpeg", ".png"))
-            ]
+            files = []
+            # Recursively search all files in extract_dir and its subdirectories
+            for root, _, filenames in os.walk(extract_dir):
+                for filename in filenames:
+                    if filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                        files.append(os.path.join(root, filename))
 
+            print(f"Found {len(files)} total images in extracted dataset")
+            
             # Filter for valid files with proper naming
             valid_files = []
-            for file in files:
+            for file_path in files:
                 try:
+                    # Get just the filename
+                    file = os.path.basename(file_path)
+                    
                     # UTKFace format: [age]_[gender]_[race]_[date&time].jpg
                     # We need to extract race information
                     parts = file.split("_")
@@ -422,7 +421,7 @@ class ImageProcessor:
                                 and race not in specific_ethnicities
                             ):
                                 continue
-                            valid_files.append((file, race))
+                            valid_files.append((file_path, race))
                 except (ValueError, IndexError):
                     # Skip files that don't match the expected format
                     continue
@@ -440,13 +439,14 @@ class ImageProcessor:
             print(f"Organizing {len(valid_files)} images by ethnicity...")
             ethnicity_counts = {code: 0 for code in ethnicity_names}
 
-            for file, race in valid_files:
-                src_path = os.path.join(extract_dir, file)
+            for file_path, race in valid_files:
+                # Get just the filename without the path
+                file = os.path.basename(file_path)
                 ethnicity_name = ethnicity_names[race].lower()
                 ethnicity_dir = os.path.join(demographics_dir, ethnicity_name)
                 dst_path = os.path.join(ethnicity_dir, file)
 
-                shutil.copy2(src_path, dst_path)
+                shutil.copy2(file_path, dst_path)
                 ethnicity_counts[race] += 1
 
             # Report what was done
@@ -570,7 +570,7 @@ class ImageProcessor:
         self,
         num_people=20,
         ethnicity_balanced=True,
-        utkface_dir="./data/datasets/utkface/utkface_aligned",
+        utkface_dir="./data/datasets/utkface/utkface_data",
         output_dir="./data/known_faces",
     ):
         """
@@ -603,25 +603,27 @@ class ImageProcessor:
                 4: "Others",
             }
 
-            # Get all image files
-            files = [
-                f
-                for f in os.listdir(utkface_dir)
-                if f.lower().endswith((".jpg", ".jpeg", ".png"))
-            ]
+            # Get all image files recursively
+            files = []
+            for root, _, filenames in os.walk(utkface_dir):
+                for filename in filenames:
+                    if filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                        # Store full path and filename
+                        file_path = os.path.join(root, filename)
+                        files.append((file_path, filename))
 
             # Group by ethnicity if balanced selection is requested
             if ethnicity_balanced:
                 ethnicity_files = {code: [] for code in ethnicity_names}
 
                 # Sort files by ethnicity
-                for file in files:
+                for file_path, filename in files:
                     try:
-                        parts = file.split("_")
+                        parts = filename.split("_")
                         if len(parts) >= 3:
                             race = int(parts[2])
                             if race in ethnicity_names:
-                                ethnicity_files[race].append(file)
+                                ethnicity_files[race].append((file_path, filename))
                     except (ValueError, IndexError):
                         continue
 
@@ -640,8 +642,8 @@ class ImageProcessor:
                         ethnicity_selection = random.sample(eth_files, to_select)
                         selected_files.extend(
                             [
-                                (file, f"{ethnicity_names[race]}_{i}")
-                                for i, file in enumerate(ethnicity_selection)
+                                (file_path, f"{ethnicity_names[race]}_{i}")
+                                for i, (file_path, filename) in enumerate(ethnicity_selection)
                             ]
                         )
 
@@ -650,14 +652,12 @@ class ImageProcessor:
                     all_remaining = []
                     for race, eth_files in ethnicity_files.items():
                         # Get files we didn't already select
-                        already_selected = [
-                            f[0] for f in selected_files if f[0] in eth_files
-                        ]
-                        remaining = [f for f in eth_files if f not in already_selected]
+                        already_selected_paths = [f[0] for f in selected_files]
+                        remaining = [f for f in eth_files if f[0] not in already_selected_paths]
                         all_remaining.extend(
                             [
-                                (file, f"{ethnicity_names[race]}_extra_{i}")
-                                for i, file in enumerate(remaining)
+                                (file_path, f"{ethnicity_names[race]}_extra_{i}")
+                                for i, (file_path, filename) in enumerate(remaining)
                             ]
                         )
 
@@ -672,12 +672,12 @@ class ImageProcessor:
                 # Simple random selection without ethnicity balancing
                 if len(files) <= num_people:
                     selected_files = [
-                        (file, f"Person_{i}") for i, file in enumerate(files)
+                        (file_path, f"Person_{i}") for i, (file_path, filename) in enumerate(files)
                     ]
                 else:
                     selected_files = [
-                        (file, f"Person_{i}")
-                        for i, file in enumerate(random.sample(files, num_people))
+                        (file_path, f"Person_{i}")
+                        for i, (file_path, filename) in enumerate(random.sample(files, num_people))
                     ]
 
             # Copy selected files to output directory
@@ -711,7 +711,7 @@ class ImageProcessor:
         self,
         num_known=5,
         num_unknown=5,
-        utkface_dir="./data/datasets/utkface/utkface_aligned",
+        utkface_dir="./data/datasets/utkface/utkface_data",
         known_faces_dir="./data/known_faces",
         output_dir="./data/test_images",
     ):
@@ -760,12 +760,13 @@ class ImageProcessor:
                 4: "Others",
             }
 
-            # Get all image files from UTKFace
-            utk_files = [
-                f
-                for f in os.listdir(utkface_dir)
-                if f.lower().endswith((".jpg", ".jpeg", ".png"))
-            ]
+            # Get all image files from UTKFace recursively
+            utk_files = []
+            for root, _, filenames in os.walk(utkface_dir):
+                for filename in filenames:
+                    if filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                        file_path = os.path.join(root, filename)
+                        utk_files.append((file_path, filename))
 
             # Extract identities from known faces
             known_identities = []
@@ -787,9 +788,9 @@ class ImageProcessor:
 
             # Process each file and group by gender+ethnicity
             utk_metadata = {}
-            for file in utk_files:
+            for file_path, filename in utk_files:
                 try:
-                    parts = file.split("_")
+                    parts = filename.split("_")
                     if len(parts) >= 3:
                         age = int(parts[0])
                         gender = int(parts[1])
@@ -799,7 +800,7 @@ class ImageProcessor:
                         if key not in utk_metadata:
                             utk_metadata[key] = []
 
-                        utk_metadata[key].append((file, age))
+                        utk_metadata[key].append((file_path, filename, age))
                 except (ValueError, IndexError):
                     continue
 
@@ -820,8 +821,8 @@ class ImageProcessor:
                             selected = random.sample(group_files, num_to_select)
                             known_test_files.extend(
                                 [
-                                    (f[0], f"{identity}_test_{j}")
-                                    for j, f in enumerate(selected)
+                                    (file_path, f"{identity}_test_{j}")
+                                    for j, (file_path, filename, age) in enumerate(selected)
                                 ]
                             )
 
@@ -838,11 +839,11 @@ class ImageProcessor:
                     # Select one image from this group
                     if group_files:
                         selected = random.choice(group_files)
-                        unknown_test_files.append((selected[0], f"Unknown_{i}"))
+                        file_path, filename, age = selected
+                        unknown_test_files.append((file_path, f"Unknown_{i}"))
 
             # Copy known test files
-            for file, name in known_test_files:
-                src_path = os.path.join(utkface_dir, file)
+            for file_path, name in known_test_files:
                 dst_path = os.path.join(known_output_dir, f"{name}.jpg")
 
                 # Avoid overwriting existing files
@@ -852,11 +853,10 @@ class ImageProcessor:
                     timestamp = int(time.time())
                     dst_path = os.path.join(known_output_dir, f"{name}_{timestamp}.jpg")
 
-                shutil.copy2(src_path, dst_path)
+                shutil.copy2(file_path, dst_path)
 
             # Copy unknown test files
-            for file, name in unknown_test_files:
-                src_path = os.path.join(utkface_dir, file)
+            for file_path, name in unknown_test_files:
                 dst_path = os.path.join(unknown_output_dir, f"{name}.jpg")
 
                 # Avoid overwriting existing files
@@ -868,7 +868,7 @@ class ImageProcessor:
                         unknown_output_dir, f"{name}_{timestamp}.jpg"
                     )
 
-                shutil.copy2(src_path, dst_path)
+                shutil.copy2(file_path, dst_path)
 
             # Print summary
             print(f"\nPrepared test dataset in {output_dir}")
