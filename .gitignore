@@ -1,8 +1,7 @@
 # Dataset files and directories
 data/datasets/
 src/data/datasets/
-src/data/datasets/lfw/
-src/data/datasets/lfw/lfw/
+src/data/datasets/utkface/
 data/known_faces/
 data/test_images/
 data/test_datasets/
@@ -11,8 +10,9 @@ data/test_datasets/
 *.zip
 *.jpg
 
-# Explicitly ignore the large dataset file
-src/data/datasets/lfw/lfw.tgz
+# Explicitly ignore the large dataset files
+src/data/datasets/utkface/*.zip
+data/datasets/utkface/
 
 # Python cache files
 __pycache__/

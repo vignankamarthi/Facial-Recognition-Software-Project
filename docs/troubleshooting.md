@@ -88,11 +88,11 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 **Solution**:
 1. Ensure you've added reference images to data/known_faces/
 2. Check that reference images contain clear, well-lit faces
-3. Try setting up sample faces from LFW dataset:
+3. Try setting up sample faces from UTKFace dataset:
    ```bash
    python run_demo.py --setup-dataset
    ```
-   Then select option 2 "Prepare known faces from LFW"
+   Then select option 3 "Prepare known faces from UTKFace"
 
 ### Poor Match Accuracy
 
@@ -108,7 +108,7 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 
 ### Download Failures
 
-**Problem**: LFW dataset fails to download or extract.
+**Problem**: UTKFace dataset fails to download or extract.
 
 **Solution**:
 1. Check your internet connection
@@ -117,9 +117,11 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
    ```bash
    python run_demo.py --setup-dataset
    ```
-4. If download still fails, manually download from:
-   https://ndownloader.figshare.com/files/5976018
-   and place in data/datasets/lfw/ directory
+4. If download still fails, install gdown for better Google Drive support:
+   ```bash
+   pip install gdown
+   ```
+   Then try the download again
 
 ### Missing Directories
 
@@ -142,14 +144,16 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 1. Create or check the sample dataset structure:
    ```
    data/test_datasets/demographic_split_set/
-   ├── group_a/  # First demographic group
-   ├── group_b/  # Second demographic group
-   └── group_c/  # Third demographic group
+   ├── white/    # White ethnicity group
+   ├── black/    # Black ethnicity group
+   ├── asian/    # Asian ethnicity group
+   ├── indian/   # Indian ethnicity group
+   └── others/   # Other ethnicities
    ```
 2. Add images to at least one group directory
 3. Run the bias testing setup process:
    ```bash
-   python run_demo.py --bias
+   python run_demo.py --bias --utkface
    ```
 
 ### Visualization Errors

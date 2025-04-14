@@ -88,12 +88,14 @@ def create_directories():
         "data/test_images/unknown",
         "data/test_datasets",
         "data/test_datasets/demographic_split_set",
-        "data/test_datasets/demographic_split_set/group_a",
-        "data/test_datasets/demographic_split_set/group_b",
-        "data/test_datasets/demographic_split_set/group_c",
+        "data/test_datasets/demographic_split_set/white",
+        "data/test_datasets/demographic_split_set/black",
+        "data/test_datasets/demographic_split_set/asian",
+        "data/test_datasets/demographic_split_set/indian",
+        "data/test_datasets/demographic_split_set/others",
         "data/test_datasets/results",
         "data/datasets",
-        "data/datasets/lfw",
+        "data/datasets/utkface",
         "data/results",
     ]
 
@@ -335,7 +337,7 @@ def main():
     print("  python src/main.py --match      # Face matching demo")
     print("  python src/main.py --anonymize  # Face anonymization demo")
     print("  python src/main.py --bias       # Bias testing demo")
-    print("  python src/main.py --setup-dataset  # Setup LFW dataset")
+    print("  python src/main.py --setup-dataset  # Setup UTKFace dataset")
 
 if __name__ == "__main__":
     main()

@@ -47,6 +47,8 @@ If you don't have a webcam, you can still use these features:
    ```bash
    python run_demo.py --bias --utkface
    ```
+   
+   This will demonstrate how facial recognition accuracy can vary across different ethnic groups, providing statistical analysis and visualizations of potential algorithmic bias.
 
 ## Command Line Shortcuts
 

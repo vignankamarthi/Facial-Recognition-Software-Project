@@ -126,7 +126,7 @@ def cleanup_datasets(project_dir, reset_all=False, dry_run=False):
         "**/results/*.png",
         "**/results/*.jpg",
         "**/results/*.jpeg",
-        "**/lfw_sample/**/*"
+        "**/utkface/**/*.zip"
     ]
 
     # Delete temporary files

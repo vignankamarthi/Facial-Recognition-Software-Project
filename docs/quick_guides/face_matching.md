@@ -18,7 +18,7 @@ Before using face matching, you need reference faces:
    ```bash
    python run_demo.py --setup-dataset
    ```
-   Then select "Prepare known faces from LFW"
+   Then select "Prepare known faces from UTKFace"
 
 ## With Webcam
 ```bash
