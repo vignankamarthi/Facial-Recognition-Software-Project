@@ -92,7 +92,7 @@ def run_face_matching_demo():
         print("   (Name files with the person's name, e.g., john_doe.jpg)")
         print("\n2. Use the dataset setup to create sample faces:")
         print("   python run_demo.py --setup-dataset")
-        print("   Then select option to prepare known faces from UTKFace or LFW dataset")
+        print("   Then select option to prepare known faces from UTKFace dataset")
         return
 
     print(f"Using reference faces from: {sample_dir}")
@@ -258,11 +258,9 @@ def run_dataset_setup_demo():
     # Menu options with UTKFace dataset options
     options = [
         "Download UTKFace dataset - Aligned images with demographic labels",
-        "Download LFW dataset sample - Alternative dataset without demographic labels",
         "Set up bias testing with UTKFace - Prepare data for demographic analysis",
         "Prepare known faces from UTKFace - Create reference faces for matching",
-        "Prepare known faces from LFW - Alternative reference faces",
-        "Prepare test dataset - Create test images for evaluation",
+        "Prepare test dataset from UTKFace - Create test images for evaluation",
         "Return to main menu"
     ]
 
@@ -318,24 +316,6 @@ def run_dataset_setup_demo():
                     print(f"An error occurred: {e}")
 
             elif choice == 2:
-                # Download LFW dataset sample
-                print("\n--- Downloading LFW Dataset Sample ---")
-                print("This will download a subset of the Labeled Faces in the Wild dataset.")
-                print("The download is about 200MB and may take several minutes.")
-                print("Note: This dataset does NOT contain demographic information")
-                print("      and is not suitable for bias testing.")
-
-                try:
-                    sample_size = int(input("\nEnter number of people to include (10-100 recommended): "))
-                    print("\nDownloading and extracting dataset...")
-                    processor.download_and_extract_lfw_dataset(sample_size=sample_size)
-                    print("Download complete!")
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-
-            elif choice == 3:
                 # Set up bias testing with UTKFace
                 print("\n--- Setting Up Bias Testing Dataset ---")
                 print("This will organize UTKFace images by ethnicity for bias testing.")
@@ -363,7 +343,7 @@ def run_dataset_setup_demo():
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
-            elif choice == 4:
+            elif choice == 3:
                 # Prepare known faces from UTKFace
                 print("\n--- Preparing Known Faces from UTKFace ---")
                 print("This will create reference faces for the face matching feature.")
@@ -399,78 +379,26 @@ def run_dataset_setup_demo():
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
-            elif choice == 5:
-                # Prepare known faces from LFW (legacy option)
-                print("\n--- Preparing Known Faces from LFW ---")
-                print("This will create reference faces for the face matching feature.")
-                print("Images will be saved to data/known_faces/")
-
-                try:
-                    # Check if LFW dataset exists
-                    lfw_dir = os.path.abspath(
-                        os.path.join(os.path.dirname(__file__), "..", "data", "datasets", 
-                                     "lfw", "lfw")
-                    )
-                    
-                    if not os.path.exists(lfw_dir):
-                        print("LFW dataset not found. Please download it first (Option 2).")
-                        continue
-                        
-                    num_people = int(input("\nEnter number of people to include as known faces: "))
-                    print("\nPreparing known faces...")
-                    processor.prepare_known_faces_from_lfw(num_people=num_people)
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-
-            elif choice == 6:
+            elif choice == 4:
                 # Prepare test dataset 
                 print("\n--- Preparing Test Dataset ---")
                 print("This will create test images for face recognition evaluation.")
                 print("Images will be saved to data/test_images/")
 
-                print("\nSelect source dataset:")
-                print("1. UTKFace dataset (preferred)")
-                print("2. LFW dataset (legacy)")
-                
-                source_choice = 0
                 try:
-                    source_choice = int(input("Enter your choice (1-2): "))
+                    num_known = int(input("\nEnter number of known people to include: "))
+                    num_unknown = int(input("Enter number of unknown people to include: "))
+                    print("\nPreparing test dataset from UTKFace...")
+                    processor.prepare_test_dataset_from_utkface(
+                        num_known=num_known,
+                        num_unknown=num_unknown
+                    )
                 except ValueError:
-                    print("Invalid input. Using UTKFace dataset.")
-                    source_choice = 1
-                
-                if source_choice == 2:
-                    # LFW test dataset
-                    try:
-                        num_people = int(input("\nEnter number of known people to include in test set: "))
-                        num_images = int(input("Enter number of test images per person: "))
-                        print("\nPreparing test dataset from LFW...")
-                        processor.prepare_test_dataset_from_lfw(
-                            num_people=num_people, 
-                            num_test_images=num_images
-                        )
-                    except ValueError:
-                        print("Invalid input. Please enter a number.")
-                    except Exception as e:
-                        print(f"An error occurred: {e}")
-                else:
-                    # UTKFace test dataset
-                    try:
-                        num_known = int(input("\nEnter number of known people to include: "))
-                        num_unknown = int(input("Enter number of unknown people to include: "))
-                        print("\nPreparing test dataset from UTKFace...")
-                        processor.prepare_test_dataset_from_utkface(
-                            num_known=num_known,
-                            num_unknown=num_unknown
-                        )
-                    except ValueError:
-                        print("Invalid input. Please enter a number.")
-                    except Exception as e:
-                        print(f"An error occurred: {e}")
+                    print("Invalid input. Please enter a number.")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
-            elif choice == 7:
+            elif choice == 5:
                 # Return to main menu
                 print("Returning to main menu...")
                 break

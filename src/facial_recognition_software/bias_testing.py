@@ -137,17 +137,6 @@ class BiasAnalyzer:
             except Exception:
                 pass
 
-            # Check LFW as fallback
-            try:
-                lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
-                                      "datasets", "lfw", "lfw")
-                if os.path.exists(lfw_path):
-                    print(f"Tip: You can also copy sample images from the LFW dataset at:")
-                    print(f"  {lfw_path}")
-                    print("  Run option 5 (Dataset Setup & Management) to download this dataset if needed.\n")
-            except Exception:
-                pass
-
         return demographic_split_dir
 
     def test_recognition_accuracy(self, dataset_name):
@@ -403,48 +392,11 @@ class BiasAnalyzer:
 
             if not has_images:
                 print("\nNo test images found in the sample dataset directories.")
-
-                if use_utkface:
-                    # Try to find UTKFace dataset
-                    utkface_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
-                                               "datasets", "utkface", "utkface_aligned")
-                    if os.path.exists(utkface_path):
-                        print("\nUTKFace dataset found. Please prepare it for bias testing:")
-                        print("   processor = ImageProcessor()")
-                        print("   processor.prepare_utkface_for_bias_testing()")
-                    else:
-                        print("\nUTKFace dataset not found. Please download and extract it:")
-                        print("   processor = ImageProcessor()")
-                        print("   processor.download_and_extract_utkface_dataset()")
-                        print("   processor.prepare_utkface_for_bias_testing()")
-                else:
-                    # Try to copy sample images from LFW dataset if it exists (legacy fallback)
-                    lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), 
-                                           "datasets", "lfw", "lfw")
-                    if os.path.exists(lfw_path):
-                        print("\nFound LFW dataset. Attempting to create sample test data...")
-                        success = self.copy_sample_images_from_lfw()
-                        if success:
-                            print("Successfully created sample test data. Continuing with bias testing...")
-                        else:
-                            print("\nCould not automatically create sample test data.")
-                            print("Please add test images manually to at least one demographic group directory:")
-                            for group in groups:
-                                print(f"  - {os.path.join(demographic_split_path, group)}")
-                            return
-                    else:
-                        print("Please add test images to at least one demographic group directory:")
-                        for group in groups:
-                            print(f"  - {os.path.join(demographic_split_path, group)}")
-                        if use_utkface:
-                            print("\nTip: Run the following commands to set up the UTKFace dataset:")
-                            print("   processor = ImageProcessor()")
-                            print("   processor.download_and_extract_utkface_dataset()")
-                            print("   processor.prepare_utkface_for_bias_testing()")
-                        else:
-                            print("\nTip: You can run option 5 (Dataset Setup & Management) to download")
-                            print("     a sample dataset that can be used for bias testing.")
-                        return
+                print("\nPlease use the UTKFace dataset for testing:")
+                print("   processor = ImageProcessor()")
+                print("   processor.download_and_extract_utkface_dataset()")
+                print("   processor.prepare_utkface_for_bias_testing()")
+                return
 
             # Test recognition accuracy
             print("\nRunning recognition accuracy tests...")
@@ -500,84 +452,6 @@ class BiasAnalyzer:
             print(f"\nBias Testing Results:\nAn error occurred: {str(e)}")
             import traceback
             traceback.print_exc()
-
-    def copy_sample_images_from_lfw(self):
-        """
-        Try to copy sample images from LFW dataset to the test dataset groups.
-        This is a legacy convenience function for quick demo setup.
-        
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            import random
-            import shutil
-
-            # Find the LFW dataset
-            lfw_path = os.path.join(os.path.dirname(self.test_datasets_dir), "datasets", "lfw", "lfw")
-            if not os.path.exists(lfw_path):
-                print(f"LFW dataset not found at: {lfw_path}")
-                print("Run option 5 (Dataset Setup & Management) to download this dataset first.")
-                return False
-
-            # Get list of person directories with multiple images
-            person_dirs = []
-            for person in os.listdir(lfw_path):
-                person_dir = os.path.join(lfw_path, person)
-                if os.path.isdir(person_dir):
-                    images = [f for f in os.listdir(person_dir) 
-                             if f.lower().endswith((".jpg", ".jpeg", ".png"))]
-                    if len(images) >= 2:
-                        person_dirs.append((person, person_dir, images))
-
-            if not person_dirs:
-                print("No suitable person directories found in LFW dataset.")
-                return False
-
-            # Sample up to 10 people for each demographic group
-            if len(person_dirs) < 3:
-                print("Not enough people in LFW dataset to create sample groups.")
-                return False
-
-            # Shuffle the person directories
-            random.shuffle(person_dirs)
-
-            # Create demographic split set directory
-            demographic_split_dir = os.path.join(self.test_datasets_dir, "demographic_split_set")
-            if not os.path.exists(demographic_split_dir):
-                os.makedirs(demographic_split_dir)
-
-            # Copy images to each demographic group
-            groups = ["group_a", "group_b", "group_c"]
-            people_per_group = min(5, len(person_dirs) // 3)
-
-            for i, group in enumerate(groups):
-                group_dir = os.path.join(demographic_split_dir, group)
-                if not os.path.exists(group_dir):
-                    os.makedirs(group_dir)
-
-                # Get people for this group
-                start_idx = i * people_per_group
-                end_idx = start_idx + people_per_group
-                group_people = person_dirs[start_idx:end_idx]
-
-                # Copy one image from each person to this group
-                for person, person_dir, images in group_people:
-                    # Choose a random image
-                    image = random.choice(images)
-                    src_path = os.path.join(person_dir, image)
-                    dst_path = os.path.join(group_dir, f"{person}_{image}")
-                    shutil.copy2(src_path, dst_path)
-
-            print(f"\nCopied sample images from LFW dataset to {demographic_split_dir}")
-            print(f"- Added {people_per_group} people to each demographic group")
-            print("Note: These groups don't represent real demographic differences.")
-            print("      For real bias testing, use appropriately labeled datasets.\n")
-            return True
-
-        except Exception as e:
-            print(f"Error copying sample images: {e}")
-            return False
 
     def analyze_demographic_bias(self, dataset_name="demographic_split_set", detailed=False):
         """

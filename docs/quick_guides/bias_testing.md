@@ -32,7 +32,7 @@ The first time you run bias testing:
    python run_demo.py --setup-dataset
    ```
    Then select Option 1: "Download UTKFace dataset"
-   Then select Option 3: "Set up bias testing with UTKFace"
+   Then select Option 2: "Set up bias testing with UTKFace"
 
 3. The UTKFace dataset provides proper demographic labels:
    - Each image filename contains age, gender, and ethnicity information

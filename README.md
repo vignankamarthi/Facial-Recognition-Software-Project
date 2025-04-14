@@ -35,7 +35,7 @@ If you don't have a webcam, you can still use these features:
    ```bash
    python run_demo.py --setup-dataset
    # Select option 1 to download UTKFace dataset
-   # Select option 3 to set up bias testing
+   # Select option 2 to set up bias testing
    ```
 
 2. **Process static images**:
@@ -63,7 +63,7 @@ If you don't have a webcam, you can still use these features:
 
 ## UTKFace Dataset Integration
 
-This project now uses the UTKFace (University of Tennessee, Knoxville Face) dataset for ethical bias testing, providing:
+This project uses the UTKFace (University of Tennessee, Knoxville Face) dataset for ethical bias testing, providing:
 
 - **Demographic Labels**: Age, gender, and ethnicity annotations for over 20,000 face images
 - **Ethnicity Categories**: White, Black, Asian, Indian, and Others (including Hispanic, Latino, Middle Eastern)
@@ -78,8 +78,7 @@ The dataset allows for realistic demonstration of potential algorithmic bias in 
 Facial-Recognition-Software-Project/
 ├── data/                   # Data directory
 │   ├── datasets/           # Raw datasets
-│   │   ├── utkface/        # UTKFace dataset
-│   │   └── lfw/            # Legacy LFW dataset 
+│   │   └── utkface/        # UTKFace dataset
 │   ├── test_datasets/      # Processed test data
 │   │   └── demographic_split_set/ # Ethnicity-organized images
 ├── docs/                   # Documentation
