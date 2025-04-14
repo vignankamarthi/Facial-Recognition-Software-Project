@@ -12,13 +12,13 @@ import numpy as np
 class FaceAnonymizer:
     """A class to handle face anonymization operations."""
 
-    def __init__(self, method="blur", intensity=25):
+    def __init__(self, method="blur", intensity=50):
         """
         Initialize the face anonymizer.
 
         Args:
             method (str): Anonymization method ('blur', 'pixelate', or 'mask') with default 'blur'
-            intensity (int): Intensity of the anonymization effect with range 1-100 with default 25
+            intensity (int): Intensity of the anonymization effect with range 1-100 with default 50
         """
         self.method = method
         self.intensity = intensity
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         # Display the resulting frame
         cv2.imshow("Video", display_frame)
 
-        # Handle key presses
+        # Handle key presses - improved key detection
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord("b"):
@@ -246,8 +246,12 @@ if __name__ == "__main__":
         elif key == ord("m"):
             anonymizer.set_method("mask")
         elif key == ord("q"):
+            print("Quitting anonymization...")
             break
 
     # Release the webcam and close all windows
-    video_capture.release()
+    print("Cleaning up resources...")
+    if video_capture is not None and video_capture.isOpened():
+        video_capture.release()
     cv2.destroyAllWindows()
+    print("Returned to main menu.")

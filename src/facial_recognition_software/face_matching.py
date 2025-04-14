@@ -229,8 +229,9 @@ class FaceMatcher:
                 # Display the resulting frame
                 cv2.imshow("Video", display_frame)
 
-                # Exit on 'q' key press
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                # Exit on 'q' key press - improved key detection
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord("q"):
                     print("Quitting face matching...")
                     break
                 
@@ -244,6 +245,7 @@ class FaceMatcher:
             if video_capture is not None and video_capture.isOpened():
                 video_capture.release()
             cv2.destroyAllWindows()
+            print("Returned to main menu.")
 
 
 if __name__ == "__main__":
