@@ -63,19 +63,24 @@ class FaceDetector:
 
         return display_frame
 
-    def detect_faces_webcam(self, anonymize=False):
+    def detect_faces_webcam(self, anonymize=False, anonymizer=None):
         """
         Start a webcam feed and detect faces in real-time.
 
         Args:
             anonymize (bool): Whether to blur detected faces (default is False)
-        If True, the detected faces will be anonymized using a blurring effect.
+            anonymizer (FaceAnonymizer): Instance of FaceAnonymizer to use for anonymization
 
         Returns:
             None
         """
         # Initialize webcam
         video_capture = None
+        
+        # If anonymize is True but no anonymizer provided, create one
+        if anonymize and anonymizer is None:
+            from .anonymization import FaceAnonymizer
+            anonymizer = FaceAnonymizer()
         
         try:
             # Initialize webcam
@@ -85,13 +90,18 @@ class FaceDetector:
                 print("Error: Could not open webcam.")
                 return
 
-            print("Press Ctrl+C to quit...")
+            print("Press 'q' to quit...")
             
             # Create a named window and set it to normal (resizable) mode
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             
             # Set window as topmost to ensure it receives keyboard focus
             cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)
+            
+            # Variables for key feedback display
+            last_key = None
+            key_press_time = time.time()
+            show_key_message = False
 
             while True:
                 # Capture frame-by-frame
@@ -108,10 +118,7 @@ class FaceDetector:
                 display_frame = frame.copy()
 
                 if anonymize:
-                    # If anonymization is enabled, use the anonymizer
-                    from .anonymization import FaceAnonymizer
-
-                    anonymizer = FaceAnonymizer()
+                    # If anonymization is enabled, use the provided or created anonymizer
                     display_frame = anonymizer.anonymize_frame(frame, face_locations)
                 else:
                     # Otherwise, just draw boxes around the faces
@@ -133,12 +140,69 @@ class FaceDetector:
                         (255, 255, 255),
                         2,
                     )
+                
+                # Add controls reminder if not already shown by anonymizer
+                if not anonymize:
+                    cv2.putText(
+                        display_frame,
+                        "Press 'q' to quit",
+                        (10, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.7,
+                        (255, 255, 255),
+                        2,
+                    )
+                
+                # Show key press feedback on screen
+                if show_key_message and time.time() - key_press_time < 2.0:  # Show for 2 seconds
+                    key_text = f"KEY PRESSED: {last_key}" if last_key else ""
+                    cv2.rectangle(display_frame, (10, 120), (400, 160), (0, 0, 0), -1)  # Background
+                    cv2.putText(
+                        display_frame,
+                        key_text,
+                        (20, 150),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0,  # Larger font
+                        (0, 255, 255),  # Yellow
+                        2,
+                    )
 
                 # Display the resulting frame
                 cv2.imshow("Video", display_frame)
                 
-                # Short wait time
-                cv2.waitKey(10)
+                # Use a longer wait time and try to get key input
+                key = cv2.waitKey(100) & 0xFF  # Even longer wait (100ms)
+                
+                # Process key presses with debugging
+                if key not in [255, 0]:  # Valid key pressed
+                    # Print key info to console
+                    if 32 <= key <= 126:  # Printable ASCII
+                        key_char = chr(key)
+                        print(f"Key pressed: {key} (ASCII: {key_char})")
+                        last_key = key_char
+                    else:
+                        print(f"Key pressed: {key} (non-printable)")
+                        last_key = f"Code: {key}"
+                        
+                    # Update key display timing
+                    key_press_time = time.time()
+                    show_key_message = True
+                    
+                    # Process specific keys
+                    if anonymize:
+                        if key == ord("b") or key == ord("B"):  # b or B
+                            print("Switching to blur mode")
+                            anonymizer.set_method("blur")
+                        elif key == ord("p") or key == ord("P"):  # p or P
+                            print("Switching to pixelate mode")
+                            anonymizer.set_method("pixelate")
+                        elif key == ord("m") or key == ord("M"):  # m or M
+                            print("Switching to mask mode")
+                            anonymizer.set_method("mask")
+                    
+                    if key == ord("q") or key == ord("Q") or key == 27:  # q, Q, or ESC
+                        print("Quitting face detection...")
+                        break
                 
         except KeyboardInterrupt:
             print("\nFace detection interrupted by user.")

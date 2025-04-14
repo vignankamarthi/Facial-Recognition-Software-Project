@@ -30,6 +30,7 @@ def run_face_detection_demo(anonymize=False):
     print("=" * 50)
     print("Starting webcam for face detection...")
 
+    anonymizer = None
     if anonymize:
         print("Anonymization enabled. Faces will be obscured.")
         anonymizer = FaceAnonymizer()
@@ -57,12 +58,16 @@ def run_face_detection_demo(anonymize=False):
             return
     
     print("\nControls:")
-    print("- Press Ctrl+C to quit")
+    if anonymize:
+        print("- Press 'b' to switch to blur mode")
+        print("- Press 'p' to switch to pixelate mode")
+        print("- Press 'm' to switch to mask mode")
+    print("- Press 'q' to quit")
     print("\nStarting camera...\n")
 
     try:
         detector = FaceDetector()
-        detector.detect_faces_webcam(anonymize)
+        detector.detect_faces_webcam(anonymize, anonymizer)
     except KeyboardInterrupt:
         print("\nFace detection interrupted by user.")
         # Make sure to release any OpenCV resources
