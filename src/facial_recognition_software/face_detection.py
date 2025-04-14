@@ -74,63 +74,81 @@ class FaceDetector:
             None
         """
         # Initialize webcam
-        video_capture = cv2.VideoCapture(0)
+        video_capture = None
+        
+        try:
+            # Initialize webcam
+            video_capture = cv2.VideoCapture(0)
 
-        if not video_capture.isOpened():
-            print("Error: Could not open webcam.")
-            return
+            if not video_capture.isOpened():
+                print("Error: Could not open webcam.")
+                return
 
-        print("Press 'q' to quit...")
+            print("Press 'q' to quit...")
 
-        while True:
-            # Capture frame-by-frame
-            ret, frame = video_capture.read()
+            while True:
+                # Capture frame-by-frame
+                ret, frame = video_capture.read()
 
-            if not ret:
-                print("Error: Failed to capture frame.")
-                break
+                if not ret:
+                    print("Error: Failed to capture frame.")
+                    break
 
-            # Detect faces in the frame
-            face_locations, _ = self.detect_faces(frame)
+                # Detect faces in the frame
+                face_locations, _ = self.detect_faces(frame)
 
-            # Create a frame to display
-            display_frame = frame.copy()
+                # Create a frame to display
+                display_frame = frame.copy()
 
-            if anonymize:
-                # If anonymization is enabled, blur the faces
-                from .anonymization import FaceAnonymizer
+                if anonymize:
+                    # If anonymization is enabled, blur the faces
+                    from .anonymization import FaceAnonymizer
 
-                anonymizer = FaceAnonymizer()
-                display_frame = anonymizer.anonymize_frame(frame, face_locations)
-            else:
-                # Otherwise, just draw boxes around the faces
-                display_frame = self.draw_face_boxes(frame, face_locations)
+                    anonymizer = FaceAnonymizer()
+                    display_frame = anonymizer.anonymize_frame(frame, face_locations)
+                else:
+                    # Otherwise, just draw boxes around the faces
+                    display_frame = self.draw_face_boxes(frame, face_locations)
 
-            # Display information about detected faces
-            text = f"Faces detected: {len(face_locations)}"
-            cv2.putText(
-                display_frame,
-                text,
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
-                (0, 0, 255),
-                2,
-            )
+                # Display information about detected faces
+                text = f"Faces detected: {len(face_locations)}"
+                cv2.putText(
+                    display_frame,
+                    text,
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 0, 255),
+                    2,
+                )
 
-            # Display the resulting frame
-            cv2.imshow("Video", display_frame)
+                # Display the resulting frame
+                cv2.imshow("Video", display_frame)
 
-            # Exit on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        # Release the webcam and close all windows
-        video_capture.release()
-        cv2.destroyAllWindows()
+                # Exit on 'q' key press
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    print("Quitting face detection...")
+                    break
+                
+        except KeyboardInterrupt:
+            print("\nFace detection interrupted by user.")
+        except Exception as e:
+            print(f"Error in face detection: {e}")
+        finally:
+            # Always ensure webcam is released and windows are closed
+            print("Cleaning up resources...")
+            if video_capture is not None and video_capture.isOpened():
+                video_capture.release()
+            cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
-    detector = FaceDetector()
-    detector.detect_faces_webcam()
+    try:
+        detector = FaceDetector()
+        detector.detect_faces_webcam()
+    except KeyboardInterrupt:
+        print("\nProcess interrupted by user. Exiting.")
+    finally:
+        # Make sure to release any OpenCV resources
+        cv2.destroyAllWindows()

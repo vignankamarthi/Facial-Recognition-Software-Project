@@ -5,6 +5,7 @@ This module provides functionality for the facial recognition system.
 It serves as the entry point for various features and demonstrations.
 """
 import os
+import sys
 import argparse
 import cv2
 from facial_recognition_software.face_detection import FaceDetector
@@ -51,6 +52,9 @@ def run_face_detection_demo(anonymize=False):
         except ValueError:
             print("Invalid input. Using default (blur).")
             method = "blur"
+        except KeyboardInterrupt:
+            print("\nSetup interrupted. Returning to menu.")
+            return
     
     print("\nControls:")
     if anonymize:
@@ -60,8 +64,13 @@ def run_face_detection_demo(anonymize=False):
     print("- Press 'q' to quit")
     print("\nStarting camera...\n")
 
-    detector = FaceDetector()
-    detector.detect_faces_webcam(anonymize)
+    try:
+        detector = FaceDetector()
+        detector.detect_faces_webcam(anonymize)
+    except KeyboardInterrupt:
+        print("\nFace detection interrupted by user.")
+        # Make sure to release any OpenCV resources
+        cv2.destroyAllWindows()
 
 
 def run_face_matching_demo():
@@ -101,8 +110,13 @@ def run_face_matching_demo():
     print("- Press 'q' to quit")
     print("\nStarting camera...\n")
 
-    matcher = FaceMatcher(sample_dir)
-    matcher.match_faces_webcam()
+    try:
+        matcher = FaceMatcher(sample_dir)
+        matcher.match_faces_webcam()
+    except KeyboardInterrupt:
+        print("\nFace matching interrupted by user.")
+        # Make sure to release any OpenCV resources
+        cv2.destroyAllWindows()
 
 
 def process_single_image():
@@ -111,17 +125,17 @@ def process_single_image():
     print("Static Image Processing")
     print("=" * 50)
     
-    image_path = input("Enter the path to the image file: ")
-    if not os.path.exists(image_path):
-        print(f"Error: File not found at {image_path}")
-        return
-        
-    print("\nProcessing Options:")
-    print("1. Basic face detection")
-    print("2. Face detection with matching")
-    print("3. Face detection with anonymization")
-    
     try:
+        image_path = input("Enter the path to the image file: ")
+        if not os.path.exists(image_path):
+            print(f"Error: File not found at {image_path}")
+            return
+            
+        print("\nProcessing Options:")
+        print("1. Basic face detection")
+        print("2. Face detection with matching")
+        print("3. Face detection with anonymization")
+        
         option = int(input("Select processing option (1-3): "))
         match = option == 2
         anonymize = option == 3
@@ -151,8 +165,12 @@ def process_single_image():
                     
     except ValueError:
         print("Invalid input. Please enter a number.")
+    except KeyboardInterrupt:
+        print("\nImage processing interrupted by user.")
+        cv2.destroyAllWindows()
     except Exception as e:
         print(f"An error occurred: {e}")
+        cv2.destroyAllWindows()
 
 
 def process_image_directory():
@@ -161,17 +179,17 @@ def process_image_directory():
     print("Directory Processing")
     print("=" * 50)
     
-    dir_path = input("Enter the path to the directory: ")
-    if not os.path.exists(dir_path) or not os.path.isdir(dir_path):
-        print(f"Error: Directory not found at {dir_path}")
-        return
-        
-    print("\nProcessing Options:")
-    print("1. Basic face detection")
-    print("2. Face detection with matching")
-    print("3. Face detection with anonymization")
-    
     try:
+        dir_path = input("Enter the path to the directory: ")
+        if not os.path.exists(dir_path) or not os.path.isdir(dir_path):
+            print(f"Error: Directory not found at {dir_path}")
+            return
+            
+        print("\nProcessing Options:")
+        print("1. Basic face detection")
+        print("2. Face detection with matching")
+        print("3. Face detection with anonymization")
+        
         option = int(input("Select processing option (1-3): "))
         match = option == 2
         anonymize = option == 3
@@ -193,8 +211,12 @@ def process_image_directory():
         
     except ValueError:
         print("Invalid input. Please enter a number.")
+    except KeyboardInterrupt:
+        print("\nDirectory processing interrupted by user.")
+        cv2.destroyAllWindows()
     except Exception as e:
         print(f"An error occurred: {e}")
+        cv2.destroyAllWindows()
 
 
 def run_bias_testing_demo(use_utkface=True):
@@ -226,19 +248,26 @@ def run_bias_testing_demo(use_utkface=True):
     try:
         choice = input("Would you like to perform detailed statistical analysis? (y/n): ")
         detailed = choice.lower() == 'y'
-    except:
-        pass
+    except KeyboardInterrupt:
+        print("\nSetup interrupted. Returning to menu.")
+        return
 
-    analyzer = BiasAnalyzer()
-    
-    # Run the standard bias demonstration
-    analyzer.run_bias_demonstration(use_utkface=use_utkface)
-    
-    # If detailed analysis was requested and we have results
-    if detailed and analyzer.results:
-        # Run detailed analysis on the most recent dataset
-        dataset_name = list(analyzer.results.keys())[-1] if analyzer.results else "demographic_split_set"
-        analyzer.analyze_demographic_bias(dataset_name=dataset_name, detailed=True)
+    try:
+        analyzer = BiasAnalyzer()
+        
+        # Run the standard bias demonstration
+        analyzer.run_bias_demonstration(use_utkface=use_utkface)
+        
+        # If detailed analysis was requested and we have results
+        if detailed and analyzer.results:
+            # Run detailed analysis on the most recent dataset
+            dataset_name = list(analyzer.results.keys())[-1] if analyzer.results else "demographic_split_set"
+            analyzer.analyze_demographic_bias(dataset_name=dataset_name, detailed=True)
+    except KeyboardInterrupt:
+        print("\nBias testing interrupted by user.")
+        # Close any open matplotlib figures
+        import matplotlib.pyplot as plt
+        plt.close('all')
 
 
 def run_dataset_setup_demo():
@@ -312,6 +341,8 @@ def run_dataset_setup_demo():
                     )
                 except ValueError:
                     print("Invalid input. Please enter a number.")
+                except KeyboardInterrupt:
+                    print("\nDownload interrupted by user.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
@@ -340,6 +371,8 @@ def run_dataset_setup_demo():
                     )
                 except ValueError:
                     print("Invalid input. Please enter a number.")
+                except KeyboardInterrupt:
+                    print("\nSetup interrupted by user.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
@@ -376,6 +409,8 @@ def run_dataset_setup_demo():
                     )
                 except ValueError:
                     print("Invalid input. Please enter a number.")
+                except KeyboardInterrupt:
+                    print("\nPreparation interrupted by user.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
@@ -395,6 +430,8 @@ def run_dataset_setup_demo():
                     )
                 except ValueError:
                     print("Invalid input. Please enter a number.")
+                except KeyboardInterrupt:
+                    print("\nPreparation interrupted by user.")
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
@@ -406,12 +443,16 @@ def run_dataset_setup_demo():
                 print(f"Invalid choice. Please enter a number between 1 and {len(options)}.")
 
             # Pause after operation completes
-            input("\nPress Enter to continue...")
+            try:
+                input("\nPress Enter to continue...")
+            except KeyboardInterrupt:
+                print("\nReturning to menu...")
 
         except ValueError:
             print("Invalid input. Please enter a number.")
         except KeyboardInterrupt:
             print("\nOperation interrupted. Returning to menu...")
+            break
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 
@@ -444,23 +485,23 @@ def main():
     ]
 
     while True:
-        # Display menu with webcam/non-webcam sections
-        print("\nMain Menu:")
-        print("\n[Webcam Required]")
-        webcam_options = [opt for opt in options if opt["webcam"] is True]
-        for i, option in enumerate(webcam_options, 1):
-            print(f"{i}. {option['name']}")
-            
-        print("\n[No Webcam Required]")
-        non_webcam_options = [opt for opt in options if opt["webcam"] is False]
-        for i, option in enumerate(non_webcam_options, len(webcam_options)+1):
-            print(f"{i}. {option['name']}")
-            
-        # Exit option
-        exit_option = next(opt for opt in options if opt["webcam"] is None)
-        print(f"\n{len(options)}. {exit_option['name']}")
-        
         try:
+            # Display menu with webcam/non-webcam sections
+            print("\nMain Menu:")
+            print("\n[Webcam Required]")
+            webcam_options = [opt for opt in options if opt["webcam"] is True]
+            for i, option in enumerate(webcam_options, 1):
+                print(f"{i}. {option['name']}")
+                
+            print("\n[No Webcam Required]")
+            non_webcam_options = [opt for opt in options if opt["webcam"] is False]
+            for i, option in enumerate(non_webcam_options, len(webcam_options)+1):
+                print(f"{i}. {option['name']}")
+                
+            # Exit option
+            exit_option = next(opt for opt in options if opt["webcam"] is None)
+            print(f"\n{len(options)}. {exit_option['name']}")
+            
             choice = int(input(f"\nEnter your choice (1-{len(options)}): "))
             
             if choice < 1 or choice > len(options):
@@ -481,7 +522,11 @@ def main():
         except ValueError:
             print("Invalid input. Please enter a number.")
         except KeyboardInterrupt:
-            print("\nOperation interrupted by user.")
+            print("\nProgram interrupted by user.")
+            confirm_exit = input("Do you want to exit the program? (y/n): ")
+            if confirm_exit.lower() == 'y':
+                print("Exiting program. Goodbye!")
+                break
         except Exception as e:
             print(f"An error occurred: {e}")
 
@@ -500,30 +545,36 @@ if __name__ == "__main__":
     parser.add_argument("--dir", type=str, help="Process a directory of images")
     parser.add_argument("--setup-dataset", action="store_true", help="Run dataset setup and management")
 
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
 
-    # If arguments are provided, run the specific demo
-    if args.image:
-        if args.match and args.anonymize:
-            print("Error: Cannot use both --match and --anonymize together. Please choose one.")
-        elif args.match:
-            process_single_image()  # Will prompt for options
+        # If arguments are provided, run the specific demo
+        if args.image:
+            if args.match and args.anonymize:
+                print("Error: Cannot use both --match and --anonymize together. Please choose one.")
+            elif args.match:
+                process_single_image()  # Will prompt for options
+            elif args.anonymize:
+                process_single_image()  # Will prompt for options
+            else:
+                process_single_image()  # Will prompt for options
+        elif args.dir:
+            process_image_directory()  # Will prompt for options
+        elif args.setup_dataset:
+            run_dataset_setup_demo()
+        elif args.detect:
+            run_face_detection_demo(anonymize=False)
         elif args.anonymize:
-            process_single_image()  # Will prompt for options
+            run_face_detection_demo(anonymize=True)
+        elif args.match:
+            run_face_matching_demo()
+        elif args.bias:
+            run_bias_testing_demo(use_utkface=args.utkface)
         else:
-            process_single_image()  # Will prompt for options
-    elif args.dir:
-        process_image_directory()  # Will prompt for options
-    elif args.setup_dataset:
-        run_dataset_setup_demo()
-    elif args.detect:
-        run_face_detection_demo(anonymize=False)
-    elif args.anonymize:
-        run_face_detection_demo(anonymize=True)
-    elif args.match:
-        run_face_matching_demo()
-    elif args.bias:
-        run_bias_testing_demo(use_utkface=args.utkface)
-    else:
-        # If no arguments are provided, run the interactive menu
-        main()
+            # If no arguments are provided, run the interactive menu
+            main()
+    except KeyboardInterrupt:
+        print("\n\nProgram interrupted by user. Exiting gracefully.")
+        # Make sure to release any OpenCV resources
+        cv2.destroyAllWindows()
+        sys.exit(0)

@@ -44,30 +44,34 @@ def delete_cache_files(project_dir, dry_run=False):
     
     deleted_count = 0
     
-    for pattern in cache_patterns:
-        for path in Path(project_dir).glob(pattern):
-            if path.is_dir():
-                if not dry_run:
-                    try:
-                        shutil.rmtree(path)
-                        print(f"Deleted directory: {path}")
+    try:
+        for pattern in cache_patterns:
+            for path in Path(project_dir).glob(pattern):
+                if path.is_dir():
+                    if not dry_run:
+                        try:
+                            shutil.rmtree(path)
+                            print(f"Deleted directory: {path}")
+                            deleted_count += 1
+                        except Exception as e:
+                            print(f"Error deleting {path}: {e}")
+                    else:
+                        print(f"Would delete directory: {path}")
                         deleted_count += 1
-                    except Exception as e:
-                        print(f"Error deleting {path}: {e}")
                 else:
-                    print(f"Would delete directory: {path}")
-                    deleted_count += 1
-            else:
-                if not dry_run:
-                    try:
-                        os.remove(path)
-                        print(f"Deleted file: {path}")
+                    if not dry_run:
+                        try:
+                            os.remove(path)
+                            print(f"Deleted file: {path}")
+                            deleted_count += 1
+                        except Exception as e:
+                            print(f"Error deleting {path}: {e}")
+                    else:
+                        print(f"Would delete file: {path}")
                         deleted_count += 1
-                    except Exception as e:
-                        print(f"Error deleting {path}: {e}")
-                else:
-                    print(f"Would delete file: {path}")
-                    deleted_count += 1
+    except KeyboardInterrupt:
+        print("\nOperation interrupted by user. Stopping cache file deletion...")
+        return deleted_count
     
     print(f"\nTotal Python cache items {'that would be ' if dry_run else ''}deleted: {deleted_count}")
     return deleted_count
@@ -89,18 +93,22 @@ def delete_backup_files(project_dir, dry_run=False):
     
     deleted_count = 0
     
-    for pattern in backup_patterns:
-        for path in Path(project_dir).glob(pattern):
-            if not dry_run:
-                try:
-                    os.remove(path)
-                    print(f"Deleted backup file: {path}")
+    try:
+        for pattern in backup_patterns:
+            for path in Path(project_dir).glob(pattern):
+                if not dry_run:
+                    try:
+                        os.remove(path)
+                        print(f"Deleted backup file: {path}")
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"Error deleting {path}: {e}")
+                else:
+                    print(f"Would delete backup file: {path}")
                     deleted_count += 1
-                except Exception as e:
-                    print(f"Error deleting {path}: {e}")
-            else:
-                print(f"Would delete backup file: {path}")
-                deleted_count += 1
+    except KeyboardInterrupt:
+        print("\nOperation interrupted by user. Stopping backup file deletion...")
+        return deleted_count
     
     print(f"\nTotal backup files {'that would be ' if dry_run else ''}deleted: {deleted_count}")
     return deleted_count
@@ -129,47 +137,51 @@ def cleanup_datasets(project_dir, reset_all=False, dry_run=False):
         "**/utkface/**/*.zip"
     ]
 
-    # Delete temporary files
-    for pattern in temp_patterns:
-        for path in Path(data_dir).glob(pattern):
-            if not dry_run:
-                try:
-                    if path.is_dir():
-                        shutil.rmtree(path)
-                        print(f"Deleted directory: {path}")
-                    else:
-                        os.remove(path)
-                        print(f"Deleted file: {path}")
-                    deleted_count += 1
-                except Exception as e:
-                    print(f"Error deleting {path}: {e}")
-            else:
-                print(f"Would delete: {path}")
-                deleted_count += 1
-
-    # Optional: Reset all datasets
-    if reset_all:
-        dataset_dirs = ["datasets", "known_faces", "test_datasets", "test_images"]
-
-        for dir_name in dataset_dirs:
-            dir_path = os.path.join(data_dir, dir_name)
-            if os.path.exists(dir_path):
+    try:
+        # Delete temporary files
+        for pattern in temp_patterns:
+            for path in Path(data_dir).glob(pattern):
                 if not dry_run:
                     try:
-                        # Delete content but preserve directory structure
-                        for item in os.listdir(dir_path):
-                            item_path = os.path.join(dir_path, item)
-                            if os.path.isdir(item_path):
-                                shutil.rmtree(item_path)
-                            else:
-                                os.remove(item_path)
-                        print(f"Reset dataset directory: {dir_path}")
+                        if path.is_dir():
+                            shutil.rmtree(path)
+                            print(f"Deleted directory: {path}")
+                        else:
+                            os.remove(path)
+                            print(f"Deleted file: {path}")
                         deleted_count += 1
                     except Exception as e:
-                        print(f"Error resetting {dir_path}: {e}")
+                        print(f"Error deleting {path}: {e}")
                 else:
-                    print(f"Would reset dataset directory: {dir_path}")
+                    print(f"Would delete: {path}")
                     deleted_count += 1
+
+        # Optional: Reset all datasets
+        if reset_all:
+            dataset_dirs = ["datasets", "known_faces", "test_datasets", "test_images"]
+
+            for dir_name in dataset_dirs:
+                dir_path = os.path.join(data_dir, dir_name)
+                if os.path.exists(dir_path):
+                    if not dry_run:
+                        try:
+                            # Delete content but preserve directory structure
+                            for item in os.listdir(dir_path):
+                                item_path = os.path.join(dir_path, item)
+                                if os.path.isdir(item_path):
+                                    shutil.rmtree(item_path)
+                                else:
+                                    os.remove(item_path)
+                            print(f"Reset dataset directory: {dir_path}")
+                            deleted_count += 1
+                        except Exception as e:
+                            print(f"Error resetting {dir_path}: {e}")
+                    else:
+                        print(f"Would reset dataset directory: {dir_path}")
+                        deleted_count += 1
+    except KeyboardInterrupt:
+        print("\nOperation interrupted by user. Stopping dataset cleanup...")
+        return deleted_count
 
     print(f"\nTotal dataset items {'that would be ' if dry_run else ''}cleaned: {deleted_count}")
     return deleted_count
@@ -188,34 +200,38 @@ def delete_logs(project_dir, dry_run=False):
     
     deleted_count = 0
     
-    for pattern in log_patterns:
-        for path in Path(project_dir).glob(pattern):
-            if path.is_dir() and not path.match("**/logs") and not path.match("**/error_reports"):
-                # Skip deleting the log directory itself, just its contents
-                continue
-                
-            if path.is_dir():
-                if not dry_run:
-                    try:
-                        shutil.rmtree(path)
-                        print(f"Deleted log directory: {path}")
+    try:
+        for pattern in log_patterns:
+            for path in Path(project_dir).glob(pattern):
+                if path.is_dir() and not path.match("**/logs") and not path.match("**/error_reports"):
+                    # Skip deleting the log directory itself, just its contents
+                    continue
+                    
+                if path.is_dir():
+                    if not dry_run:
+                        try:
+                            shutil.rmtree(path)
+                            print(f"Deleted log directory: {path}")
+                            deleted_count += 1
+                        except Exception as e:
+                            print(f"Error deleting {path}: {e}")
+                    else:
+                        print(f"Would delete log directory: {path}")
                         deleted_count += 1
-                    except Exception as e:
-                        print(f"Error deleting {path}: {e}")
                 else:
-                    print(f"Would delete log directory: {path}")
-                    deleted_count += 1
-            else:
-                if not dry_run:
-                    try:
-                        os.remove(path)
-                        print(f"Deleted log file: {path}")
+                    if not dry_run:
+                        try:
+                            os.remove(path)
+                            print(f"Deleted log file: {path}")
+                            deleted_count += 1
+                        except Exception as e:
+                            print(f"Error deleting {path}: {e}")
+                    else:
+                        print(f"Would delete log file: {path}")
                         deleted_count += 1
-                    except Exception as e:
-                        print(f"Error deleting {path}: {e}")
-                else:
-                    print(f"Would delete log file: {path}")
-                    deleted_count += 1
+    except KeyboardInterrupt:
+        print("\nOperation interrupted by user. Stopping log file deletion...")
+        return deleted_count
     
     print(f"\nTotal log items {'that would be ' if dry_run else ''}deleted: {deleted_count}")
     return deleted_count
@@ -245,27 +261,44 @@ def main():
     print(f"Cleaning up project directory: {project_dir}")
     print(f"Dry run: {'Yes' if args.dry_run else 'No'}")
     
-    # Run cleanup operations
-    total_deleted = 0
-    total_deleted += delete_cache_files(project_dir, args.dry_run)
-    total_deleted += delete_backup_files(project_dir, args.dry_run)
-    total_deleted += cleanup_datasets(project_dir, args.reset_datasets, args.dry_run)
-    total_deleted += delete_logs(project_dir, args.dry_run)
-    
-    print_section("Cleanup Summary")
-    if args.dry_run:
-        print(f"Total items that would be cleaned up: {total_deleted}")
-        print("No files were actually deleted (dry run mode)")
-    else:
-        print(f"Total items cleaned up: {total_deleted}")
-    
-    print("\nCleanup complete!")
-    
-    if not args.dry_run and total_deleted > 0:
-        print("\nNote: If you're using Git, you might want to run:")
-        print("  git status")
-        print("to see the changes made by this cleanup.")
+    try:
+        # Run cleanup operations
+        total_deleted = 0
+        total_deleted += delete_cache_files(project_dir, args.dry_run)
+        total_deleted += delete_backup_files(project_dir, args.dry_run)
+        total_deleted += cleanup_datasets(project_dir, args.reset_datasets, args.dry_run)
+        total_deleted += delete_logs(project_dir, args.dry_run)
+        
+        print_section("Cleanup Summary")
+        if args.dry_run:
+            print(f"Total items that would be cleaned up: {total_deleted}")
+            print("No files were actually deleted (dry run mode)")
+        else:
+            print(f"Total items cleaned up: {total_deleted}")
+        
+        print("\nCleanup complete!")
+        
+        if not args.dry_run and total_deleted > 0:
+            print("\nNote: If you're using Git, you might want to run:")
+            print("  git status")
+            print("to see the changes made by this cleanup.")
+            
+    except KeyboardInterrupt:
+        print("\n\nCleanup interrupted by user.")
+        print_section("Cleanup Terminated")
+        print("The cleanup process was stopped before completion.")
+        print("Some files may have been removed while others remain.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n\nAn error occurred during cleanup: {e}")
+        print_section("Cleanup Error")
+        print("The cleanup process encountered an error and did not complete.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nProgram interrupted by user. Exiting gracefully.")
+        sys.exit(0)
