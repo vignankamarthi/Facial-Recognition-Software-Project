@@ -8,6 +8,7 @@ It uses OpenCV and face_recognition libraries to identify facial features.
 import cv2
 import face_recognition
 import numpy as np
+import time  # Add time module for reliable key handling
 
 
 class FaceDetector:
@@ -85,6 +86,17 @@ class FaceDetector:
                 return
 
             print("Press 'q' to quit...")
+            
+            # Create a named window and set it to normal (resizable) mode
+            cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
+            
+            # Set window as topmost to ensure it receives keyboard focus
+            cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)
+            
+            # Variables for key feedback display
+            last_key = None
+            key_press_time = time.time()
+            show_key_message = False
 
             while True:
                 # Capture frame-by-frame
@@ -121,15 +133,57 @@ class FaceDetector:
                     (0, 0, 255),
                     2,
                 )
+                
+                # Add controls reminder
+                cv2.putText(
+                    display_frame,
+                    "Press 'q' to quit",
+                    (10, 60),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (255, 255, 255),
+                    2,
+                )
+                
+                # Show key press feedback on screen
+                if show_key_message and time.time() - key_press_time < 2.0:  # Show for 2 seconds
+                    key_text = f"KEY PRESSED: {last_key}" if last_key else ""
+                    cv2.rectangle(display_frame, (10, 120), (400, 160), (0, 0, 0), -1)  # Background
+                    cv2.putText(
+                        display_frame,
+                        key_text,
+                        (20, 150),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0,  # Larger font
+                        (0, 255, 255),  # Yellow
+                        2,
+                    )
 
                 # Display the resulting frame
                 cv2.imshow("Video", display_frame)
 
-                # Exit on 'q' key press - improved key detection
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord("q"):
-                    print("Quitting face detection...")
-                    break
+                # Use a longer wait time and try to get key input
+                key = cv2.waitKey(100) & 0xFF  # Even longer wait (100ms)
+                
+                # Process key presses with debugging
+                if key not in [255, 0]:  # Valid key pressed
+                    # Print key info to console
+                    if 32 <= key <= 126:  # Printable ASCII
+                        key_char = chr(key)
+                        print(f"Key pressed: {key} (ASCII: {key_char})")
+                        last_key = key_char
+                    else:
+                        print(f"Key pressed: {key} (non-printable)")
+                        last_key = f"Code: {key}"
+                        
+                    # Update key display timing
+                    key_press_time = time.time()
+                    show_key_message = True
+                    
+                    # Process specific keys
+                    if key == ord("q") or key == ord("Q") or key == 27:  # q, Q, or ESC
+                        print("Quitting face detection...")
+                        break
                 
         except KeyboardInterrupt:
             print("\nFace detection interrupted by user.")
@@ -140,7 +194,26 @@ class FaceDetector:
             print("Cleaning up resources...")
             if video_capture is not None and video_capture.isOpened():
                 video_capture.release()
+            
+            print("Closing windows...")
+            # Multiple attempts to close windows with forced focus and delays
+            cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)  # Try to force focus
+            cv2.waitKey(200)  # Longer wait
+            
+            # First try normal window closure
+            cv2.destroyWindow("Video")  
+            time.sleep(0.2)  # Sleep directly instead of waitKey
+            
+            # Second attempt with all windows
             cv2.destroyAllWindows()
+            time.sleep(0.2)
+            
+            # Third attempt with a loop and delays
+            for i in range(3):
+                cv2.waitKey(200)  # Even longer wait
+                cv2.destroyAllWindows()
+                time.sleep(0.2)  # Direct sleep
+                
             print("Returned to main menu.")
 
 
