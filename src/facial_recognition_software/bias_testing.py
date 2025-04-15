@@ -272,9 +272,14 @@ class BiasAnalyzer:
                 return None
 
             # Extract demographic groups and their accuracy
-            demographics = list(results["by_demographic"].keys())
+            demographics = []
+            # Only include groups that have data (more than 0 images)
+            for demo, stats in results["by_demographic"].items():
+                if stats["total"] > 0:
+                    demographics.append(demo)
+                    
             if not demographics:
-                print("No demographic groups found for visualization.")
+                print("No demographic groups found with data for visualization.")
                 return None
 
             # Check if we have accuracy metrics
@@ -288,9 +293,11 @@ class BiasAnalyzer:
                 print("Cannot visualize results due to missing accuracy metrics.")
                 return None
 
+            # Calculate accuracies only for demographics that have data
             accuracies = [
                 results["by_demographic"][demographic]["accuracy"] * 100
                 for demographic in demographics
+                if results["by_demographic"][demographic]["total"] > 0
             ]
 
             # Create the figure with enough space for legend
@@ -315,8 +322,7 @@ class BiasAnalyzer:
                 ax.axhline(
                     y=overall_accuracy,
                     color="red",
-                    linestyle="-",
-                    label=f"Overall: {overall_accuracy:.2f}%",
+                    linestyle="-"
                 )
 
             # Add labels and title
@@ -339,14 +345,36 @@ class BiasAnalyzer:
                     va="bottom",
                 )
 
-            # Position legend below the chart
-            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2)
+            # Position legend below the chart with proper labels for each group
+            # Include demographic name with its accuracy in the legend
+            legend_labels = []
+            legend_handles = []
+            
+            # First add the overall accuracy line
+            if "accuracy" in results["overall"]:
+                overall_accuracy = results["overall"]["accuracy"] * 100
+                legend_labels.append(f"Overall: {overall_accuracy:.2f}%")
+                legend_handles.append(plt.Line2D([0], [0], color="red", linewidth=2))
+            
+            # Add each demographic group with its color
+            for i, demo in enumerate(demographics):
+                if demo in results["by_demographic"] and results["by_demographic"][demo]["total"] > 0:
+                    acc = results["by_demographic"][demo]["accuracy"] * 100
+                    color = colors[i] if i < len(colors) else 'skyblue'
+                    legend_labels.append(f"{demo}: {acc:.2f}%")
+                    legend_handles.append(plt.Rectangle((0,0), 1, 1, color=color))
+            
+            # Create the legend
+            ax.legend(legend_handles, legend_labels, loc='upper center', 
+                      bbox_to_anchor=(0.5, -0.15), ncol=3)
             
             # Add sample size information to bottom right corner
             sample_sizes_text = "Images used per group:\n"
+            # Only show stats for groups that are actually in the chart
             for demo in demographics:
-                count = results["by_demographic"][demo]["total"]
-                sample_sizes_text += f"{demo}: {count}\n"
+                if demo in results["by_demographic"] and results["by_demographic"][demo]["total"] > 0:
+                    count = results["by_demographic"][demo]["total"]
+                    sample_sizes_text += f"{demo}: {count}\n"
             
             # Add the text box with sample sizes
             plt.figtext(
@@ -380,9 +408,6 @@ class BiasAnalyzer:
     def run_bias_demonstration(self):
         """
         Run a complete bias testing demonstration.
-        
-        Args:
-            use_utkface (bool): Whether to use UTKFace dataset (True) or generic groups (False)
 
         Returns:
             None
@@ -395,19 +420,11 @@ class BiasAnalyzer:
                 print("\nDemographic split set structure created at:")
                 print(f"  {demographic_split_path}")
                 print("\nPlease follow these steps before running bias testing again:")
-
-                if use_utkface:
-                    print("1. Run the following commands to prepare the dataset:")
-                    print("   processor = ImageProcessor()")
-                    print("   processor.download_and_extract_utkface_dataset()")
-                    print("   processor.prepare_utkface_for_bias_testing()")
-                    print("2. Then run the bias testing demonstration again\n")
-                else:
-                    print("1. Add test images to each demographic group directory:")
-                    for group in ["group_a", "group_b", "group_c"]:
-                        print(f"   - {os.path.join(demographic_split_path, group)}")
-                    print("2. Images should contain faces from different demographic groups")
-                    print("3. Then run the bias testing demonstration again\n")
+                print("1. Run the following commands to prepare the dataset:")
+                print("   processor = ImageProcessor()")
+                print("   processor.download_and_extract_utkface_dataset()")
+                print("   processor.prepare_utkface_for_bias_testing()")
+                print("2. Then run the bias testing demonstration again\n")
 
                 return
 
@@ -571,4 +588,4 @@ class BiasAnalyzer:
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
     analyzer = BiasAnalyzer()
-    analyzer.run_bias_demonstration(use_utkface=True)
+    analyzer.run_bias_demonstration()
