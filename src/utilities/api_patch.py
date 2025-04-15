@@ -1,18 +1,22 @@
 """
 API Patch Module
 
-This module is a wrapper for the face_recognition patching utility.
-It modifies the face_recognition module to continue even if face_recognition_models 
-can't be imported.
+This module provides a simplified interface for the face_recognition patching utility.
+It automatically verifies the face_recognition module is working properly when imported
+and applies patches if needed.
 
-# This script relies on a centralized utility function to patch the face_recognition API.
-# If you encounter issues with face detection, you might need to review this patch.
+Usage:
+    # Simply import this module at the start of any script that uses face_recognition
+    import src.utilities.api_patch
 """
 
-from .face_recognition_patch import patch_face_recognition
+from .face_recognition_patch import verify_face_recognition
 
-# Apply the patch when this module is imported
-success = patch_face_recognition()
+# Verify face_recognition is working when this module is imported
+success = verify_face_recognition()
 
 if not success:
-    print("WARNING: Could not apply face_recognition patch")
+    print("WARNING: Could not verify face_recognition functionality")
+    print("Some face detection features may not work correctly")
+else:
+    print("Face recognition API verified and ready")
