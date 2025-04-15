@@ -154,9 +154,37 @@ class BiasAnalyzer:
         # Initialize results for each demographic group
         for demographic in demographics:
             results["by_demographic"][demographic] = {"detected": 0, "total": 0}
-
-        # Process each image
-        for image_path, demographic in zip(dataset["images"], dataset["demographics"]):
+            
+        # Add progress tracking
+        total_images = len(dataset["images"])
+        print(f"\nProcessing {total_images} images...")
+        
+        # Process each image with progress bar
+        import time
+        start_time = time.time()
+        
+        for i, (image_path, demographic) in enumerate(zip(dataset["images"], dataset["demographics"])):
+            # Update progress bar every image
+            progress = (i + 1) / total_images
+            bar_length = 40
+            filled_length = int(bar_length * progress)
+            bar = '█' * filled_length + '░' * (bar_length - filled_length)
+            
+            # Calculate time metrics
+            elapsed_time = time.time() - start_time
+            images_per_second = (i + 1) / elapsed_time if elapsed_time > 0 else 0
+            
+            # Estimate remaining time
+            if images_per_second > 0:
+                remaining_images = total_images - (i + 1)
+                eta_seconds = remaining_images / images_per_second
+                eta_str = f"ETA: {int(eta_seconds//60)}m {int(eta_seconds%60)}s"
+            else:
+                eta_str = "ETA: calculating..."
+            
+            # Print progress bar
+            print(f"\r[{bar}] {(progress*100):5.1f}% | {i+1}/{total_images} | {images_per_second:.1f} img/s | {eta_str}", end='')
+            
             try:
                 # Load the image
                 image = face_recognition.load_image_file(image_path)
@@ -175,8 +203,11 @@ class BiasAnalyzer:
                     results["by_demographic"][demographic]["detected"] += 1
 
             except Exception as e:
-                print(f"Error processing {image_path}: {e}")
+                print(f"\nError processing {image_path}: {e}")
 
+        # Print newline after progress bar completes
+        print("\n")
+        
         # Calculate accuracy metrics safely
         try:
             if results["overall"]["total"] > 0:
@@ -198,6 +229,11 @@ class BiasAnalyzer:
             if all(stats["total"] == 0 for _, stats in results["by_demographic"].items()):
                 print("Error: No valid images could be processed in any demographic group")
                 return None
+                
+            # Print total processing time
+            total_time = time.time() - start_time
+            print(f"Total processing time: {int(total_time//60)} minutes {int(total_time%60)} seconds")
+            print(f"Average processing speed: {total_images/total_time:.1f} images/second")
 
         except Exception as e:
             print(f"Error calculating accuracy metrics: {e}")
@@ -375,11 +411,8 @@ class BiasAnalyzer:
 
                 return
 
-            # Determine which group names to check based on dataset type
-            if use_utkface:
-                groups = ["white", "black", "asian", "indian", "others"]
-            else:
-                groups = ["group_a", "group_b", "group_c"]
+            # Using standard demographic groups
+            groups = ["white", "black", "asian", "indian", "others"]
 
             # Check if the sample directories have any images
             has_images = False
