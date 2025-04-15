@@ -25,15 +25,15 @@ class BiasAnalyzer:
         self.test_datasets_dir = test_datasets_dir
         self.results = {}
         self.ethnicity_colors = {
-            'white': '#3498db',  # Blue
-            'black': '#2ecc71',  # Green
-            'asian': '#e74c3c',  # Red
-            'indian': '#f39c12',  # Orange
-            'others': '#9b59b6',  # Purple
+            "white": "#3498db",  # Blue
+            "black": "#2ecc71",  # Green
+            "asian": "#e74c3c",  # Red
+            "indian": "#f39c12",  # Orange
+            "others": "#9b59b6",  # Purple
             # Fallbacks for generic group names
-            'group_a': '#3498db',
-            'group_b': '#2ecc71',
-            'group_c': '#e74c3c'
+            "group_a": "#3498db",
+            "group_b": "#2ecc71",
+            "group_c": "#e74c3c",
         }
 
     def load_test_dataset(self, dataset_name):
@@ -72,10 +72,10 @@ class BiasAnalyzer:
     def create_demographic_split_set(self):
         """
         Create a sample dataset structure for demographic bias testing.
-        
+
         Args:
             use_utkface (bool): If True, suggests UTKFace dataset instead of generic groups
-            
+
         Returns:
             str: Path to the created demographic directory
         """
@@ -84,7 +84,9 @@ class BiasAnalyzer:
             os.makedirs(self.test_datasets_dir)
 
         # Create demographic split set directory
-        demographic_split_dir = os.path.join(self.test_datasets_dir, "demographic_split_set")
+        demographic_split_dir = os.path.join(
+            self.test_datasets_dir, "demographic_split_set"
+        )
         if not os.path.exists(demographic_split_dir):
             os.makedirs(demographic_split_dir)
 
@@ -108,8 +110,6 @@ class BiasAnalyzer:
         for group in groups:
             print(f"   - {os.path.join(demographic_split_dir, group)}")
         print("2. Each group should represent a different demographic category")
-
-
 
         print("3. Make sure faces are clearly visible in the images\n")
 
@@ -138,42 +138,51 @@ class BiasAnalyzer:
 
         if len(dataset["images"]) == 0:
             print(f"Error: Dataset '{dataset_name}' contains no images")
-            print(f"Please add test images to each demographic group directory in: {os.path.join(self.test_datasets_dir, dataset_name)}")
+            print(
+                f"Please add test images to each demographic group directory in: {os.path.join(self.test_datasets_dir, dataset_name)}"
+            )
             return None
 
         # Check if we have images for each demographic group
         demographics = set(dataset["demographics"])
         if len(demographics) == 0:
-            print(f"Error: No valid demographic groups found in dataset '{dataset_name}'")
+            print(
+                f"Error: No valid demographic groups found in dataset '{dataset_name}'"
+            )
             return None
 
-        print(f"Found {len(demographics)} demographic groups: {', '.join(demographics)}")
+        print(
+            f"Found {len(demographics)} demographic groups: {', '.join(demographics)}"
+        )
 
         results = {"overall": {"detected": 0, "total": 0}, "by_demographic": {}}
 
         # Initialize results for each demographic group
         for demographic in demographics:
             results["by_demographic"][demographic] = {"detected": 0, "total": 0}
-            
+
         # Add progress tracking
         total_images = len(dataset["images"])
         print(f"\nProcessing {total_images} images...")
-        
+
         # Process each image with progress bar
         import time
+
         start_time = time.time()
-        
-        for i, (image_path, demographic) in enumerate(zip(dataset["images"], dataset["demographics"])):
+
+        for i, (image_path, demographic) in enumerate(
+            zip(dataset["images"], dataset["demographics"])
+        ):
             # Update progress bar every image
             progress = (i + 1) / total_images
             bar_length = 40
             filled_length = int(bar_length * progress)
-            bar = '█' * filled_length + '░' * (bar_length - filled_length)
-            
+            bar = "█" * filled_length + "░" * (bar_length - filled_length)
+
             # Calculate time metrics
             elapsed_time = time.time() - start_time
             images_per_second = (i + 1) / elapsed_time if elapsed_time > 0 else 0
-            
+
             # Estimate remaining time
             if images_per_second > 0:
                 remaining_images = total_images - (i + 1)
@@ -181,10 +190,13 @@ class BiasAnalyzer:
                 eta_str = f"ETA: {int(eta_seconds//60)}m {int(eta_seconds%60)}s"
             else:
                 eta_str = "ETA: calculating..."
-            
+
             # Print progress bar
-            print(f"\r[{bar}] {(progress*100):5.1f}% | {i+1}/{total_images} | {images_per_second:.1f} img/s | {eta_str}", end='')
-            
+            print(
+                f"\r[{bar}] {(progress*100):5.1f}% | {i+1}/{total_images} | {images_per_second:.1f} img/s | {eta_str}",
+                end="",
+            )
+
             try:
                 # Load the image
                 image = face_recognition.load_image_file(image_path)
@@ -207,7 +219,7 @@ class BiasAnalyzer:
 
         # Print newline after progress bar completes
         print("\n")
-        
+
         # Calculate accuracy metrics safely
         try:
             if results["overall"]["total"] > 0:
@@ -216,24 +228,36 @@ class BiasAnalyzer:
                 )
             else:
                 results["overall"]["accuracy"] = 0
-                print("Warning: No valid images processed for overall accuracy calculation")
+                print(
+                    "Warning: No valid images processed for overall accuracy calculation"
+                )
 
             for demographic, stats in results["by_demographic"].items():
                 if stats["total"] > 0:
                     stats["accuracy"] = stats["detected"] / stats["total"]
                 else:
                     stats["accuracy"] = 0
-                    print(f"Warning: No valid images processed for demographic '{demographic}'")
+                    print(
+                        f"Warning: No valid images processed for demographic '{demographic}'"
+                    )
 
             # Verify that we have valid accuracy values
-            if all(stats["total"] == 0 for _, stats in results["by_demographic"].items()):
-                print("Error: No valid images could be processed in any demographic group")
+            if all(
+                stats["total"] == 0 for _, stats in results["by_demographic"].items()
+            ):
+                print(
+                    "Error: No valid images could be processed in any demographic group"
+                )
                 return None
-                
+
             # Print total processing time
             total_time = time.time() - start_time
-            print(f"Total processing time: {int(total_time//60)} minutes {int(total_time%60)} seconds")
-            print(f"Average processing speed: {total_images/total_time:.1f} images/second")
+            print(
+                f"Total processing time: {int(total_time//60)} minutes {int(total_time%60)} seconds"
+            )
+            print(
+                f"Average processing speed: {total_images/total_time:.1f} images/second"
+            )
 
         except Exception as e:
             print(f"Error calculating accuracy metrics: {e}")
@@ -277,7 +301,7 @@ class BiasAnalyzer:
             for demo, stats in results["by_demographic"].items():
                 if stats["total"] > 0:
                     demographics.append(demo)
-                    
+
             if not demographics:
                 print("No demographic groups found with data for visualization.")
                 return None
@@ -311,7 +335,7 @@ class BiasAnalyzer:
                 if demo_lower in self.ethnicity_colors:
                     colors.append(self.ethnicity_colors[demo_lower])
                 else:
-                    colors.append('skyblue')  # Default color
+                    colors.append("skyblue")  # Default color
 
             # Plot the bar chart with demographic-specific colors
             bars = ax.bar(demographics, accuracies, color=colors)
@@ -319,18 +343,16 @@ class BiasAnalyzer:
             # Add the overall accuracy line
             if "accuracy" in results["overall"]:
                 overall_accuracy = results["overall"]["accuracy"] * 100
-                ax.axhline(
-                    y=overall_accuracy,
-                    color="red",
-                    linestyle="-"
-                )
+                ax.axhline(y=overall_accuracy, color="red", linestyle="-")
 
             # Add labels and title
             ax.set_xlabel("Demographic Group")
             ax.set_ylabel("Face Detection Accuracy as a %")
-            ax.set_title(f"Face Detection Accuracy by Demographic Group - {dataset_name}")
+            ax.set_title(
+                f"Face Detection Accuracy by Demographic Group - {dataset_name}"
+            )
             ax.set_ylim(0, 105)  # Set y-axis limit to 0-105%
-            
+
             # Make more room for the legend by adjusting bottom margin
             plt.subplots_adjust(bottom=0.3)
 
@@ -349,43 +371,55 @@ class BiasAnalyzer:
             # Include demographic name with its accuracy in the legend
             legend_labels = []
             legend_handles = []
-            
+
             # First add the overall accuracy line
             if "accuracy" in results["overall"]:
                 overall_accuracy = results["overall"]["accuracy"] * 100
                 legend_labels.append(f"Overall: {overall_accuracy:.2f}%")
                 legend_handles.append(plt.Line2D([0], [0], color="red", linewidth=2))
-            
+
             # Add each demographic group with its color
             for i, demo in enumerate(demographics):
-                if demo in results["by_demographic"] and results["by_demographic"][demo]["total"] > 0:
+                if (
+                    demo in results["by_demographic"]
+                    and results["by_demographic"][demo]["total"] > 0
+                ):
                     acc = results["by_demographic"][demo]["accuracy"] * 100
-                    color = colors[i] if i < len(colors) else 'skyblue'
+                    color = colors[i] if i < len(colors) else "skyblue"
                     legend_labels.append(f"{demo}: {acc:.2f}%")
-                    legend_handles.append(plt.Rectangle((0,0), 1, 1, color=color))
-            
+                    legend_handles.append(plt.Rectangle((0, 0), 1, 1, color=color))
+
             # Create the legend
-            ax.legend(legend_handles, legend_labels, loc='upper center', 
-                      bbox_to_anchor=(0.5, -0.25), ncol=3)
-            
+            ax.legend(
+                legend_handles,
+                legend_labels,
+                loc="upper center",
+                bbox_to_anchor=(0.5, -0.05),
+                ncol=3,
+            )
+
             # Add sample size information to bottom right corner
             sample_sizes_text = "Images used per group:\n"
             # Only show stats for groups that are actually in the chart
             for demo in demographics:
-                if demo in results["by_demographic"] and results["by_demographic"][demo]["total"] > 0:
+                if (
+                    demo in results["by_demographic"]
+                    and results["by_demographic"][demo]["total"] > 0
+                ):
                     count = results["by_demographic"][demo]["total"]
                     sample_sizes_text += f"{demo}: {count}\n"
-            
+
             # Add the text box with sample sizes
             plt.figtext(
-                0.95, 0.05,  # x, y position (bottom right)
+                0.95,
+                0.05,  # x, y position (bottom right)
                 sample_sizes_text,
-                horizontalalignment='right',
-                verticalalignment='bottom',
+                horizontalalignment="right",
+                verticalalignment="bottom",
                 fontsize=9,
-                bbox=dict(facecolor='white', alpha=0.7, boxstyle='round,pad=0.5')
+                bbox=dict(facecolor="white", alpha=0.7, boxstyle="round,pad=0.5"),
             )
-            
+
             plt.tight_layout()
 
             # Save the figure
@@ -402,6 +436,7 @@ class BiasAnalyzer:
         except Exception as e:
             print(f"Error visualizing results: {e}")
             import traceback
+
             traceback.print_exc()
             return None
 
@@ -414,7 +449,9 @@ class BiasAnalyzer:
         """
         try:
             # Create demographic split set structure if needed
-            demographic_split_path = os.path.join(self.test_datasets_dir, "demographic_split_set")
+            demographic_split_path = os.path.join(
+                self.test_datasets_dir, "demographic_split_set"
+            )
             if not os.path.exists(demographic_split_path):
                 self.create_demographic_split_set()
                 print("\nDemographic split set structure created at:")
@@ -436,8 +473,11 @@ class BiasAnalyzer:
             for group in groups:
                 group_dir = os.path.join(demographic_split_path, group)
                 if os.path.exists(group_dir):
-                    image_files = [f for f in os.listdir(group_dir) 
-                                 if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+                    image_files = [
+                        f
+                        for f in os.listdir(group_dir)
+                        if f.lower().endswith((".jpg", ".jpeg", ".png"))
+                    ]
                     if image_files:
                         has_images = True
                         break
@@ -467,7 +507,9 @@ class BiasAnalyzer:
                 print(f"  {demographic}: {stats['accuracy']*100:.2f}%")
 
             # Check for potential bias
-            accuracies = [stats["accuracy"] for stats in results["by_demographic"].values()]
+            accuracies = [
+                stats["accuracy"] for stats in results["by_demographic"].values()
+            ]
             if len(accuracies) >= 2:  # Need at least 2 groups to compare
                 max_acc = max(accuracies)
                 min_acc = min(accuracies)
@@ -492,7 +534,9 @@ class BiasAnalyzer:
                 else:
                     print("\nNo significant bias detected between demographic groups.")
             else:
-                print("\nNot enough demographic groups to detect bias. Need at least 2 groups.")
+                print(
+                    "\nNot enough demographic groups to detect bias. Need at least 2 groups."
+                )
 
             # Visualize the results
             print("\nGenerating visualization...")
@@ -503,16 +547,19 @@ class BiasAnalyzer:
         except Exception as e:
             print(f"\nBias Testing Results:\nAn error occurred: {str(e)}")
             import traceback
+
             traceback.print_exc()
 
-    def analyze_demographic_bias(self, dataset_name="demographic_split_set", detailed=False):
+    def analyze_demographic_bias(
+        self, dataset_name="demographic_split_set", detailed=False
+    ):
         """
         Perform a more detailed analysis of demographic bias in the dataset.
-        
+
         Args:
             dataset_name (str): Name of the dataset to analyze
             detailed (bool): Whether to perform detailed statistical analysis
-            
+
         Returns:
             dict: Results of bias analysis
         """
@@ -541,7 +588,9 @@ class BiasAnalyzer:
                 variance = np.var(accuracies)
 
                 # Additional metrics
-                mean_abs_deviation = np.mean([abs(acc - avg_accuracy) for acc in accuracies])
+                mean_abs_deviation = np.mean(
+                    [abs(acc - avg_accuracy) for acc in accuracies]
+                )
 
                 # Add detailed stats to results
                 results["bias_analysis"] = {
@@ -550,7 +599,7 @@ class BiasAnalyzer:
                     "mean_abs_deviation": mean_abs_deviation,
                     "accuracy_range": accuracy_range,
                     "max_accuracy": max_accuracy,
-                    "min_accuracy": min_accuracy
+                    "min_accuracy": min_accuracy,
                 }
 
                 # Print detailed analysis
@@ -580,10 +629,11 @@ class BiasAnalyzer:
             results["bias_analysis"] = {
                 "accuracy_range": accuracy_range,
                 "max_accuracy": max_accuracy,
-                "min_accuracy": min_accuracy
+                "min_accuracy": min_accuracy,
             }
 
         return results
+
 
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
