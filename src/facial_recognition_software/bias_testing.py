@@ -332,7 +332,7 @@ class BiasAnalyzer:
             ax.set_ylim(0, 105)  # Set y-axis limit to 0-105%
             
             # Make more room for the legend by adjusting bottom margin
-            plt.subplots_adjust(bottom=0.2)
+            plt.subplots_adjust(bottom=0.3)
 
             # Add data labels on top of bars
             for bar in bars:
@@ -366,7 +366,7 @@ class BiasAnalyzer:
             
             # Create the legend
             ax.legend(legend_handles, legend_labels, loc='upper center', 
-                      bbox_to_anchor=(0.5, -0.15), ncol=3)
+                      bbox_to_anchor=(0.5, -0.25), ncol=3)
             
             # Add sample size information to bottom right corner
             sample_sizes_text = "Images used per group:\n"
