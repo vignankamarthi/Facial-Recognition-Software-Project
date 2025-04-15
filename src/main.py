@@ -8,11 +8,17 @@ import os
 import sys
 import argparse
 import cv2
-from facial_recognition_software.face_detection import FaceDetector
-from facial_recognition_software.face_matching import FaceMatcher
-from facial_recognition_software.anonymization import FaceAnonymizer
-from facial_recognition_software.bias_testing import BiasAnalyzer
-from utilities.image_processing import ImageProcessor
+# Import modules using our lazy-loading mechanism
+import facial_recognition_software
+from facial_recognition_software import FaceDetector, FaceMatcher, FaceAnonymizer, BiasAnalyzer
+from utilities import ImageProcessor
+
+# Initialize OpenCV constants in the config module if available
+try:
+    from utilities.config import initialize_opencv_constants
+    initialize_opencv_constants()
+except ImportError:
+    pass  # Fallback behavior is handled in each module
 
 
 def run_face_detection_demo(anonymize=False):

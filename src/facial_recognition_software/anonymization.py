@@ -7,13 +7,78 @@ and video streams to protect privacy.
 
 import cv2
 import numpy as np
-import time  # Add time module for more reliable key handling
+import time
+import sys
+import os
+
+# Define local fallback constants that will be used if imports fail
+_WINDOW_NAME = "Video"
+_WAIT_KEY_DELAY = 100
+_DEFAULT_ANONYMIZATION_METHOD = "blur"
+_DEFAULT_ANONYMIZATION_INTENSITY = 90
+_WARNING_COLOR = (0, 255, 255)  # Yellow
+
+# Add parent directory to path to ensure imports work in all contexts
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import utilities safely with failover to local defaults
+try:
+    from utilities.common_utils import (
+        safely_close_windows, handle_opencv_error, CameraError, AnonymizationError,
+        format_error, create_resizable_window
+    )
+    from utilities.config import (
+        WINDOW_NAME, WAIT_KEY_DELAY, DEFAULT_ANONYMIZATION_METHOD,
+        DEFAULT_ANONYMIZATION_INTENSITY, WARNING_COLOR, initialize_opencv_constants
+    )
+    # Initialize OpenCV constants after cv2 is imported
+    initialize_opencv_constants()
+except ImportError as e:
+    # Provide dummy implementations if imports fail
+    print(f"Warning: Could not import utilities. Using fallback implementations. Error: {e}")
+    
+    WINDOW_NAME = _WINDOW_NAME
+    WAIT_KEY_DELAY = _WAIT_KEY_DELAY
+    DEFAULT_ANONYMIZATION_METHOD = _DEFAULT_ANONYMIZATION_METHOD
+    DEFAULT_ANONYMIZATION_INTENSITY = _DEFAULT_ANONYMIZATION_INTENSITY
+    WARNING_COLOR = _WARNING_COLOR
+    
+    # Minimal fallback implementations to keep things working
+    def safely_close_windows(window_name=None, video_capture=None):
+        if video_capture is not None and video_capture.isOpened():
+            video_capture.release()
+        cv2.destroyAllWindows()
+    
+    def handle_opencv_error(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                print(f"Error in {func.__name__}: {e}")
+                cv2.destroyAllWindows()
+                return None
+        return wrapper
+    
+    class CameraError(Exception):
+        """Fallback exception for camera errors."""
+        pass
+    
+    class AnonymizationError(Exception):
+        """Fallback exception for anonymization errors."""
+        pass
+    
+    def format_error(error_type, message):
+        return f"ERROR: {message}"
+    
+    def create_resizable_window(window_name):
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        return window_name
 
 
 class FaceAnonymizer:
     """A class to handle face anonymization operations."""
 
-    def __init__(self, method="blur", intensity=90):
+    def __init__(self, method=None, intensity=None):
         """
         Initialize the face anonymizer.
 
@@ -21,8 +86,8 @@ class FaceAnonymizer:
             method (str): Anonymization method ('blur', 'pixelate', or 'mask') with default 'blur'
             intensity (int): Intensity of the anonymization effect with range 1-100 with default 90
         """
-        self.method = method
-        self.intensity = intensity
+        self.method = method if method is not None else DEFAULT_ANONYMIZATION_METHOD
+        self.intensity = intensity if intensity is not None else DEFAULT_ANONYMIZATION_INTENSITY
 
     def anonymize_face(self, frame, face_location, method=None):
         """
@@ -114,14 +179,14 @@ class FaceAnonymizer:
             )  # Mouth
 
         # Add a visual indicator that this face is anonymized
-        cv2.rectangle(result_frame, (left, top), (right, bottom), (0, 255, 255), 2)
+        cv2.rectangle(result_frame, (left, top), (right, bottom), WARNING_COLOR, 2)
         cv2.putText(
             result_frame,
             "Anonymized",
             (left, top - 10),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
-            (0, 255, 255),
+            WARNING_COLOR,
             2,
         )
 
@@ -156,7 +221,7 @@ class FaceAnonymizer:
             (10, 30),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
-            (0, 255, 255),
+            WARNING_COLOR,
             2,
         )
 
@@ -210,36 +275,46 @@ class FaceAnonymizer:
         return methods
 
 
-if __name__ == "__main__":
-    # Run a simple test if this module is executed directly
-    from .face_detection import FaceDetector
+# Variable to store the FaceDetector class once imported
+_FaceDetector = None
 
-    detector = FaceDetector()
+@handle_opencv_error
+def run_anonymization_demo():
+    """Run a standalone anonymization demo."""
+    # Lazily import FaceDetector to avoid circular imports
+    global _FaceDetector
+    if _FaceDetector is None:
+        from .face_detection import FaceDetector
+        _FaceDetector = FaceDetector
+    
+    detector = _FaceDetector()
     anonymizer = FaceAnonymizer()
 
     # Initialize webcam
-    video_capture = cv2.VideoCapture(0)
-
-    if not video_capture.isOpened():
-        print("Error: Could not open webcam.")
-        exit()
-
-    print("Press Ctrl+C to quit...")
+    video_capture = None
     
-    # Create a named window and set it to normal (resizable) mode
-    cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
-    
-    # Set window as topmost to ensure it receives keyboard focus
-    cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)
-
-    # Main processing loop
     try:
+        # Initialize webcam
+        video_capture = cv2.VideoCapture(0)
+
+        if not video_capture.isOpened():
+            error_msg = format_error("Camera", "Could not open webcam")
+            print(error_msg)
+            raise CameraError(error_msg)
+
+        print("Press Ctrl+C to quit...")
+        
+        # Create a resizable window using utility function
+        create_resizable_window(WINDOW_NAME)
+
+        # Main processing loop
         while True:
             # Capture frame-by-frame
             ret, frame = video_capture.read()
 
             if not ret:
-                print("Error: Failed to capture frame.")
+                error_msg = format_error("Camera", "Failed to capture frame")
+                print(error_msg)
                 break
 
             # Detect faces in the frame
@@ -249,36 +324,30 @@ if __name__ == "__main__":
             display_frame = anonymizer.anonymize_frame(frame, face_locations)
 
             # Display the resulting frame
-            cv2.imshow("Video", display_frame)
+            cv2.imshow(WINDOW_NAME, display_frame)
             
             # Short wait time
-            cv2.waitKey(10)
+            key = cv2.waitKey(WAIT_KEY_DELAY) & 0xFF
+            if key == ord("q") or key == ord("Q") or key == 27:  # q, Q, or ESC
+                print("Quitting anonymization...")
+                break
             
     except KeyboardInterrupt:
         print("\nAnonymization interrupted by user.")
+    except CameraError as e:
+        print(f"Camera error: {e}")
+    except AnonymizationError as e:
+        print(f"Anonymization error: {e}")
+    except Exception as e:
+        print(f"Error in anonymization: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
-        # Release the webcam and close all windows
-        print("Cleaning up resources...")
-        if video_capture is not None and video_capture.isOpened():
-            video_capture.release()
-        
-        print("Closing windows...")
-        # Multiple attempts to close windows with forced focus and delays
-        cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)  # Try to force focus
-        cv2.waitKey(200)  # Longer wait
-        
-        # First try normal window closure
-        cv2.destroyWindow("Video")  
-        time.sleep(0.2)  # Sleep directly instead of waitKey
-        
-        # Second attempt with all windows
-        cv2.destroyAllWindows()
-        time.sleep(0.2)
-        
-        # Third attempt with a loop and delays
-        for i in range(3):
-            cv2.waitKey(200)  # Even longer wait
-            cv2.destroyAllWindows()
-            time.sleep(0.2)  # Direct sleep
-        
+        # Use the centralized window closing utility
+        safely_close_windows(WINDOW_NAME, video_capture)
         print("Returned to main menu.")
+
+
+if __name__ == "__main__":
+    # Run the demo function if this module is executed directly
+    run_anonymization_demo()

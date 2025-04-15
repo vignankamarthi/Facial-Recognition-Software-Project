@@ -16,36 +16,51 @@ from pathlib import Path
 
 # ===== Path Configuration =====
 
+# Import centralized configuration
+try:
+    from .config import (
+        PROJECT_ROOT, DATA_DIR, KNOWN_FACES_DIR, TEST_DATASETS_DIR, 
+        RESULTS_DIR, ensure_dir_exists
+    )
+except ImportError:
+    # Fallback if config module is not available
+    def get_project_root():
+        """Get the absolute path to the project root directory."""
+        # Navigate up from this file's location to find project root
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.dirname(os.path.dirname(current_dir))  # up two levels
+    
+    PROJECT_ROOT = get_project_root()
+    DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+    KNOWN_FACES_DIR = os.path.join(DATA_DIR, "known_faces")
+    TEST_DATASETS_DIR = os.path.join(DATA_DIR, "test_datasets")
+    RESULTS_DIR = os.path.join(DATA_DIR, "results")
+    
+    def ensure_dir_exists(directory_path):
+        """Ensure a directory exists, creating it if necessary."""
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
+        return directory_path
+
 def get_project_root():
     """Get the absolute path to the project root directory."""
-    # Navigate up from this file's location to find project root
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.dirname(os.path.dirname(current_dir))  # up two levels
+    return PROJECT_ROOT
 
 def get_data_dir():
     """Get the absolute path to the data directory."""
-    return os.path.join(get_project_root(), "data")
-
-def ensure_dir_exists(directory_path):
-    """Ensure a directory exists, creating it if necessary."""
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
-    return directory_path
+    return DATA_DIR
 
 def get_known_faces_dir():
     """Get the path to the known faces directory, ensuring it exists."""
-    path = os.path.join(get_data_dir(), "known_faces")
-    return ensure_dir_exists(path)
+    return ensure_dir_exists(KNOWN_FACES_DIR)
 
 def get_test_datasets_dir():
     """Get the path to the test datasets directory, ensuring it exists."""
-    path = os.path.join(get_data_dir(), "test_datasets")
-    return ensure_dir_exists(path)
+    return ensure_dir_exists(TEST_DATASETS_DIR)
 
 def get_results_dir():
     """Get the path to the results directory, ensuring it exists."""
-    path = os.path.join(get_data_dir(), "results")
-    return ensure_dir_exists(path)
+    return ensure_dir_exists(RESULTS_DIR)
 
 
 # ===== OpenCV Window Management =====
@@ -56,43 +71,90 @@ def create_resizable_window(window_name):
     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)  # Ensure it gets focus
     return window_name
 
-def safely_close_windows(window_name=None):
+def safely_close_windows(window_name=None, video_capture=None):
     """
-    Safely close OpenCV windows with multiple attempts to ensure they're properly closed.
+    Safely close OpenCV windows and release video capture resources with multiple attempts.
     
     Args:
         window_name (str, optional): Specific window to close, or None to close all windows
+        video_capture (cv2.VideoCapture, optional): Video capture object to release
     """
+    print("Cleaning up resources...")
+    
+    # Release video capture if provided
+    if video_capture is not None and video_capture.isOpened():
+        video_capture.release()
+        print("Video capture released.")
+    
     print("Closing OpenCV windows...")
     
     # Try to get focus first
     if window_name:
-        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+        try:
+            cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+        except cv2.error:
+            pass  # Window might already be closed
     
     cv2.waitKey(200)  # Wait for focus
     
     # First close attempt
-    if window_name:
-        cv2.destroyWindow(window_name)
-    else:
-        cv2.destroyAllWindows()
+    try:
+        if window_name:
+            cv2.destroyWindow(window_name)
+        else:
+            cv2.destroyAllWindows()
+    except:
+        pass  # Ignore errors in window closing
     
     time.sleep(0.2)  # Give time for windows to close
     
     # Second attempt with all windows
-    cv2.destroyAllWindows()
+    try:
+        cv2.destroyAllWindows()
+    except:
+        pass
+    
     time.sleep(0.2)
     
     # Third attempt with a loop and delays
     for i in range(3):
         cv2.waitKey(200)  # Longer wait
-        cv2.destroyAllWindows()
+        try:
+            cv2.destroyAllWindows()
+        except:
+            pass
         time.sleep(0.2)  # Direct sleep
     
     print("Windows closed.")
 
 
 # ===== Error Handling =====
+
+# ===== Enhanced Error Handling =====
+
+class FaceRecognitionError(Exception):
+    """Base exception class for facial recognition errors."""
+    pass
+
+class CameraError(FaceRecognitionError):
+    """Exception raised for camera-related errors."""
+    pass
+
+class DetectionError(FaceRecognitionError):
+    """Exception raised for face detection errors."""
+    pass
+
+class MatchingError(FaceRecognitionError):
+    """Exception raised for face matching errors."""
+    pass
+
+class AnonymizationError(FaceRecognitionError):
+    """Exception raised for face anonymization errors."""
+    pass
+
+class DatasetError(FaceRecognitionError):
+    """Exception raised for dataset-related errors."""
+    pass
 
 def handle_opencv_error(func):
     """
@@ -110,6 +172,14 @@ def handle_opencv_error(func):
             print(f"OpenCV error in {func.__name__}: {e}")
             safely_close_windows()
             return None
+        except CameraError as e:
+            print(f"Camera error in {func.__name__}: {e}")
+            safely_close_windows()
+            return None
+        except FaceRecognitionError as e:
+            print(f"Facial recognition error in {func.__name__}: {e}")
+            safely_close_windows()
+            return None
         except Exception as e:
             print(f"Unexpected error in {func.__name__}: {e}")
             import traceback
@@ -117,6 +187,19 @@ def handle_opencv_error(func):
             safely_close_windows()
             return None
     return wrapper
+
+def format_error(error_type, message):
+    """
+    Format error messages consistently.
+    
+    Args:
+        error_type (str): Type of error (e.g., "Camera", "Detection")
+        message (str): Error message
+        
+    Returns:
+        str: Formatted error message
+    """
+    return f"ERROR [{error_type}]: {message}"
 
 
 # ===== File Operations =====

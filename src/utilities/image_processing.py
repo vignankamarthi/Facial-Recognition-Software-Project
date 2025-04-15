@@ -13,9 +13,9 @@ import re
 import urllib.request
 import random
 import numpy as np
-from facial_recognition_software.face_detection import FaceDetector
-from facial_recognition_software.face_matching import FaceMatcher
-from facial_recognition_software.anonymization import FaceAnonymizer
+
+# Remove direct imports to avoid circular dependency
+# We'll import these classes only when needed
 
 
 class ImageProcessor:
@@ -28,9 +28,38 @@ class ImageProcessor:
         Args:
             known_faces_dir (str): Directory containing known face images
         """
-        self.detector = FaceDetector()
-        self.matcher = FaceMatcher(known_faces_dir)
-        self.anonymizer = FaceAnonymizer()
+        self.known_faces_dir = known_faces_dir
+        # Use lazy initialization of components to avoid circular imports
+        self._detector = None
+        self._matcher = None
+        self._anonymizer = None
+        
+    @property
+    def detector(self):
+        """Lazy initialization of face detector."""
+        if self._detector is None:
+            # Import here to avoid circular dependency
+            from facial_recognition_software.face_detection import FaceDetector
+            self._detector = FaceDetector()
+        return self._detector
+        
+    @property
+    def matcher(self):
+        """Lazy initialization of face matcher."""
+        if self._matcher is None:
+            # Import here to avoid circular dependency
+            from facial_recognition_software.face_matching import FaceMatcher
+            self._matcher = FaceMatcher(self.known_faces_dir)
+        return self._matcher
+        
+    @property
+    def anonymizer(self):
+        """Lazy initialization of face anonymizer."""
+        if self._anonymizer is None:
+            # Import here to avoid circular dependency
+            from facial_recognition_software.anonymization import FaceAnonymizer
+            self._anonymizer = FaceAnonymizer()
+        return self._anonymizer
 
     def load_image(self, image_path):
         """

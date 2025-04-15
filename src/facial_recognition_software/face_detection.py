@@ -8,7 +8,63 @@ It uses OpenCV and face_recognition libraries to identify facial features.
 import cv2
 import face_recognition
 import numpy as np
-import time  # Add time module for reliable key handling
+import time
+import sys
+import os
+
+# Define local fallback constants that will be used if imports fail
+_WINDOW_NAME = "Video"
+_WAIT_KEY_DELAY = 100
+
+# Add parent directory to path to ensure imports work in all contexts
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import utilities safely with failover to local defaults
+try:
+    from utilities.common_utils import (
+        safely_close_windows, handle_opencv_error, CameraError, DetectionError,
+        format_error, create_resizable_window
+    )
+    from utilities.config import WINDOW_NAME, WAIT_KEY_DELAY, initialize_opencv_constants
+    # Initialize OpenCV constants after cv2 is imported
+    initialize_opencv_constants()
+except ImportError as e:
+    # Provide dummy implementations if imports fail
+    print(f"Warning: Could not import utilities. Using fallback implementations. Error: {e}")
+    
+    WINDOW_NAME = _WINDOW_NAME
+    WAIT_KEY_DELAY = _WAIT_KEY_DELAY
+    
+    # Minimal fallback implementations to keep things working
+    def safely_close_windows(window_name=None, video_capture=None):
+        if video_capture is not None and video_capture.isOpened():
+            video_capture.release()
+        cv2.destroyAllWindows()
+    
+    def handle_opencv_error(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                print(f"Error in {func.__name__}: {e}")
+                cv2.destroyAllWindows()
+                return None
+        return wrapper
+    
+    class CameraError(Exception):
+        """Fallback exception for camera errors."""
+        pass
+    
+    class DetectionError(Exception):
+        """Fallback exception for detection errors."""
+        pass
+    
+    def format_error(error_type, message):
+        return f"ERROR: {message}"
+    
+    def create_resizable_window(window_name):
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        return window_name
 
 
 class FaceDetector:
@@ -63,6 +119,7 @@ class FaceDetector:
 
         return display_frame
 
+    @handle_opencv_error
     def detect_faces_webcam(self, anonymize=False, anonymizer=None):
         """
         Start a webcam feed and detect faces in real-time.
@@ -87,16 +144,14 @@ class FaceDetector:
             video_capture = cv2.VideoCapture(0)
 
             if not video_capture.isOpened():
-                print("Error: Could not open webcam.")
-                return
+                error_msg = format_error("Camera", "Could not open webcam")
+                print(error_msg)
+                raise CameraError(error_msg)
 
             print("Press 'q' to quit...")
             
-            # Create a named window and set it to normal (resizable) mode
-            cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
-            
-            # Set window as topmost to ensure it receives keyboard focus
-            cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)
+            # Create a resizable window using utility function
+            create_resizable_window(WINDOW_NAME)
             
             # Variables for key feedback display
             last_key = None
@@ -108,7 +163,8 @@ class FaceDetector:
                 ret, frame = video_capture.read()
 
                 if not ret:
-                    print("Error: Failed to capture frame.")
+                    error_msg = format_error("Camera", "Failed to capture frame")
+                    print(error_msg)
                     break
 
                 # Detect faces in the frame
@@ -168,10 +224,10 @@ class FaceDetector:
                     )
 
                 # Display the resulting frame
-                cv2.imshow("Video", display_frame)
+                cv2.imshow(WINDOW_NAME, display_frame)
                 
                 # Use a longer wait time and try to get key input
-                key = cv2.waitKey(100) & 0xFF  # Even longer wait (100ms)
+                key = cv2.waitKey(WAIT_KEY_DELAY) & 0xFF
                 
                 # Process key presses with debugging
                 if key not in [255, 0]:  # Valid key pressed
@@ -206,33 +262,17 @@ class FaceDetector:
                 
         except KeyboardInterrupt:
             print("\nFace detection interrupted by user.")
+        except DetectionError as e:
+            print(f"Detection error: {e}")
+        except CameraError as e:
+            print(f"Camera error: {e}")
         except Exception as e:
             print(f"Error in face detection: {e}")
+            import traceback
+            traceback.print_exc()
         finally:
-            # Always ensure webcam is released and windows are closed
-            print("Cleaning up resources...")
-            if video_capture is not None and video_capture.isOpened():
-                video_capture.release()
-            
-            print("Closing windows...")
-            # Multiple attempts to close windows with forced focus and delays
-            cv2.setWindowProperty("Video", cv2.WND_PROP_TOPMOST, 1)  # Try to force focus
-            cv2.waitKey(200)  # Longer wait
-            
-            # First try normal window closure
-            cv2.destroyWindow("Video")  
-            time.sleep(0.2)  # Sleep directly instead of waitKey
-            
-            # Second attempt with all windows
-            cv2.destroyAllWindows()
-            time.sleep(0.2)
-            
-            # Third attempt with a loop and delays
-            for i in range(3):
-                cv2.waitKey(200)  # Even longer wait
-                cv2.destroyAllWindows()
-                time.sleep(0.2)  # Direct sleep
-                
+            # Use the centralized window closing utility
+            safely_close_windows(WINDOW_NAME, video_capture)
             print("Returned to main menu.")
 
 
@@ -245,4 +285,4 @@ if __name__ == "__main__":
         print("\nProcess interrupted by user. Exiting.")
     finally:
         # Make sure to release any OpenCV resources
-        cv2.destroyAllWindows()
+        safely_close_windows()
