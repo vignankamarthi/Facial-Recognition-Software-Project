@@ -3,6 +3,26 @@ Bias Testing Module
 
 This module provides functionality for testing facial recognition accuracy
 across different demographic groups to identify potential biases.
+
+The module contains the BiasAnalyzer class which processes demographically
+labeled datasets (such as UTKFace) to measure and visualize how facial recognition
+accuracy varies across different ethnic groups. This helps identify and quantify 
+algorithmic bias in facial recognition systems.
+
+Functions and Classes
+-------------------
+BiasAnalyzer
+    Main class for conducting bias analysis and visualization
+
+See Also
+--------
+image_processing : Module for preparing demographic datasets
+
+Examples
+--------
+>>> from facial_recognition_software.bias_testing import BiasAnalyzer
+>>> analyzer = BiasAnalyzer()
+>>> analyzer.run_bias_demonstration()
 """
 
 import os
@@ -13,14 +33,56 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 
 class BiasAnalyzer:
-    """A class to analyze bias in facial recognition systems."""
+    """
+    A class to analyze bias in facial recognition systems.
+    
+    This class provides methods to test facial recognition accuracy across different
+    demographic groups, visualize the results, and quantify potential bias through
+    statistical analysis. It works with demographically labeled datasets such as
+    UTKFace to demonstrate how recognition performance can vary across ethnicities.
+    
+    Parameters
+    ----------
+    test_datasets_dir : str, optional
+        Directory containing test datasets organized by demographic groups
+        (default: './data/test_datasets')
+        
+    Attributes
+    ----------
+    test_datasets_dir : str
+        Path to the directory containing test datasets
+    results : dict
+        Dictionary storing results of bias testing runs
+    ethnicity_colors : dict
+        Color mapping for different ethnicity groups in visualizations
+        
+    Examples
+    --------
+    >>> analyzer = BiasAnalyzer()
+    >>> # Run a complete bias test and visualization
+    >>> analyzer.run_bias_demonstration()
+    >>> # Or run individual steps
+    >>> results = analyzer.test_recognition_accuracy('demographic_split_set')
+    >>> analyzer.visualize_results()
+    """
 
     def __init__(self, test_datasets_dir="./data/test_datasets"):
         """
         Initialize the bias analyzer.
 
-        Args:
-            test_datasets_dir (str): Directory containing test datasets
+        Parameters
+        ----------
+        test_datasets_dir : str, optional
+            Directory containing test datasets organized by demographic groups
+            (default: './data/test_datasets')
+            
+        Notes
+        -----
+        The test_datasets_dir should contain subdirectories for demographic groups,
+        typically with the structure:
+        test_datasets_dir/demographic_split_set/{white,black,asian,indian,others}/
+        
+        Each demographic subdirectory should contain face images belonging to that group.
         """
         self.test_datasets_dir = test_datasets_dir
         self.results = {}
@@ -40,11 +102,28 @@ class BiasAnalyzer:
         """
         Load a test dataset from the specified directory.
 
-        Args:
-            dataset_name (str): Name of the dataset directory
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset directory (e.g., 'demographic_split_set')
 
-        Returns:
-            dict: Dictionary containing image paths and demographic information
+        Returns
+        -------
+        dict or None
+            Dictionary containing image paths and demographic information with keys:
+            - 'images': list of image file paths
+            - 'demographics': list of demographic group labels
+            Returns None if the dataset directory is not found or empty.
+            
+        Notes
+        -----
+        This method expects a directory structure where each subdirectory represents
+        a demographic group, and the subdirectory name is used as the demographic label.
+        
+        Examples
+        --------
+        >>> dataset = analyzer.load_test_dataset('demographic_split_set')
+        >>> print(f"Loaded {len(dataset['images'])} images across {len(set(dataset['demographics']))} groups")
         """
         dataset_path = os.path.join(self.test_datasets_dir, dataset_name)
 
@@ -72,12 +151,34 @@ class BiasAnalyzer:
     def create_demographic_split_set(self):
         """
         Create a sample dataset structure for demographic bias testing.
+        
+        This method creates a directory structure designed for organizing face images
+        by demographic groups (ethnicity). It creates empty directories for each
+        ethnicity category that must be populated with images before testing.
 
-        Args:
-            use_utkface (bool): If True, suggests UTKFace dataset instead of generic groups
-
-        Returns:
-            str: Path to the created demographic directory
+        Returns
+        -------
+        str
+            Path to the created demographic directory structure
+            
+        Notes
+        -----
+        The created structure is:
+        test_datasets_dir/demographic_split_set/
+            ├── white/
+            ├── black/
+            ├── asian/
+            ├── indian/
+            └── others/
+            
+        After creation, you should populate these directories with face images
+        from the corresponding demographic groups, or use the UTKFace dataset
+        with the image_processing module's functions.
+        
+        Examples
+        --------
+        >>> directory = analyzer.create_demographic_split_set()
+        >>> print(f"Created directory structure at: {directory}")
         """
         # Create base directory if it doesn't exist
         if not os.path.exists(self.test_datasets_dir):
@@ -123,12 +224,40 @@ class BiasAnalyzer:
     def test_recognition_accuracy(self, dataset_name):
         """
         Test face recognition accuracy across different demographic groups.
+        
+        This method processes all images in the specified dataset, organized by
+        demographic groups, and measures the face detection accuracy for each group.
+        It then compares the accuracy rates to identify potential bias.
 
-        Args:
-            dataset_name (str): Name of the dataset to test
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset to test (e.g., 'demographic_split_set')
 
-        Returns:
-            dict: Results of the accuracy test by demographic group
+        Returns
+        -------
+        dict or None
+            Dictionary containing detailed results with the structure:
+            - 'overall': Statistics for the entire dataset
+              - 'detected': Number of images with faces detected
+              - 'total': Total number of images processed
+              - 'accuracy': Overall detection accuracy (ratio)
+            - 'by_demographic': Dictionary with statistics per demographic group
+              - Each group has 'detected', 'total', and 'accuracy' values
+            Returns None if the dataset is empty or cannot be processed.
+            
+        Notes
+        -----
+        This method displays a progress bar during processing and stores the
+        results in self.results for later visualization.
+            
+        Examples
+        --------
+        >>> results = analyzer.test_recognition_accuracy('demographic_split_set')
+        >>> if results:
+        ...     print(f"Overall accuracy: {results['overall']['accuracy']*100:.2f}%")
+        ...     for group, stats in results['by_demographic'].items():
+        ...         print(f"{group}: {stats['accuracy']*100:.2f}%")
         """
         dataset = self.load_test_dataset(dataset_name)
 
@@ -269,12 +398,37 @@ class BiasAnalyzer:
     def visualize_results(self, dataset_name=None):
         """
         Visualize the results of bias testing.
+        
+        This method creates a bar chart showing the face detection accuracy
+        across different demographic groups, color-coded by ethnicity.
+        It highlights accuracy differences and saves the visualization.
 
-        Args:
-            dataset_name (str, optional): Name of the dataset to visualize
+        Parameters
+        ----------
+        dataset_name : str, optional
+            Name of the dataset to visualize (default: None, which uses the 
+            most recent test results)
 
-        Returns:
-            matplotlib.figure.Figure: The generated figure
+        Returns
+        -------
+        matplotlib.figure.Figure or None
+            The generated figure object, or None if visualization fails
+            
+        Notes
+        -----
+        - The visualization includes a red horizontal line showing overall accuracy
+        - Bars are color-coded by demographic group using self.ethnicity_colors
+        - The chart includes sample size information and accuracy percentages
+        - The visualization is saved to test_datasets_dir/results/
+            
+        Examples
+        --------
+        >>> # After running a test
+        >>> results = analyzer.test_recognition_accuracy('demographic_split_set')
+        >>> # Create and save visualization
+        >>> fig = analyzer.visualize_results('demographic_split_set')
+        >>> # Or visualize most recent test results
+        >>> fig = analyzer.visualize_results()
         """
         try:
             if not dataset_name:
@@ -443,9 +597,29 @@ class BiasAnalyzer:
     def run_bias_demonstration(self):
         """
         Run a complete bias testing demonstration.
+        
+        This method performs an end-to-end bias testing workflow including:
+        1. Setting up directory structure if needed
+        2. Checking for available test images
+        3. Running accuracy tests across demographic groups
+        4. Analyzing and reporting potential bias
+        5. Generating visualizations
 
-        Returns:
-            None
+        Returns
+        -------
+        None
+            
+        Notes
+        -----
+        This is the main entry point for bias testing and handles the entire
+        workflow. It provides detailed feedback and suggestions throughout
+        the process, including how to set up test data if not available.
+            
+        Examples
+        --------
+        >>> # Complete bias testing demonstration
+        >>> analyzer = BiasAnalyzer()
+        >>> analyzer.run_bias_demonstration()
         """
         try:
             # Create demographic split set structure if needed
@@ -555,13 +729,52 @@ class BiasAnalyzer:
     ):
         """
         Perform a more detailed analysis of demographic bias in the dataset.
+        
+        This method extends the basic accuracy testing with statistical analysis
+        to quantify the level of bias across demographic groups. It calculates
+        metrics like standard deviation, variance, and mean absolute deviation
+        to provide a more comprehensive assessment of algorithmic bias.
 
-        Args:
-            dataset_name (str): Name of the dataset to analyze
-            detailed (bool): Whether to perform detailed statistical analysis
+        Parameters
+        ----------
+        dataset_name : str, optional
+            Name of the dataset to analyze (default: 'demographic_split_set')
+        detailed : bool, optional
+            Whether to perform detailed statistical analysis (default: False)
 
-        Returns:
-            dict: Results of bias analysis
+        Returns
+        -------
+        dict or None
+            Results dictionary with bias analysis metrics including:
+            - Standard test results (same as test_recognition_accuracy)
+            - Additional 'bias_analysis' key containing:
+              - 'accuracy_range': Difference between max and min accuracy
+              - 'max_accuracy': Highest accuracy across demographics
+              - 'min_accuracy': Lowest accuracy across demographics
+              
+            When detailed=True, also includes:
+              - 'std_deviation': Standard deviation of accuracies
+              - 'variance': Variance of accuracies
+              - 'mean_abs_deviation': Mean absolute deviation from average
+              
+            Returns None if the dataset cannot be processed.
+            
+        Notes
+        -----
+        The method provides an interpretation of bias level based on accuracy range:
+        - Range > 0.15 (15%): High bias potential
+        - Range 0.05-0.15 (5-15%): Moderate bias potential
+        - Range < 0.05 (5%): Low bias potential
+            
+        Examples
+        --------
+        >>> # Basic analysis
+        >>> results = analyzer.analyze_demographic_bias()
+        >>> # Detailed statistical analysis
+        >>> detailed_results = analyzer.analyze_demographic_bias(detailed=True)
+        >>> if 'bias_analysis' in detailed_results:
+        ...     std_dev = detailed_results['bias_analysis']['std_deviation']
+        ...     print(f"Standard deviation of accuracies: {std_dev:.4f}")
         """
         # First run the standard accuracy test
         results = self.test_recognition_accuracy(dataset_name)

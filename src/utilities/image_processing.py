@@ -2,7 +2,34 @@
 Image Processing Module
 
 This module provides functionality for loading and processing static images
-for face detection, matching, and anonymization.
+for face detection, matching, and anonymization. It also handles dataset management
+for the UTKFace dataset used in bias testing.
+
+The module contains the ImageProcessor class which serves as a bridge between
+the various facial recognition components and implements utilities for image
+operations, dataset preparation, and batch processing.
+
+Functions and Classes
+-------------------
+ImageProcessor
+    Main class for image processing and dataset management
+
+See Also
+--------
+facial_recognition_software.face_detection : Face detection functionality
+facial_recognition_software.face_matching : Face matching functionality
+facial_recognition_software.anonymization : Face anonymization functionality
+facial_recognition_software.bias_testing : Bias testing with demographic datasets
+
+Examples
+--------
+>>> from utilities.image_processing import ImageProcessor
+>>> processor = ImageProcessor()
+>>> # Process a single image
+>>> result_image, info = processor.process_image_file('image.jpg', detect=True)
+>>> # Set up datasets
+>>> processor.download_and_extract_utkface_dataset()
+>>> processor.prepare_utkface_for_bias_testing()
 """
 
 import os
@@ -19,14 +46,57 @@ import numpy as np
 
 
 class ImageProcessor:
-    """A class to handle static image processing operations."""
+    """
+    A class to handle static image processing operations.
+    
+    This class provides methods for processing static images using the
+    facial recognition components (detection, matching, anonymization).
+    It also provides utilities for dataset preparation and management,
+    particularly for working with the UTKFace dataset for bias testing.
+    
+    The class uses lazy initialization to avoid circular dependencies
+    between modules, only importing the required components when needed.
+    
+    Parameters
+    ----------
+    known_faces_dir : str, optional
+        Directory containing known face images used for matching
+        (default: './data/known_faces')
+        
+    Attributes
+    ----------
+    known_faces_dir : str
+        Path to directory containing known face images
+    _detector : FaceDetector or None
+        Lazily initialized face detector instance
+    _matcher : FaceMatcher or None
+        Lazily initialized face matcher instance
+    _anonymizer : FaceAnonymizer or None
+        Lazily initialized face anonymizer instance
+        
+    Examples
+    --------
+    >>> processor = ImageProcessor('./path/to/known_faces')
+    >>> # Process an image with face detection
+    >>> processed_img, results = processor.process_image(image, detect=True)
+    >>> # Set up datasets for bias testing
+    >>> processor.prepare_utkface_for_bias_testing()
+    """
 
     def __init__(self, known_faces_dir="./data/known_faces"):
         """
         Initialize the image processor.
 
-        Args:
-            known_faces_dir (str): Directory containing known face images
+        Parameters
+        ----------
+        known_faces_dir : str, optional
+            Directory containing known face images used for matching
+            (default: './data/known_faces')
+            
+        Notes
+        -----
+        Components like the detector, matcher, and anonymizer are initialized
+        lazily when first accessed to avoid circular import dependencies.
         """
         self.known_faces_dir = known_faces_dir
         # Use lazy initialization of components to avoid circular imports
@@ -36,7 +106,19 @@ class ImageProcessor:
         
     @property
     def detector(self):
-        """Lazy initialization of face detector."""
+        """
+        Lazy initialization of face detector.
+        
+        Returns
+        -------
+        FaceDetector
+            Face detector instance
+            
+        Notes
+        -----
+        This property initializes the detector on first access to avoid
+        circular import dependencies.
+        """
         if self._detector is None:
             # Import here to avoid circular dependency
             from facial_recognition_software.face_detection import FaceDetector
@@ -45,7 +127,19 @@ class ImageProcessor:
         
     @property
     def matcher(self):
-        """Lazy initialization of face matcher."""
+        """
+        Lazy initialization of face matcher.
+        
+        Returns
+        -------
+        FaceMatcher
+            Face matcher instance configured with known_faces_dir
+            
+        Notes
+        -----
+        This property initializes the matcher on first access to avoid
+        circular import dependencies.
+        """
         if self._matcher is None:
             # Import here to avoid circular dependency
             from facial_recognition_software.face_matching import FaceMatcher
@@ -54,7 +148,19 @@ class ImageProcessor:
         
     @property
     def anonymizer(self):
-        """Lazy initialization of face anonymizer."""
+        """
+        Lazy initialization of face anonymizer.
+        
+        Returns
+        -------
+        FaceAnonymizer
+            Face anonymizer instance
+            
+        Notes
+        -----
+        This property initializes the anonymizer on first access to avoid
+        circular import dependencies.
+        """
         if self._anonymizer is None:
             # Import here to avoid circular dependency
             from facial_recognition_software.anonymization import FaceAnonymizer
@@ -65,11 +171,24 @@ class ImageProcessor:
         """
         Load an image from the specified path.
 
-        Args:
-            image_path (str): Path to the image file
+        Parameters
+        ----------
+        image_path : str
+            Path to the image file to load
 
-        Returns:
-            numpy.ndarray: Loaded image or None if failed
+        Returns
+        -------
+        numpy.ndarray or None
+            Loaded image as a NumPy array, or None if loading failed
+            
+        Examples
+        --------
+        >>> processor = ImageProcessor()
+        >>> image = processor.load_image('path/to/image.jpg')
+        >>> if image is not None:
+        ...     # Process the image
+        ...     height, width = image.shape[:2]
+        ...     print(f"Loaded image with dimensions: {width}x{height}")
         """
         if not os.path.exists(image_path):
             print(f"Error: Image file not found: {image_path}")
@@ -90,14 +209,48 @@ class ImageProcessor:
         """
         Process an image with selected operations.
 
-        Args:
-            image (numpy.ndarray): Image to process
-            detect (bool): Whether to detect faces
-            match (bool): Whether to match faces against known faces
-            anonymize (bool): Whether to anonymize faces
+        Parameters
+        ----------
+        image : numpy.ndarray
+            Image to process
+        detect : bool, optional
+            Whether to detect faces (default: True)
+        match : bool, optional
+            Whether to match faces against known faces (default: False)
+        anonymize : bool, optional
+            Whether to anonymize faces (default: False)
 
-        Returns:
-            tuple: (processed_image, results_dict)
+        Returns
+        -------
+        tuple
+            (processed_image, results_dict) where:
+            - processed_image : numpy.ndarray or None
+              The processed image, or None if processing failed
+            - results_dict : dict
+              Dictionary containing metadata about the processing:
+              - "face_count" : int
+                Number of faces detected
+              - "face_locations" : list
+                List of face location tuples
+              - "identified_faces" : list
+                List of identified face names (if match=True)
+              
+        Notes
+        -----
+        At least one of detect, match, or anonymize must be True.
+        If match=True or anonymize=True, face detection is always performed
+        first as it's required for these operations.
+              
+        Examples
+        --------
+        >>> # Detect faces in an image
+        >>> processed, results = processor.process_image(image, detect=True)
+        >>> print(f"Found {results['face_count']} faces")
+        >>> 
+        >>> # Match faces against known references
+        >>> processed, results = processor.process_image(image, match=True)
+        >>> for name in results['identified_faces']:
+        ...     print(f"Identified: {name}")
         """
         if image is None:
             return None, {}
@@ -141,16 +294,52 @@ class ImageProcessor:
         """
         Process an image file with selected operations.
 
-        Args:
-            image_path (str): Path to the image file
-            detect (bool): Whether to detect faces
-            match (bool): Whether to match faces against known faces
-            anonymize (bool): Whether to anonymize faces
-            save_result (bool): Whether to save the processed image
-            output_dir (str): Directory to save results (if save_result is True)
+        Parameters
+        ----------
+        image_path : str
+            Path to the image file to process
+        detect : bool, optional
+            Whether to detect faces (default: True)
+        match : bool, optional
+            Whether to match faces against known faces (default: False)
+        anonymize : bool, optional
+            Whether to anonymize faces (default: False)
+        save_result : bool, optional
+            Whether to save the processed image (default: False)
+        output_dir : str, optional
+            Directory to save results if save_result is True
+            (default: 'results' subdirectory in input file's directory)
 
-        Returns:
-            tuple: (processed_image, results_dict)
+        Returns
+        -------
+        tuple
+            (processed_image, results_dict) where:
+            - processed_image : numpy.ndarray or None
+              The processed image, or None if processing failed
+            - results_dict : dict
+              Dictionary containing metadata about the processing:
+              - "face_count" : int
+                Number of faces detected
+              - "face_locations" : list
+                List of face location tuples
+              - "identified_faces" : list
+                List of identified face names (if match=True)
+              - "image_path" : str
+                Path to the original image file
+              - "output_path" : str
+                Path where the result was saved (if save_result=True)
+                
+        Examples
+        --------
+        >>> # Process an image file with face detection and save the result
+        >>> image, results = processor.process_image_file(
+        ...     'path/to/image.jpg',
+        ...     detect=True,
+        ...     save_result=True,
+        ...     output_dir='./output_folder'
+        ... )
+        >>> if 'output_path' in results:
+        ...     print(f"Result saved to: {results['output_path']}")
         """
         # Load the image
         image = self.load_image(image_path)
@@ -219,17 +408,52 @@ class ImageProcessor:
         """
         Process all images in a directory.
 
-        Args:
-            directory_path (str): Path to the directory containing images
-            detect (bool): Whether to detect faces
-            match (bool): Whether to match faces against known faces
-            anonymize (bool): Whether to anonymize faces
-            save_results (bool): Whether to save the processed images
-            output_dir (str): Directory to save results (if save_results is True)
-            display_results (bool): Whether to display results in windows
+        Parameters
+        ----------
+        directory_path : str
+            Path to the directory containing images to process
+        detect : bool, optional
+            Whether to detect faces (default: True)
+        match : bool, optional
+            Whether to match faces against known faces (default: False)
+        anonymize : bool, optional
+            Whether to anonymize faces (default: False)
+        save_results : bool, optional
+            Whether to save the processed images (default: False)
+        output_dir : str, optional
+            Directory to save results if save_results is True
+            (default: None, which creates a 'results' subdirectory)
+        display_results : bool, optional
+            Whether to display results in windows (default: True)
 
-        Returns:
-            dict: Results for all processed images
+        Returns
+        -------
+        dict
+            Dictionary mapping image paths to their respective result dictionaries.
+            Each result dictionary contains the same fields as returned by
+            process_image_file() for that specific image.
+            
+        Notes
+        -----
+        If display_results is True, each processed image is shown in a separate
+        window, with a key press required to advance to the next image.
+        All supported image formats (jpg, jpeg, png, bmp) in the directory
+        are processed.
+            
+        Examples
+        --------
+        >>> # Process all images in a directory with face detection
+        >>> results = processor.process_directory(
+        ...     './photos',
+        ...     detect=True,
+        ...     save_results=True,
+        ...     output_dir='./processed_photos',
+        ...     display_results=False  # Don't show windows
+        ... )
+        >>> print(f"Processed {len(results)} images")
+        >>> # Count total faces found
+        >>> total_faces = sum(result.get('face_count', 0) for result in results.values())
+        >>> print(f"Found {total_faces} faces total")
         """
         if not os.path.exists(directory_path) or not os.path.isdir(directory_path):
             print(f"Error: Directory not found: {directory_path}")
@@ -306,15 +530,51 @@ class ImageProcessor:
     ):
         """
         Download and extract a sample of the UTKFace dataset.
+        
+        This method downloads the UTKFace dataset with demographic annotations,
+        extracts it, and organizes the images by ethnicity for bias testing.
 
-        Args:
-            target_dir (str): Directory to save the dataset
-            sample_size (int): Number of total images to include (default: 500)
-            specific_ethnicities (list, optional): List of ethnicity codes to include (default: "all" for all ethnicities)
-                0: White, 1: Black, 2: Asian, 3: Indian, 4: Others
+        Parameters
+        ----------
+        target_dir : str, optional
+            Directory to save the dataset (default: './data/datasets/utkface')
+        sample_size : int, optional
+            Number of total images to include (default: 500)
+        specific_ethnicities : list, optional
+            List of ethnicity codes to include (default: None, which includes all)
+            Ethnicity codes:
+            - 0: White
+            - 1: Black
+            - 2: Asian
+            - 3: Indian
+            - 4: Others
 
-        Returns:
-            bool: True if successful, False otherwise
+        Returns
+        -------
+        bool
+            True if successful, False otherwise
+            
+        Notes
+        -----
+        This method requires manual download of the dataset files from Google Drive
+        due to download limitations. It prompts the user to download the files and
+        place them in the specified directory.
+        
+        Each image in the UTKFace dataset has a filename in the format:
+        [age]_[gender]_[race]_[date&time].jpg
+        - gender: 0 (male), 1 (female)
+        - race/ethnicity: 0 (White), 1 (Black), 2 (Asian), 3 (Indian), 4 (Others)
+            
+        Examples
+        --------
+        >>> # Download all ethnicities with default sample size
+        >>> processor.download_and_extract_utkface_dataset()
+        >>> 
+        >>> # Download only White and Black ethnicities with 300 samples
+        >>> processor.download_and_extract_utkface_dataset(
+        ...     sample_size=300,
+        ...     specific_ethnicities=[0, 1]
+        ... )
         """
         print("Starting UTKFace dataset download...")
 
@@ -506,14 +766,46 @@ class ImageProcessor:
     ):
         """
         Prepare UTKFace dataset for bias testing by copying images to the test directory.
+        
+        This method copies a balanced sample of images from each ethnicity group
+        in the UTKFace dataset to a directory structure suitable for bias testing.
 
-        Args:
-            utkface_dir (str): Source directory with ethnicity-separated UTKFace images
-            test_datasets_dir (str): Target directory for bias testing
-            images_per_ethnicity (int): Maximum number of images per ethnicity group
+        Parameters
+        ----------
+        utkface_dir : str, optional
+            Source directory with ethnicity-separated UTKFace images
+            (default: './data/datasets/utkface/demographic_split')
+        test_datasets_dir : str, optional
+            Target directory for bias testing
+            (default: './data/test_datasets/demographic_split_set')
+        images_per_ethnicity : int, optional
+            Maximum number of images per ethnicity group (default: 25)
 
-        Returns:
-            bool: True if successful, False otherwise
+        Returns
+        -------
+        bool
+            True if successful, False otherwise
+            
+        Notes
+        -----
+        This method requires that the UTKFace dataset has been downloaded and
+        organized by ethnicity first. You should call download_and_extract_utkface_dataset()
+        before using this method.
+        
+        The resulting directory structure will be:
+        test_datasets_dir/
+            ├── white/
+            ├── black/
+            ├── asian/
+            ├── indian/
+            └── others/
+            
+        Examples
+        --------
+        >>> # First download the dataset
+        >>> processor.download_and_extract_utkface_dataset()
+        >>> # Then prepare for bias testing with 30 images per ethnicity
+        >>> processor.prepare_utkface_for_bias_testing(images_per_ethnicity=30)
         """
         try:
             # Check if source directory exists
@@ -603,16 +895,53 @@ class ImageProcessor:
         output_dir="./data/known_faces",
     ):
         """
-        Prepare a set of known faces from the UTKFace dataset.
+        Prepare a set of known faces from the UTKFace dataset for face matching.
+        
+        This method selects a subset of faces from the UTKFace dataset to use as
+        reference faces for the face matching feature. It can optionally select faces
+        with balanced representation across ethnicities.
 
-        Args:
-            num_people (int): Number of people to include (default: 20)
-            ethnicity_balanced (bool): Whether to balance selection across ethnicities
-            utkface_dir (str): Directory containing the UTKFace dataset
-            output_dir (str): Directory to save the known faces
+        Parameters
+        ----------
+        num_people : int, optional
+            Number of reference people to include (default: 20)
+        ethnicity_balanced : bool, optional
+            Whether to balance selection across ethnicities (default: True)
+        utkface_dir : str, optional
+            Directory containing the UTKFace dataset
+            (default: './data/datasets/utkface/utkface_data')
+        output_dir : str, optional
+            Directory to save the known faces
+            (default: './data/known_faces')
 
-        Returns:
-            bool: True if successful, False otherwise
+        Returns
+        -------
+        bool
+            True if successful, False otherwise
+            
+        Notes
+        -----
+        When ethnicity_balanced is True, the method attempts to select an equal
+        number of faces from each ethnicity group to ensure diversity in the
+        reference set. This is important for reducing bias in the face matching
+        feature.
+        
+        The files are named with ethnicity information and an index, e.g.,
+        'White_0.jpg' or 'Asian_1.jpg', which serves as the identity label
+        in the face matching system.
+            
+        Examples
+        --------
+        >>> # Create a balanced set of 30 reference faces
+        >>> processor.prepare_known_faces_from_utkface(
+        ...     num_people=30,
+        ...     ethnicity_balanced=True
+        ... )
+        >>> # Create an unbalanced set (random selection)
+        >>> processor.prepare_known_faces_from_utkface(
+        ...     num_people=15,
+        ...     ethnicity_balanced=False
+        ... )
         """
         if not os.path.exists(utkface_dir):
             print(f"Error: UTKFace dataset not found at {utkface_dir}")
@@ -745,17 +1074,56 @@ class ImageProcessor:
         output_dir="./data/test_images",
     ):
         """
-        Prepare a test dataset from the UTKFace dataset.
+        Prepare a test dataset from the UTKFace dataset for face matching evaluation.
+        
+        This method creates two sets of test images from the UTKFace dataset:
+        1. Known people - Additional images of people in the known faces directory
+        2. Unknown people - Images of people not in the known faces directory
+        
+        These images can be used to evaluate the accuracy of the face matching system.
 
-        Args:
-            num_known (int): Number of known people to include
-            num_unknown (int): Number of unknown people to include
-            utkface_dir (str): Directory containing the UTKFace dataset
-            known_faces_dir (str): Directory containing known faces
-            output_dir (str): Directory to save test images
+        Parameters
+        ----------
+        num_known : int, optional
+            Number of known people to include in test set (default: 5)
+        num_unknown : int, optional
+            Number of unknown people to include in test set (default: 5)
+        utkface_dir : str, optional
+            Directory containing the UTKFace dataset
+            (default: './data/datasets/utkface/utkface_data')
+        known_faces_dir : str, optional
+            Directory containing known faces
+            (default: './data/known_faces')
+        output_dir : str, optional
+            Directory to save test images
+            (default: './data/test_images')
 
-        Returns:
-            bool: True if successful, False otherwise
+        Returns
+        -------
+        bool
+            True if successful, False otherwise
+            
+        Notes
+        -----
+        Since the UTKFace dataset doesn't have identity labels, this method uses
+        gender+ethnicity+age as a proxy for identity. It attempts to find faces
+        with similar demographic characteristics to serve as additional images
+        of "known" people.
+        
+        The resulting directory structure will be:
+        output_dir/
+            ├── known/    # Additional images of people in the known set
+            └── unknown/  # Images of people not in the known set
+            
+        Examples
+        --------
+        >>> # Create a test dataset with default settings
+        >>> processor.prepare_test_dataset_from_utkface()
+        >>> # Create a larger test set
+        >>> processor.prepare_test_dataset_from_utkface(
+        ...     num_known=10,
+        ...     num_unknown=15
+        ... )
         """
         if not os.path.exists(utkface_dir):
             print(f"Error: UTKFace dataset not found at {utkface_dir}")

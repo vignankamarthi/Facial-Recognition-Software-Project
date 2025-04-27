@@ -6,6 +6,38 @@ It consolidates previously duplicated functionality for improved maintainability
 
 This module includes standardized functions for path management, window handling,
 error handling, file operations, process management, and progress display.
+
+Functions and Classes
+-------------------
+Path Functions
+    get_project_root, get_data_dir, etc.: Access standard project directories
+Window Management
+    create_resizable_window, safely_close_windows, etc.: Handle OpenCV windows
+Error Handling
+    FaceRecognitionError, handle_opencv_error, etc.: Custom exceptions and error handling
+File Operations
+    clean_directory, safe_copy_file, etc.: File system operations with error handling
+Process Management
+    run_command: Execute shell commands with output capture
+Progress Display
+    ProgressBar: Console progress bar with ETA calculation
+
+See Also
+--------
+utilities.logger : Module for logging functionality
+utilities.config : Module for project configuration constants
+
+Examples
+--------
+>>> from utilities.common_utils import safely_close_windows, get_data_dir
+>>> # Get standard directory path
+>>> data_path = get_data_dir()
+>>> # Run a process with resource cleanup
+>>> try:
+...     # Do some OpenCV operations
+...     pass
+... finally:
+...     safely_close_windows()
 """
 
 import os
@@ -433,16 +465,50 @@ def show_image_with_delay(
 
 
 class FaceRecognitionError(Exception):
-    """Base exception class for facial recognition errors.
+    """
+    Base exception class for facial recognition errors.
+    
+    This is the parent class for all custom exceptions in the facial recognition
+    project. It provides additional context and logging functionality beyond
+    the standard Exception class.
 
     Parameters
     ----------
     message : str
         The error message
     details : str, optional
-        Additional error details
+        Additional error details (default: None)
     source : Exception, optional
-        The source exception, if this is wrapping another exception
+        The source exception, if this is wrapping another exception (default: None)
+        
+    Attributes
+    ----------
+    message : str
+        The main error message
+    details : str or None
+        Additional error details
+    source : Exception or None
+        Original exception if this is wrapping another exception
+        
+    Notes
+    -----
+    This exception logs the error automatically using the logging system.
+    It preserves the original traceback when wrapping other exceptions.
+    
+    Examples
+    --------
+    >>> # Basic usage
+    >>> raise FaceRecognitionError("Face detection failed")
+    >>> 
+    >>> # With details
+    >>> raise FaceRecognitionError("Face detection failed", "No face found in image")
+    >>> 
+    >>> # Wrapping another exception
+    >>> try:
+    ...     # Some code that might raise an exception
+    ...     result = process_image("invalid_image.jpg")
+    ... except ValueError as e:
+    ...     raise FaceRecognitionError("Processing failed", "Invalid image format", e)
     """
 
     def __init__(self, message, details=None, source=None):
@@ -887,28 +953,65 @@ def run_command(command):
 class ProgressBar:
     """
     A simple progress bar for console output.
+    
+    This class provides a text-based progress bar with percentage, ETA calculation,
+    and processing speed indicators. It's useful for long-running operations to give
+    feedback to the user while also logging progress to the log files.
 
     Parameters
     ----------
     total : int
-        Total number of items
+        Total number of items to process
     prefix : str, optional
-        Prefix string (default: '')
+        Prefix string displayed before the progress bar (default: '')
     suffix : str, optional
-        Suffix string (default: '')
+        Suffix string displayed after the progress bar (default: '')
     length : int, optional
-        Character length of the bar (default: 50)
+        Character length of the bar visualization (default: 50)
     fill : str, optional
-        Bar fill character (default: '█')
+        Character used for the filled portion of the bar (default: '█')
     print_end : str, optional
-        End character (default: '\\r')
+        End character for print function (default: '\r')
+    log_level : int, optional
+        Logging level to use for progress updates (default: logging.INFO)
+        
+    Attributes
+    ----------
+    total : int
+        Total number of items to process
+    prefix : str
+        Text displayed before the progress bar
+    suffix : str
+        Text displayed after the progress bar
+    length : int
+        Character length of the bar visualization
+    fill : str
+        Character used for the filled portion
+    print_end : str
+        End character for print function
+    log_level : int
+        Logging level for progress updates
+    start_time : float
+        Time when the progress bar was initialized
+    last_log_time : float
+        Time of the last log entry (used to avoid excessive logging)
+    logger : logging.Logger
+        Logger instance used for progress updates
+        
+    Methods
+    -------
+    update(iteration)
+        Update the progress bar to the specified iteration
 
     Examples
     --------
-    >>> progress = ProgressBar(total=100, prefix='Processing:', suffix='Complete', length=50)
+    >>> # Process 100 items with a progress bar
+    >>> progress = ProgressBar(total=100, prefix='Processing:', suffix='Complete')
     >>> for i in range(100):
-    ...     # Do work...
+    ...     # Do some work...
+    ...     time.sleep(0.1)  # Simulate work
     ...     progress.update(i + 1)
+    Processing: |██████████████████████████████████████████████████| 100.0% Complete | 100/100 | 10.0 it/s | Time: 0m 10s
     """
 
     def __init__(
@@ -938,12 +1041,30 @@ class ProgressBar:
 
     def update(self, iteration):
         """
-        Update the progress bar.
+        Update the progress bar to reflect the current progress.
 
         Parameters
         ----------
         iteration : int
             Current iteration (0 to total)
+            
+        Notes
+        -----
+        This method:
+        - Updates the visual progress bar in the console
+        - Calculates speed (iterations per second)
+        - Estimates remaining time (ETA)
+        - Logs progress to the log file (rate-limited to avoid excessive logging)
+        - Prints a newline when reaching 100% to prepare for next output
+        
+        The progress bar format is:
+        [prefix] |████....| XX.X% [suffix] | current/total | XX.X it/s | ETA: Xm Xs
+        
+        Examples
+        --------
+        >>> progress = ProgressBar(total=100, prefix='Processing:')
+        >>> progress.update(50)  # Update to 50% complete
+        Processing: |█████████████████████████                   | 50.0% | 50/100 | 10.0 it/s | ETA: 0m 5s
         """
         # Only log every second to avoid excessive logging
         current_time = time.time()

@@ -3,6 +3,27 @@ Face Matching Module
 
 This module provides functionality for comparing detected faces against a database
 of known faces for identification purposes.
+
+The module includes the FaceMatcher class which loads reference face images and
+compares detected faces against these known references to identify individuals.
+It can be used with both static images and real-time video streams.
+
+Functions and Classes
+-------------------
+FaceMatcher
+    Main class for face matching operations
+    
+See Also
+--------
+face_detection : Module for detecting faces in images and video
+anonymization : Module for applying privacy filters to faces
+
+Examples
+--------
+>>> from facial_recognition_software.face_matching import FaceMatcher
+>>> matcher = FaceMatcher()
+>>> # Assume face_locations and face_encodings are from FaceDetector
+>>> result_frame, face_names = matcher.identify_faces(frame, face_locations, face_encodings)
 """
 
 import os
@@ -85,15 +106,52 @@ _FaceDetector = None
 
 
 class FaceMatcher:
-    """A class to handle face matching operations."""
+    """
+    A class to handle face matching operations.
+    
+    This class loads reference face images from a directory, extracts facial features,
+    and compares detected faces against these known references to identify individuals.
+    It supports both real-time webcam face recognition and static image processing.
+    
+    Parameters
+    ----------
+    known_faces_dir : str, optional
+        Directory containing reference face images
+        (default: value from config.KNOWN_FACES_DIR)
+        
+    Attributes
+    ----------
+    known_face_encodings : list
+        List of 128-dimensional face encodings for known faces
+    known_face_names : list
+        List of names corresponding to the encodings
+    known_faces_dir : str
+        Path to the directory containing known face images
+        
+    Examples
+    --------
+    >>> # Initialize with default known faces directory
+    >>> matcher = FaceMatcher()
+    >>> # Initialize with custom directory
+    >>> matcher = FaceMatcher('path/to/reference/faces')
+    >>> # Use with detected faces
+    >>> result_frame, names = matcher.identify_faces(frame, face_locations, face_encodings)
+    """
 
     def __init__(self, known_faces_dir=None):
         """
         Initialize the face matcher with known faces.
 
-        Args:
-            known_faces_dir (str, optional): Directory containing known face images.
-                If None, uses the default from config or fallback path.
+        Parameters
+        ----------
+        known_faces_dir : str, optional
+            Directory containing known face images
+            (default: None, which uses the value from config.KNOWN_FACES_DIR)
+            
+        Notes
+        -----
+        Each image file in the known_faces_dir should be named with the person's name
+        (e.g., john_smith.jpg), which will be used as the identity label.
         """
         self.known_face_encodings = []
         self.known_face_names = []
@@ -103,7 +161,28 @@ class FaceMatcher:
     def load_known_faces(self):
         """
         Load known faces from the specified directory.
-        Each image file should be named with the person's name (e.g., john_smith.jpg).
+        
+        This method processes all image files in the known_faces_dir, extracts face
+        encodings, and stores them with the corresponding person names extracted
+        from the filenames.
+        
+        Returns
+        -------
+        int
+            Number of faces successfully loaded
+            
+        Notes
+        -----
+        - Image filenames should be in the format: person_name.jpg
+        - Underscores in filenames will be converted to spaces in the person's name
+        - Only the first face found in each image will be used
+        - Images without detectable faces will be skipped with a warning
+        
+        Examples
+        --------
+        >>> matcher = FaceMatcher('data/known_faces')
+        >>> face_count = matcher.load_known_faces()
+        >>> print(f"Loaded {face_count} known faces")
         """
         # Create known_faces_dir if it doesn't exist (for safety)
         if not os.path.exists(self.known_faces_dir):
@@ -154,14 +233,34 @@ class FaceMatcher:
         """
         Compare detected faces against known faces to identify them.
 
-        Args:
-            frame (numpy.ndarray): Image frame
-            face_locations (list): List of face location tuples
-            face_encodings (list): List of face encodings
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Image frame containing the detected faces
+        face_locations : list
+            List of face location tuples (top, right, bottom, left)
+        face_encodings : list
+            List of 128-dimensional face encodings corresponding to face_locations
 
-        Returns:
-            numpy.ndarray: Frame with names drawn
-            list: List of identified names
+        Returns
+        -------
+        numpy.ndarray
+            Frame with identified faces labeled and highlighted
+        list
+            List of identified names, including confidence scores for matched faces
+            
+        Notes
+        -----
+        - Matched faces are highlighted with green boxes
+        - Unknown faces are highlighted with red boxes
+        - Matched face labels include confidence scores (e.g., "John Smith (0.82)")
+            
+        Examples
+        --------
+        >>> # Using with face detector
+        >>> face_locations, face_encodings = detector.detect_faces(frame)
+        >>> result_frame, names = matcher.identify_faces(frame, face_locations, face_encodings)
+        >>> print(f"Identified {len(names)} faces: {names}")
         """
         # Create a copy of the frame
         display_frame = frame.copy()
@@ -252,9 +351,39 @@ class FaceMatcher:
     def match_faces_webcam(self):
         """
         Start a webcam feed and perform real-time face recognition.
+        
+        This method initializes webcam capture, detects faces in real-time,
+        identifies them against known references, and displays the results
+        with labeled bounding boxes.
 
-        Returns:
-            None
+        Returns
+        -------
+        tuple
+            (success, result_dict) where:
+            - success : bool
+              True if operation completed normally, False if an error occurred
+            - result_dict : dict
+              Contains metadata about the operation (if an error occurred,
+              includes 'error' key with error message)
+              
+        Raises
+        ------
+        CameraError
+            If the webcam cannot be opened or an error occurs during capture
+        MatchingError
+            If an error occurs during the face matching process
+            
+        Notes
+        -----
+        - Press 'q' to quit the demo
+        - Green boxes indicate matched faces (with name and confidence)
+        - Red boxes indicate unknown faces
+        - This method handles cleanup of all resources
+        
+        Examples
+        --------
+        >>> matcher = FaceMatcher()
+        >>> matcher.match_faces_webcam()  # Interactive webcam demo
         """
         # Lazily import and initialize face detector
         global _FaceDetector

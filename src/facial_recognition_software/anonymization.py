@@ -3,6 +3,28 @@ Anonymization Module
 
 This module provides functionality for anonymizing detected faces in images
 and video streams to protect privacy.
+
+The module includes the FaceAnonymizer class which implements various methods
+for obscuring facial features while preserving the overall image context.
+This is useful for privacy protection, ethical demonstrations, and educational
+purposes about facial recognition technologies.
+
+Functions and Classes
+-------------------
+FaceAnonymizer
+    Main class for applying anonymization to faces
+run_anonymization_demo
+    Standalone demo showing anonymization capabilities
+
+See Also
+--------
+face_detection : Module for detecting faces in images and video
+
+Examples
+--------
+>>> from facial_recognition_software.anonymization import FaceAnonymizer
+>>> anonymizer = FaceAnonymizer(method='blur', intensity=50)
+>>> anonymized_frame = anonymizer.anonymize_frame(frame, face_locations)
 """
 
 import cv2
@@ -76,15 +98,49 @@ except ImportError as e:
 
 
 class FaceAnonymizer:
-    """A class to handle face anonymization operations."""
+    """
+    A class to handle face anonymization operations.
+    
+    This class provides methods to anonymize faces in images and video streams
+    using different techniques such as blurring, pixelation, and masking.
+    It supports real-time anonymization for webcam feeds and static image
+    processing.
+    
+    Parameters
+    ----------
+    method : str, optional
+        Anonymization method to use ('blur', 'pixelate', or 'mask')
+        (default: value from config.DEFAULT_ANONYMIZATION_METHOD)
+    intensity : int, optional
+        Intensity of the anonymization effect, range 1-100
+        (default: value from config.DEFAULT_ANONYMIZATION_INTENSITY)
+        
+    Attributes
+    ----------
+    method : str
+        Current anonymization method being used
+    intensity : int
+        Current intensity level of the anonymization effect
+        
+    Examples
+    --------
+    >>> anonymizer = FaceAnonymizer(method='blur', intensity=50)
+    >>> anonymized_frame = anonymizer.anonymize_frame(frame, face_locations)
+    >>> anonymizer.set_method('pixelate')  # Change method
+    """
 
     def __init__(self, method=None, intensity=None):
         """
         Initialize the face anonymizer.
 
-        Args:
-            method (str): Anonymization method ('blur', 'pixelate', or 'mask') with default 'blur'
-            intensity (int): Intensity of the anonymization effect with range 1-100 with default 90
+        Parameters
+        ----------
+        method : str, optional
+            Anonymization method ('blur', 'pixelate', or 'mask')
+            (default: value from config.DEFAULT_ANONYMIZATION_METHOD)
+        intensity : int, optional
+            Intensity of the anonymization effect, range 1-100
+            (default: value from config.DEFAULT_ANONYMIZATION_INTENSITY)
         """
         self.method = method if method is not None else DEFAULT_ANONYMIZATION_METHOD
         self.intensity = intensity if intensity is not None else DEFAULT_ANONYMIZATION_INTENSITY
@@ -93,13 +149,27 @@ class FaceAnonymizer:
         """
         Apply anonymization to a single face.
 
-        Args:
-            frame (numpy.ndarray): Image frame
-            face_location (tuple): Face location tuple (top, right, bottom, left)
-            method (str, optional): Override the default anonymization method
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Image frame containing the face to anonymize
+        face_location : tuple
+            Face location tuple (top, right, bottom, left)
+        method : str, optional
+            Override the default anonymization method
+            (default: None, which uses self.method)
 
-        Returns:
-            numpy.ndarray: Frame with anonymized face
+        Returns
+        -------
+        numpy.ndarray
+            Frame with the specified face anonymized
+            
+        Examples
+        --------
+        >>> # Anonymize a single face in an image
+        >>> frame = cv2.imread('image.jpg')
+        >>> face_location = (50, 200, 150, 100)  # (top, right, bottom, left)
+        >>> result = anonymizer.anonymize_face(frame, face_location)
         """
         # Make a copy of the frame to avoid modifying the original
         result_frame = frame.copy()
@@ -196,12 +266,29 @@ class FaceAnonymizer:
         """
         Apply anonymization to all faces in a frame.
 
-        Args:
-            frame (numpy.ndarray): Image frame
-            face_locations (list): List of face location tuples
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Image frame containing faces to anonymize
+        face_locations : list
+            List of face location tuples (top, right, bottom, left)
 
-        Returns:
-            numpy.ndarray: Frame with all faces anonymized
+        Returns
+        -------
+        numpy.ndarray
+            Frame with all faces anonymized
+            
+        Notes
+        -----
+        This method also adds a semi-transparent status bar showing
+        the current anonymization method.
+            
+        Examples
+        --------
+        >>> # Anonymize all faces in an image
+        >>> frame = cv2.imread('image.jpg')
+        >>> # Assume face_locations has been obtained from a FaceDetector
+        >>> result = anonymizer.anonymize_frame(frame, face_locations)
         """
         result_frame = frame.copy()
 
@@ -231,8 +318,16 @@ class FaceAnonymizer:
         """
         Change the anonymization method.
 
-        Args:
-            method (str): New anonymization method
+        Parameters
+        ----------
+        method : str
+            New anonymization method ('blur', 'pixelate', or 'mask')
+            
+        Examples
+        --------
+        >>> # Switch to pixelation method
+        >>> anonymizer.set_method('pixelate')
+        Anonymization method set to: pixelate
         """
         valid_methods = ["blur", "pixelate", "mask"]
         if method in valid_methods:
@@ -245,8 +340,23 @@ class FaceAnonymizer:
         """
         Change the intensity of the anonymization effect.
 
-        Args:
-            intensity (int): New intensity value
+        Parameters
+        ----------
+        intensity : int
+            New intensity value, range 1-100
+            
+        Notes
+        -----
+        Higher intensity values result in:
+        - Stronger blur for 'blur' method
+        - Larger pixels for 'pixelate' method
+        - No effect for 'mask' method (which is always 100% opaque)
+            
+        Examples
+        --------
+        >>> # Set to medium intensity
+        >>> anonymizer.set_intensity(50)
+        Anonymization intensity set to: 50
         """
         if 1 <= intensity <= 100:
             self.intensity = intensity
@@ -258,12 +368,31 @@ class FaceAnonymizer:
         """
         Demonstrate different anonymization methods on a single face.
 
-        Args:
-            frame (numpy.ndarray): Image frame
-            face_location (tuple): Face location tuple
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Image frame containing the face
+        face_location : tuple
+            Face location tuple (top, right, bottom, left)
 
-        Returns:
-            dict: Dictionary of frames with different anonymization methods
+        Returns
+        -------
+        dict
+            Dictionary of frames with different anonymization methods:
+            - 'original': Original unmodified frame
+            - 'blur': Frame with blurred face
+            - 'pixelate': Frame with pixelated face
+            - 'mask': Frame with masked face
+            
+        Examples
+        --------
+        >>> # Compare all anonymization methods
+        >>> frame = cv2.imread('image.jpg')
+        >>> face_location = (50, 200, 150, 100)  # (top, right, bottom, left)
+        >>> results = anonymizer.demonstrate_methods(frame, face_location)
+        >>> # Display results
+        >>> cv2.imshow('Original', results['original'])
+        >>> cv2.imshow('Blur', results['blur'])
         """
         methods = {
             "original": frame.copy(),
@@ -280,7 +409,30 @@ _FaceDetector = None
 
 @handle_opencv_error
 def run_anonymization_demo():
-    """Run a standalone anonymization demo."""
+    """
+    Run a standalone anonymization demo.
+    
+    This function initializes webcam capture, detects faces in real-time,
+    applies anonymization, and displays the results. It serves as a
+    complete demonstration of the anonymization functionality.
+    
+    Returns
+    -------
+    None
+    
+    Notes
+    -----
+    - Press 'q' or ESC to quit the demo
+    - The demo uses default anonymization settings (blur method)
+    - This function handles all necessary cleanup of resources
+    
+    Raises
+    ------
+    CameraError
+        If the webcam cannot be opened or an error occurs during capture
+    AnonymizationError
+        If an error occurs during the anonymization process
+    """
     # Lazily import FaceDetector to avoid circular imports
     global _FaceDetector
     if _FaceDetector is None:
