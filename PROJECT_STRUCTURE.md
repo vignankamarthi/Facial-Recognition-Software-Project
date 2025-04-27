@@ -8,8 +8,7 @@ This document explains the organization of the Facial Recognition Software Proje
 Facial-Recognition-Software-Project/
 ├── config/                         # Configuration files
 │   ├── default.json                # Default configuration
-│   ├── development.json            # Development environment overrides
-│   └── production.json             # Production environment overrides
+│   └── development.json            # Development environment overrides
 ├── data/                           # Data directory
 │   ├── datasets/                   # Raw datasets
 │   ├── known_faces/                # Reference faces for matching
@@ -76,9 +75,8 @@ The project has been restructured to clearly separate different concerns:
 The new configuration system provides:
 
 1. **Environment-Specific Settings**:
-   - `default.json`: Base configuration for all environments
+   - `default.json`: Base configuration for all settings
    - `development.json`: Development-specific overrides
-   - `production.json`: Production-specific overrides
    - `user.json`: User-specific overrides (gitignored)
 
 2. **Environment Variable Support**:

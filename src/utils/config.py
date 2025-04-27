@@ -190,8 +190,8 @@ class Config:
         if hasattr(self, 'initialized'):
             return
         
-        # Set environment
-        self.env = env or os.environ.get('FACIAL_RECOGNITION_ENV', 'development')
+        # Set environment (always development for portfolio project)
+        self.env = 'development'
         
         # Initialize configuration sections
         self.paths = PathConfig()
@@ -276,13 +276,13 @@ def load_config(env: str = 'development') -> Dict[str, Any]:
     with a specific precedence order:
     1. Environment variables
     2. User-specific config file
-    3. Environment-specific config file
+    3. Development-specific config file
     4. Default config file
     
     Parameters
     ----------
     env : str, optional
-        Environment name (development, production), by default 'development'
+        Environment name (always 'development' for this portfolio project)
     
     Returns
     -------
@@ -291,10 +291,10 @@ def load_config(env: str = 'development') -> Dict[str, Any]:
     """
     config = {}
     
-    # Load from config files
+    # Load from config files (development environment only for portfolio project)
     config_paths = [
         os.path.join(get_project_root(), 'config', 'default.json'),
-        os.path.join(get_project_root(), 'config', f'{env}.json'),
+        os.path.join(get_project_root(), 'config', 'development.json'),
         os.path.join(get_project_root(), 'config', 'user.json'),
     ]
     
