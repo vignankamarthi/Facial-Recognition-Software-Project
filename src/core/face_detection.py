@@ -20,9 +20,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import utilities with logging
-from utilities.common_utils import (
-    safely_close_windows, handle_opencv_error, CameraError, DetectionError,
-    format_error, create_resizable_window
+from utils.common_utils import (
+    safely_close_windows,
+    handle_opencv_error,
+    CameraError,
+    DetectionError,
+    format_error,
+    create_resizable_window,
 )
 from src.utils.logger import get_logger, log_exception, log_method_call
 
@@ -31,7 +35,8 @@ logger = get_logger(__name__)
 
 # Import configuration constants
 try:
-    from utilities.config import WINDOW_NAME, WAIT_KEY_DELAY, initialize_opencv_constants
+    from utils.config import WINDOW_NAME, WAIT_KEY_DELAY, initialize_opencv_constants
+
     # Initialize OpenCV constants after cv2 is imported
     initialize_opencv_constants()
 except ImportError as e:

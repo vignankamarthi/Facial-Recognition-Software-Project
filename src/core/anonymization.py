@@ -45,32 +45,37 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import utilities safely with failover to local defaults
 try:
-    from utilities.common_utils import (
+    from utils.common_utils import (
         safely_close_windows, handle_opencv_error, CameraError, AnonymizationError,
         format_error, create_resizable_window
     )
-    from utilities.config import (
-        WINDOW_NAME, WAIT_KEY_DELAY, DEFAULT_ANONYMIZATION_METHOD,
-        DEFAULT_ANONYMIZATION_INTENSITY, WARNING_COLOR, initialize_opencv_constants
+    from utils.config import (
+        WINDOW_NAME,
+        WAIT_KEY_DELAY,
+        DEFAULT_ANONYMIZATION_METHOD,
+        DEFAULT_ANONYMIZATION_INTENSITY,
+        WARNING_COLOR,
+        initialize_opencv_constants,
     )
+
     # Initialize OpenCV constants after cv2 is imported
     initialize_opencv_constants()
 except ImportError as e:
     # Provide dummy implementations if imports fail
-    print(f"Warning: Could not import utilities. Using fallback implementations. Error: {e}")
-    
+    print(f"Warning: Could not import utils. Using fallback implementations. Error: {e}")
+
     WINDOW_NAME = _WINDOW_NAME
     WAIT_KEY_DELAY = _WAIT_KEY_DELAY
     DEFAULT_ANONYMIZATION_METHOD = _DEFAULT_ANONYMIZATION_METHOD
     DEFAULT_ANONYMIZATION_INTENSITY = _DEFAULT_ANONYMIZATION_INTENSITY
     WARNING_COLOR = _WARNING_COLOR
-    
+
     # Minimal fallback implementations to keep things working
     def safely_close_windows(window_name=None, video_capture=None):
         if video_capture is not None and video_capture.isOpened():
             video_capture.release()
         cv2.destroyAllWindows()
-    
+
     def handle_opencv_error(func):
         def wrapper(*args, **kwargs):
             try:
@@ -80,18 +85,18 @@ except ImportError as e:
                 cv2.destroyAllWindows()
                 return None
         return wrapper
-    
+
     class CameraError(Exception):
         """Fallback exception for camera errors."""
         pass
-    
+
     class AnonymizationError(Exception):
         """Fallback exception for anonymization errors."""
         pass
-    
+
     def format_error(error_type, message):
         return f"ERROR: {message}"
-    
+
     def create_resizable_window(window_name):
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         return window_name

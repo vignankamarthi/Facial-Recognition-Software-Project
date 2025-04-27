@@ -1,3 +1,5 @@
+[ ] TODO: Update this file to reflect NO UTILITIES/ package, rather utils/
+
 # Dataset Setup Guide
 
 This guide explains how to set up and manage datasets for the facial recognition project, including the UTKFace dataset for ethical bias testing.

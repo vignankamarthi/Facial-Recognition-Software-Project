@@ -1,3 +1,6 @@
+[ ] TODO: Update this file to reflect NO UTILITIES/ package, rather utils/
+
+
 # Face Detection Guide
 
 ## With Webcam

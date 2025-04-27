@@ -1,3 +1,4 @@
+[ ] TODO: Update this file to reflect NO UTILITIES/ package, rather utils/
 # Troubleshooting Guide
 
 This guide helps resolve common issues with the Facial Recognition Software Project.

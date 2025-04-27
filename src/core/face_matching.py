@@ -46,11 +46,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import utilities safely with failover to local defaults
 try:
-    from utilities.common_utils import (
+    from utils.common_utils import (
         safely_close_windows, handle_opencv_error, CameraError, MatchingError,
         format_error, create_resizable_window, get_known_faces_dir
     )
-    from utilities.config import (
+    from utils.config import (
         WINDOW_NAME, WAIT_KEY_DELAY, FACE_MATCHING_THRESHOLD,
         KNOWN_FACES_DIR, SUCCESS_COLOR, ERROR_COLOR, initialize_opencv_constants
     )

@@ -16,7 +16,6 @@ data/datasets/utkface/
 
 # Python cache files
 __pycache__/
-src/utilities/__pycache__/
 *.py[cod]
 *$py.class
 *.pyc
