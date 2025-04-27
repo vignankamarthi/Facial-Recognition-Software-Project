@@ -1,4 +1,4 @@
-[ ] TODO: Update this file to reflect NO UTILITIES/ package, rather utils/
+
 
 # Dataset Setup Guide
 
@@ -144,10 +144,10 @@ You can also add your own images to the system:
 ## Troubleshooting
 
 - **Download failures**: The UTKFace dataset is hosted on Google Drive, which may cause download issues. Consider installing the 'gdown' package (`pip install gdown`) for better Google Drive support
-- **"Missing dataset directory"**: Run the quick setup script first
+- **"Missing dataset directory"**: Run the dataset setup with `python run_demo.py --setup-dataset`
 - **Permission errors**: Check file system permissions on the data directory
 - **Demographic categorization**: UTKFace ethnicities are based on the dataset's original categorization, which may have limitations. Use this for educational purposes about algorithmic bias.
 
 For more information on the technical implementation, see:
-- `src/utilities/image_processing.py`
-- `src/facial_recognition_software/bias_testing.py`
+- `src/utils/image_processing.py`
+- `src/core/bias_testing.py`

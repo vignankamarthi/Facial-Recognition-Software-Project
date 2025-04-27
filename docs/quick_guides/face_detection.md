@@ -1,4 +1,4 @@
-[ ] TODO: Update this file to reflect NO UTILITIES/ package, rather utils/
+
 
 
 # Face Detection Guide
@@ -37,7 +37,7 @@ python run_demo.py --image path/to/image.jpg
 
 - **No faces detected**: Check lighting and positioning
 - **Webcam not found**: Verify your camera is properly connected
-- **Import errors**: Run `python src/utilities/fix_imports.py`
+- **Import errors**: Run `python src/utils/api_patch.py`
 
 ## How It Works
 
@@ -48,4 +48,4 @@ The face detection module uses the `face_recognition` library which employs a pr
 3. Creates bounding boxes around detected faces
 4. Displays or saves the processed image
 
-For more technical details, see the source code in `src/facial_recognition_software/face_detection.py`.
+For more technical details, see the source code in `src/core/face_detection.py`.

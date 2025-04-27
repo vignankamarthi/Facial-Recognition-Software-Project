@@ -1,4 +1,4 @@
-[ ] TODO: Update this file to reflect NO UTILITIES/ package, rather utils/
+
 # Troubleshooting Guide
 
 This guide helps resolve common issues with the Facial Recognition Software Project.
@@ -27,7 +27,7 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 **Solution**:
 1. Run the import fixer script:
    ```bash
-   python src/utilities/fix_imports.py
+   python src/utils/api_patch.py
    ```
 2. Make sure you're running from the project's root directory.
 3. Check if Python path is set correctly in run_demo.py.
@@ -68,7 +68,7 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 3. Check that the face isn't at an extreme angle
 4. Run the patching script if models aren't loading:
    ```bash
-   python src/utilities/api_patch.py
+   python src/utils/api_patch.py
    ```
 
 ### False Detections
@@ -131,7 +131,7 @@ This guide helps resolve common issues with the Facial Recognition Software Proj
 **Solution**:
 1. Run the quick setup script to create all necessary directories:
    ```bash
-   python src/utilities/quick_setup.py
+   python run_demo.py --setup-dataset
    ```
 2. Check file system permissions in your data directory
 
@@ -175,7 +175,9 @@ If you encounter any other issues:
 
 1. **Clean up temporary files**:
    ```bash
-   python src/utilities/cleanup.py
+   # Delete cache files
+   find . -name "__pycache__" -type d -exec rm -rf {} +
+   find . -name "*.pyc" -delete
    ```
 
 2. **Verify your Python version**:
@@ -196,8 +198,11 @@ If you encounter any other issues:
 
 4. **Restart with a clean environment**:
    ```bash
-   python src/utilities/cleanup.py --reset-datasets
-   python src/utilities/quick_setup.py
+   # Reset project by removing cache files
+   find . -name "__pycache__" -type d -exec rm -rf {} +
+   find . -name "*.pyc" -delete
+   # Then set up datasets again
+   python run_demo.py --setup-dataset
    ```
 
 If problems persist, check the console output for specific error messages.
