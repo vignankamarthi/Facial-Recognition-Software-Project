@@ -4,6 +4,31 @@ Logging Module
 This module provides a centralized logging system for the facial recognition project.
 It configures different loggers for various components, handles log rotation,
 and ensures consistent error reporting throughout the application.
+
+All logs are automatically saved to the logs directory, organized by log level:
+- error.log: Contains ERROR and CRITICAL level messages
+- info.log: Contains INFO level and above messages
+- debug.log: Contains DEBUG level and above messages
+
+Functions and Classes
+-------------------
+get_logger : Get a logger for a specific module
+log_exception : Log an exception with context information
+log_method_call : Decorator to log method calls
+set_log_level : Change the logging level for console output
+get_all_logs : Get the contents of all log files
+clear_logs : Clear all log files
+
+Examples
+--------
+>>> from src.utils.logger import get_logger, log_exception, log_method_call
+>>> logger = get_logger(__name__)
+>>> logger.info("Application started")
+>>>
+>>> try:
+...     result = process_image("invalid.jpg")
+... except Exception as e:
+...     log_exception(logger, "Failed to process image", e)
 """
 
 import os
@@ -15,27 +40,18 @@ import inspect
 from pathlib import Path
 from datetime import datetime
 
-# Try to import config for log directories, with fallback
-try:
-    from .config import ensure_dir_exists, PROJECT_ROOT
-except ImportError:
-    def ensure_dir_exists(directory_path):
-        """Ensure a directory exists, creating it if necessary."""
-        if not os.path.exists(directory_path):
-            os.makedirs(directory_path)
-        return directory_path
+# Determine project root and logs directory
+def get_project_root():
+    """Get the absolute path to the project root directory."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.dirname(current_dir))
         
-    # Get project root as fallback
-    def get_project_root():
-        """Get the absolute path to the project root directory."""
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.dirname(os.path.dirname(current_dir))
-        
-    PROJECT_ROOT = get_project_root()
+PROJECT_ROOT = get_project_root()
 
 # Create logs directory if it doesn't exist
 LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
-ensure_dir_exists(LOGS_DIR)
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
 
 # Log file paths
 ERROR_LOG = os.path.join(LOGS_DIR, "error.log")
@@ -68,6 +84,10 @@ def configure_root_logger():
     console_handler.setFormatter(console_formatter)
     root_logger.addHandler(console_handler)
     
+    # Make sure logs directory exists
+    if not os.path.exists(LOGS_DIR):
+        os.makedirs(LOGS_DIR)
+    
     # File handlers with rotation
     
     # Debug log - captures all messages
@@ -97,6 +117,12 @@ def configure_root_logger():
     error_handler.setFormatter(error_formatter)
     root_logger.addHandler(error_handler)
     
+    # Log initialization 
+    root_logger.info(f"Logging initialized. Log files will be saved to: {LOGS_DIR}")
+    root_logger.info(f"Debug log: {DEBUG_LOG}")
+    root_logger.info(f"Info log: {INFO_LOG}")
+    root_logger.info(f"Error log: {ERROR_LOG}")
+    
     return root_logger
 
 # Configure the root logger at module import
@@ -118,8 +144,8 @@ def get_logger(name):
     
     Examples
     --------
-    >>> # In file src/facial_recognition_software/face_detection.py
-    >>> from utilities.logger import get_logger
+    >>> # In file src/core/face_detection.py
+    >>> from src.utils.logger import get_logger
     >>> logger = get_logger(__name__)
     >>> logger.info("Face detection started")
     """
@@ -194,7 +220,7 @@ def log_method_call(logger, level=logging.DEBUG):
     
     Examples
     --------
-    >>> from utilities.logger import get_logger, log_method_call
+    >>> from src.utils.logger import get_logger, log_method_call
     >>> logger = get_logger(__name__)
     >>> 
     >>> class MyClass:
@@ -270,6 +296,7 @@ def set_log_level(level):
     for handler in root_logger.handlers:
         if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
             handler.setLevel(level)
+            root_logger.info(f"Console log level set to {logging.getLevelName(level)}")
             break
 
 def get_all_logs():
@@ -316,9 +343,11 @@ def clear_logs():
             if os.path.exists(path):
                 with open(path, 'w') as f:
                     f.write(f"Log cleared at {datetime.now().strftime(DATE_FORMAT)}\n")
+                    
+        root_logger.info("All log files have been cleared")
         return True
     except Exception as e:
-        print(f"Error clearing logs: {e}")
+        root_logger.error(f"Error clearing logs: {e}")
         return False
 
 # Example usage

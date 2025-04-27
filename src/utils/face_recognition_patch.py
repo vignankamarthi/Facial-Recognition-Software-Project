@@ -10,6 +10,10 @@ across all modules that use face_recognition.
 import os
 import sys
 import importlib
+from .logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger(__name__)
 
 # Global flag to track if patch has been applied
 _patch_applied = False
@@ -22,17 +26,21 @@ def patch_face_recognition(force=False):
     This function modifies the face_recognition API file to bypass the import check
     that would otherwise terminate the program if face_recognition_models is not found.
     
-    Args:
-        force (bool): If True, apply the patch even if it appears to be already applied
+    Parameters
+    ----------
+    force : bool, optional
+        If True, apply the patch even if it appears to be already applied (default: False)
     
-    Returns:
-        bool: True if patching was successful, False otherwise
+    Returns
+    -------
+    bool
+        True if patching was successful, False otherwise
     """
     global _patch_applied
     
     # Skip if already patched and not forced
     if _patch_applied and not force:
-        print("face_recognition patch has already been applied in this session")
+        logger.info("face_recognition patch has already been applied in this session")
         return True
         
     # Find the face_recognition module's api.py file
@@ -53,7 +61,7 @@ def patch_face_recognition(force=False):
             pass
 
     if not face_rec_path:
-        print("Could not find face_recognition module to patch")
+        logger.error("Could not find face_recognition module to patch")
         return False
 
     # Read the original file
@@ -62,7 +70,7 @@ def patch_face_recognition(force=False):
     
     # Check if the module is already patched to avoid duplicate patching
     if "Warning: face_recognition_models not found, trying to continue anyway" in content:
-        print("face_recognition module is already patched")
+        logger.info("face_recognition module is already patched")
         _patch_applied = True
         return True
     
@@ -71,9 +79,9 @@ def patch_face_recognition(force=False):
     if not os.path.exists(backup_path):
         with open(backup_path, "w") as f:
             f.write(content)
-        print(f"Backed up original to {backup_path}")
+        logger.info(f"Backed up original to {backup_path}")
     else:
-        print(f"Backup already exists at {backup_path}")
+        logger.info(f"Backup already exists at {backup_path}")
     
     # Modify the content to not exit on import error
     modified_content = content.replace(
@@ -86,10 +94,10 @@ def patch_face_recognition(force=False):
         # Write the modified content
         with open(face_rec_path, "w") as f:
             f.write(modified_content)
-        print(f"Patched {face_rec_path} to continue even if face_recognition_models is not found")
+        logger.info(f"Patched {face_rec_path} to continue even if face_recognition_models is not found")
         _patch_applied = True
     else:
-        print(f"No changes needed for {face_rec_path}")
+        logger.info(f"No changes needed for {face_rec_path}")
         _patch_applied = True
     
     # Try to reload the module if it's already imported
@@ -97,9 +105,9 @@ def patch_face_recognition(force=False):
         try:
             del sys.modules['face_recognition']
             import face_recognition
-            print("Successfully reloaded face_recognition module after patching")
+            logger.info("Successfully reloaded face_recognition module after patching")
         except Exception as e:
-            print(f"Warning: Could not reload face_recognition module: {e}")
+            logger.warning(f"Could not reload face_recognition module: {e}")
     
     return True
 
@@ -108,20 +116,22 @@ def verify_face_recognition():
     """
     Verify that face_recognition is working properly, patching if needed.
     
-    Returns:
-        bool: True if face_recognition is working, False otherwise
+    Returns
+    -------
+    bool
+        True if face_recognition is working, False otherwise
     """
     try:
         # Try to import and use a basic function to verify
         import face_recognition
         test_func = getattr(face_recognition, 'load_image_file', None)
         if test_func is None:
-            print("face_recognition module is missing expected functions")
+            logger.warning("face_recognition module is missing expected functions")
             return patch_face_recognition(force=True)
-        print("face_recognition module verified successfully")
+        logger.info("face_recognition module verified successfully")
         return True
     except Exception as e:
-        print(f"face_recognition verification failed: {e}")
+        logger.error(f"face_recognition verification failed: {e}")
         return patch_face_recognition(force=True)
 
 

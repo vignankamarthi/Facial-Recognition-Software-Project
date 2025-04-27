@@ -24,12 +24,12 @@ Progress Display
 
 See Also
 --------
-utilities.logger : Module for logging functionality
-utilities.config : Module for project configuration constants
+utils.logger : Module for logging functionality
+utils.config : Module for project configuration constants
 
 Examples
 --------
->>> from utilities.common_utils import safely_close_windows, get_data_dir
+>>> from utils.common_utils import safely_close_windows, get_data_dir
 >>> # Get standard directory path
 >>> data_path = get_data_dir()
 >>> # Run a process with resource cleanup
@@ -52,51 +52,17 @@ from pathlib import Path
 
 # Import our logging system
 from .logger import get_logger, log_exception, log_method_call
+from .config import get_config
 
 # Initialize logger for this module
 logger = get_logger(__name__)
 
+# Get configuration
+config = get_config()
+
 
 # ===== Path Configuration =====
 
-# Import centralized configuration
-try:
-    from .config import (
-        PROJECT_ROOT,
-        DATA_DIR,
-        KNOWN_FACES_DIR,
-        TEST_DATASETS_DIR,
-        RESULTS_DIR,
-        DATASETS_DIR,
-        UTKFACE_DIR,
-        DEMOGRAPHIC_SPLIT_SET_DIR,
-        ensure_dir_exists,
-    )
-except ImportError:
-    # Fallback if config module is not available
-    def get_project_root():
-        """Get the absolute path to the project root directory."""
-        # Navigate up from this file's location to find project root
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.dirname(os.path.dirname(current_dir))  # up two levels
-
-    PROJECT_ROOT = get_project_root()
-    DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-    KNOWN_FACES_DIR = os.path.join(DATA_DIR, "known_faces")
-    TEST_DATASETS_DIR = os.path.join(DATA_DIR, "test_datasets")
-    RESULTS_DIR = os.path.join(DATA_DIR, "results")
-    DATASETS_DIR = os.path.join(DATA_DIR, "datasets")
-    UTKFACE_DIR = os.path.join(DATASETS_DIR, "utkface")
-    DEMOGRAPHIC_SPLIT_SET_DIR = os.path.join(TEST_DATASETS_DIR, "demographic_split_set")
-
-    def ensure_dir_exists(directory_path):
-        """Ensure a directory exists, creating it if necessary."""
-        if not os.path.exists(directory_path):
-            os.makedirs(directory_path)
-        return directory_path
-
-
-# Path utility functions
 def get_project_root():
     """
     Get the absolute path to the project root directory.
@@ -106,7 +72,7 @@ def get_project_root():
     str
         Absolute path to the project root directory
     """
-    return PROJECT_ROOT
+    return config.paths.project_root
 
 
 def get_data_dir():
@@ -118,7 +84,7 @@ def get_data_dir():
     str
         Absolute path to the data directory
     """
-    return DATA_DIR
+    return config.paths.data_dir
 
 
 def get_known_faces_dir():
@@ -130,7 +96,7 @@ def get_known_faces_dir():
     str
         Absolute path to the known faces directory
     """
-    path = ensure_dir_exists(KNOWN_FACES_DIR)
+    path = config.paths.known_faces_dir
     logger.debug(f"Known faces directory: {path}")
     return path
 
@@ -144,7 +110,7 @@ def get_test_datasets_dir():
     str
         Absolute path to the test datasets directory
     """
-    path = ensure_dir_exists(TEST_DATASETS_DIR)
+    path = config.paths.test_datasets_dir
     logger.debug(f"Test datasets directory: {path}")
     return path
 
@@ -158,7 +124,7 @@ def get_results_dir():
     str
         Absolute path to the results directory
     """
-    path = ensure_dir_exists(RESULTS_DIR)
+    path = config.paths.results_dir
     logger.debug(f"Results directory: {path}")
     return path
 
@@ -172,7 +138,7 @@ def get_datasets_dir():
     str
         Absolute path to the datasets directory
     """
-    path = ensure_dir_exists(DATASETS_DIR)
+    path = config.paths.datasets_dir
     logger.debug(f"Datasets directory: {path}")
     return path
 
@@ -186,7 +152,7 @@ def get_utkface_dir():
     str
         Absolute path to the UTKFace directory
     """
-    path = ensure_dir_exists(UTKFACE_DIR)
+    path = config.paths.utkface_dir
     logger.debug(f"UTKFace directory: {path}")
     return path
 
@@ -200,7 +166,7 @@ def get_demographic_split_dir():
     str
         Absolute path to the demographic split directory
     """
-    path = ensure_dir_exists(DEMOGRAPHIC_SPLIT_SET_DIR)
+    path = config.paths.demographic_split_set_dir
     logger.debug(f"Demographic split directory: {path}")
     return path
 
@@ -219,7 +185,7 @@ def is_image_file(filename):
     bool
         True if the file has an image extension, False otherwise
     """
-    image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".gif")
+    image_extensions = tuple(config.detection.supported_image_extensions)
     return filename.lower().endswith(image_extensions)
 
 
@@ -539,51 +505,43 @@ class FaceRecognitionError(Exception):
 # Core functionality exceptions
 class CameraError(FaceRecognitionError):
     """Exception raised for camera-related errors (e.g., can't open webcam)."""
-
     pass
 
 
 class DetectionError(FaceRecognitionError):
     """Exception raised for face detection errors (e.g., face detection failed)."""
-
     pass
 
 
 class MatchingError(FaceRecognitionError):
     """Exception raised for face matching errors (e.g., no known faces found)."""
-
     pass
 
 
 class AnonymizationError(FaceRecognitionError):
     """Exception raised for face anonymization errors (e.g., invalid method)."""
-
     pass
 
 
 # Data handling exceptions
 class DatasetError(FaceRecognitionError):
     """Exception raised for dataset-related errors (e.g., can't download dataset)."""
-
     pass
 
 
 class FileError(FaceRecognitionError):
     """Exception raised for file operations errors (e.g., can't read/write files)."""
-
     pass
 
 
 class ConfigurationError(FaceRecognitionError):
     """Exception raised for configuration errors (e.g., invalid settings)."""
-
     pass
 
 
 # System-level exceptions
 class DependencyError(FaceRecognitionError):
     """Exception raised for missing dependencies (e.g., face_recognition not available)."""
-
     pass
 
 
@@ -678,7 +636,6 @@ def format_error(error_type, message, details=None):
 
 
 # ===== File Operations =====
-
 
 @log_method_call(logger)
 def clean_directory(directory_path, pattern=None, recursive=False, keep_directory=True):
@@ -819,64 +776,7 @@ def safe_copy_file(src, dst, overwrite=False):
         raise FileError(error_msg, str(e), e)
 
 
-@log_method_call(logger)
-def safe_move_file(src, dst, overwrite=False):
-    """
-    Safely move a file with additional error handling.
-
-    Parameters
-    ----------
-    src : str
-        Source file path
-    dst : str
-        Destination file path
-    overwrite : bool, optional
-        Whether to overwrite existing files
-
-    Returns
-    -------
-    str
-        Path to the moved file (might be different from dst if renamed)
-
-    Raises
-    ------
-    FileError
-        If file moving fails
-    """
-    try:
-        # Check if source exists
-        if not os.path.exists(src):
-            error_msg = f"Source file does not exist: {src}"
-            logger.error(error_msg)
-            raise FileError(error_msg)
-
-        # Check if destination directory exists, create if needed
-        dst_dir = os.path.dirname(dst)
-        if dst_dir and not os.path.exists(dst_dir):
-            os.makedirs(dst_dir)
-            logger.debug(f"Created directory: {dst_dir}")
-
-        # Check if destination exists and overwrite is disabled
-        final_dst = dst
-        if os.path.exists(dst) and not overwrite:
-            # Generate alternative filename with timestamp
-            base, ext = os.path.splitext(dst)
-            timestamp = int(time.time())
-            final_dst = f"{base}_{timestamp}{ext}"
-            logger.info(f"Destination file exists, using alternative: {final_dst}")
-
-        # Move file
-        shutil.move(src, final_dst)
-        logger.info(f"Moved file from {src} to {final_dst}")
-        return final_dst
-    except Exception as e:
-        error_msg = f"Failed to move file from {src} to {dst}"
-        log_exception(logger, error_msg, e)
-        raise FileError(error_msg, str(e), e)
-
-
 # ===== Process Management =====
-
 
 @log_method_call(logger)
 def run_command(command):
@@ -948,7 +848,6 @@ def run_command(command):
 
 
 # ===== Progress Display =====
-
 
 class ProgressBar:
     """

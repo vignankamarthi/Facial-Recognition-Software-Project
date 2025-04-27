@@ -1,0 +1,31 @@
+{
+    "env": "development",
+    "ui": {
+        "window_name": "Facial Recognition Demo"
+    },
+    "detection": {
+        "confidence": 0.5,
+        "supported_image_extensions": [".jpg", ".jpeg", ".png", ".bmp"]
+    },
+    "matching": {
+        "threshold": 0.6
+    },
+    "anonymization": {
+        "default_method": "blur",
+        "default_intensity": 90
+    },
+    "demographic": {
+        "groups": ["white", "black", "asian", "indian", "others"],
+        "ethnicity_codes": {
+            "0": "White",
+            "1": "Black", 
+            "2": "Asian",
+            "3": "Indian",
+            "4": "Others"
+        },
+        "gender_codes": {
+            "0": "Male",
+            "1": "Female"
+        }
+    }
+}

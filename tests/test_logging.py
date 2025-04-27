@@ -21,7 +21,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 # Import our logging and utility modules
-from src.utilities.logger import get_logger, log_exception, log_method_call
+from src.utils.logger import get_logger, log_exception, log_method_call
 from src.utilities.common_utils import (
     FaceRecognitionError, DetectionError, FileError, safely_close_windows
 )

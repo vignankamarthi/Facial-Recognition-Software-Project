@@ -8,7 +8,7 @@ A facial recognition system demonstrating technical capabilities and ethical con
 git clone https://github.com/vignankamarthi/Facial-Recognition-Software-Project.git
 cd Facial-Recognition-Software-Project
 pip install -r requirements.txt
-python src/utilities/quick_setup.py
+pip install streamlit  # For the web interface
 ```
 
 ### Running the Demo
@@ -16,51 +16,17 @@ python src/utilities/quick_setup.py
 python run_demo.py
 ```
 
+This will launch the Streamlit web interface that provides access to all features.
+
 ### Features Overview
 
 | Feature | Webcam Required | Description |
 |---------|:--------------:|-------------|
-| Face Detection | ✅ | Detect faces in real-time |
+| Face Detection | ✅ | Detect faces in real-time or in uploaded images |
 | Face Anonymization | ✅ | Blur, pixelate, or mask detected faces |
 | Face Matching | ✅ | Match detected faces against reference images |
-| Static Image Processing | ❌ | Analyze saved images instead of webcam feed |
-| Dataset Management | ❌ | Download and prepare datasets for testing |
 | Demographic Bias Testing | ❌ | Test recognition accuracy across different ethnicities using UTKFace dataset |
-
-## Running Without a Webcam
-
-If you don't have a webcam, you can still use these features:
-
-1. **Set up the UTKFace dataset**:
-   ```bash
-   python run_demo.py --setup-dataset
-   # Select option 1 to download UTKFace dataset
-   # Select option 2 to set up bias testing
-   ```
-
-2. **Process static images**:
-   ```bash
-   python run_demo.py --image data/test_images/sample.jpg
-   ```
-
-3. **Run demographic bias testing**:
-   ```bash
-   python run_demo.py --bias
-   ```
-   
-   This will demonstrate how facial recognition accuracy can vary across different ethnic groups, providing statistical analysis and visualizations of potential algorithmic bias.
-
-## Command Line Shortcuts
-
-| Command | Description |
-|---------|-------------|
-| `--detect` | Run face detection demo |
-| `--anonymize` | Run face anonymization demo |
-| `--match` | Run face matching demo |
-| `--bias` | Run bias testing demo with UTKFace dataset |
-| `--image PATH` | Process a single image |
-| `--dir PATH` | Process all images in a directory |
-| `--setup-dataset` | Download and prepare sample datasets |
+| Dataset Management | ❌ | Download and prepare datasets for testing |
 
 ## UTKFace Dataset Integration
 
@@ -73,23 +39,43 @@ This project uses the UTKFace (University of Tennessee, Knoxville Face) dataset 
 
 The dataset allows for realistic demonstration of potential algorithmic bias in facial recognition systems and serves as an educational tool for understanding ethical concerns in AI.
 
+## Streamlit Interface Options
+
+```bash
+# Run on default port (8501)
+python run_demo.py
+
+# Run on a specific port
+python run_demo.py --port 8502
+
+# Make available on network
+python run_demo.py --server-address 0.0.0.0
+```
+
 ## Project Structure
+
+See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed information about the codebase organization.
 
 ```
 Facial-Recognition-Software-Project/
+├── config/                 # Configuration files
 ├── data/                   # Data directory
 │   ├── datasets/           # Raw datasets
 │   │   └── utkface/        # UTKFace dataset
 │   ├── test_datasets/      # Processed test data
 │   │   └── demographic_split_set/ # Ethnicity-organized images
-│   └── logs/               # System logs for error tracking
 ├── docs/                   # Documentation
 │   ├── quick_guides/       # Feature-specific guides
 │   └── ethical_discussion.md
+├── logs/                   # System logs
+│   ├── debug.log
+│   ├── info.log
+│   └── error.log
 ├── src/                    # Source code
-│   ├── facial_recognition_software/  # Core modules
-│   ├── utilities/          # Utility modules
-│   └── main.py             # Main application
+│   ├── core/               # Core functionality
+│   ├── utils/              # Utility modules
+│   └── ui/                 # Streamlit user interface
+├── PROJECT_STRUCTURE.md    # Detailed structure documentation
 ├── run_demo.py             # Demo launcher
 └── requirements.txt        # Dependencies
 ```
@@ -100,34 +86,46 @@ For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discus
 
 ## Recent Improvements
 
-### 1. Robust Logging System
-- Added comprehensive logging with different severity levels
-- Created log rotation to prevent log files from growing too large
-- Implemented detailed error tracking with full stack traces
-- Added context information for better debugging
+### 1. Project Restructuring
+- Separated core functionality from user interface
+- Implemented Streamlit web interface for better user experience
+- Created clear directory structure for improved maintainability
 
-### 2. Standardized Method Signatures
+### 2. Enhanced Configuration System
+- Added centralized configuration management
+- Support for environment-specific configuration
+- Configuration via JSON files and environment variables
+
+### 3. Robust Logging System
+- Comprehensive logging with different severity levels
+- Log rotation to prevent log files from growing too large
+- Detailed error tracking with stack traces
+- Context information for better debugging
+
+### 4. Standardized Method Signatures
 - Consistent parameter naming across all modules
 - Improved docstrings with NumPy-style formatting
 - Better return type consistency across the codebase
 - Added input validation to prevent errors
 
-### 3. Enhanced Error Handling
-- Implemented proper exception hierarchy
-- Added error context information
-- Improved error recovery mechanisms
-- Added fallback behaviors for common error conditions
+## Logging System
+
+All application logs are automatically saved to the `logs` directory:
+- `logs/debug.log`: Contains all log messages (DEBUG level and above)
+- `logs/info.log`: Contains INFO level messages and above
+- `logs/error.log`: Contains only ERROR and CRITICAL level messages
+
+If you encounter issues, check these logs for detailed error information.
 
 ## Troubleshooting
 
 If you encounter issues:
 
-1. Run the setup script: `python src/utilities/quick_setup.py`
-2. Check dependencies: `pip install -r requirements.txt`
-3. Clean up temporary files: `python src/utilities/cleanup.py`
-4. Fix import issues: `python src/utilities/fix_imports.py`
-5. Check logs: Look in the `logs` directory for detailed error information
-6. For UTKFace download issues, install gdown: `pip install gdown`
+1. Check logs: Look in the `logs` directory for detailed error information
+2. Verify Streamlit installation: `pip install streamlit`
+3. Check dependencies: `pip install -r requirements.txt`
+4. For UTKFace download issues, install gdown: `pip install gdown`
+5. If Streamlit interface doesn't launch, try running directly: `streamlit run src/ui/streamlit/app.py`
 
 ## Project Goals
 

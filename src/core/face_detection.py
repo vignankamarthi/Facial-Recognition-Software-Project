@@ -24,7 +24,7 @@ from utilities.common_utils import (
     safely_close_windows, handle_opencv_error, CameraError, DetectionError,
     format_error, create_resizable_window
 )
-from utilities.logger import get_logger, log_exception, log_method_call
+from src.utils.logger import get_logger, log_exception, log_method_call
 
 # Initialize logger for this module
 logger = get_logger(__name__)

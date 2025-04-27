@@ -1,0 +1,9 @@
+{
+    "env": "development",
+    "ui": {
+        "window_name": "Facial Recognition Demo (Development)"
+    },
+    "detection": {
+        "confidence": 0.4
+    }
+}

@@ -7,7 +7,7 @@ and applies patches if needed.
 
 Usage:
     # Simply import this module at the start of any script that uses face_recognition
-    import src.utilities.api_patch
+    import src.utils.api_patch
 """
 
 from .face_recognition_patch import verify_face_recognition
