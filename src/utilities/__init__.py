@@ -4,21 +4,18 @@
 # Define __all__ to control what's imported with "from utilities import *"
 __all__ = ['ImageProcessor']
 
-# Create a simple lazy loader for ImageProcessor
-class _ImageProcessorLoader:
-    @staticmethod
-    def __new__():
-        from .image_processing import ImageProcessor
-        return ImageProcessor
+# Use the same LazyClass approach as in facial_recognition_software/__init__.py
+class LazyClass:
+    def __init__(self, module_path, class_name):
+        self.module_path = module_path
+        self.class_name = class_name
+        self._class = None
+        
+    def __call__(self, *args, **kwargs):
+        if self._class is None:
+            module = __import__(self.module_path, fromlist=[self.class_name])
+            self._class = getattr(module, self.class_name)
+        return self._class(*args, **kwargs)
 
-# Access ImageProcessor through the loader
-def get_image_processor(*args, **kwargs):
-    """Get an instance of ImageProcessor."""
-    processor_class = _ImageProcessorLoader.__new__()
-    return processor_class(*args, **kwargs)
-
-# Make ImageProcessor accessible as if it were directly imported
-class ImageProcessor:
-    def __new__(cls, *args, **kwargs):
-        processor_class = _ImageProcessorLoader.__new__()
-        return processor_class(*args, **kwargs)
+# Implement our classes with consistent lazy loading
+ImageProcessor = LazyClass('utilities.image_processing', 'ImageProcessor')
