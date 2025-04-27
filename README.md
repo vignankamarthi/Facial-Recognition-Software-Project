@@ -82,6 +82,7 @@ Facial-Recognition-Software-Project/
 │   │   └── utkface/        # UTKFace dataset
 │   ├── test_datasets/      # Processed test data
 │   │   └── demographic_split_set/ # Ethnicity-organized images
+│   └── logs/               # System logs for error tracking
 ├── docs/                   # Documentation
 │   ├── quick_guides/       # Feature-specific guides
 │   └── ethical_discussion.md
@@ -97,6 +98,26 @@ For detailed usage instructions, see [docs/quick_guides/](docs/quick_guides/).
 
 For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discussion_draft.md).
 
+## Recent Improvements
+
+### 1. Robust Logging System
+- Added comprehensive logging with different severity levels
+- Created log rotation to prevent log files from growing too large
+- Implemented detailed error tracking with full stack traces
+- Added context information for better debugging
+
+### 2. Standardized Method Signatures
+- Consistent parameter naming across all modules
+- Improved docstrings with NumPy-style formatting
+- Better return type consistency across the codebase
+- Added input validation to prevent errors
+
+### 3. Enhanced Error Handling
+- Implemented proper exception hierarchy
+- Added error context information
+- Improved error recovery mechanisms
+- Added fallback behaviors for common error conditions
+
 ## Troubleshooting
 
 If you encounter issues:
@@ -105,7 +126,8 @@ If you encounter issues:
 2. Check dependencies: `pip install -r requirements.txt`
 3. Clean up temporary files: `python src/utilities/cleanup.py`
 4. Fix import issues: `python src/utilities/fix_imports.py`
-5. For UTKFace download issues, install gdown: `pip install gdown`
+5. Check logs: Look in the `logs` directory for detailed error information
+6. For UTKFace download issues, install gdown: `pip install gdown`
 
 ## Project Goals
 
