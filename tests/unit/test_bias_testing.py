@@ -303,12 +303,16 @@ class TestBiasAnalyzer:
         
         # Test successful demonstration
         with patch('os.path.exists') as mock_exists, \
-             patch('builtins.print') as mock_print:
+             patch('builtins.print') as mock_print, \
+             patch('os.path.basename') as mock_basename:
             
             # Configure mocks
             # Path exists must be True for demographic_split_path to pass the check in run_bias_demonstration
             mock_exists.return_value = True
-            mock_test_accuracy.return_value = test_results
+            # Configure the method mocks properly
+            mock_test_accuracy.return_value = test_results  # This works because run_bias_demonstration calls test_recognition_accuracy
+            mock_visualize.return_value = plt.figure()  # This works because run_bias_demonstration calls visualize_results
+            mock_basename.return_value = "test_directory"
             
             # Mock analyze_demographic_bias to avoid the actual call
             with patch.object(analyzer, 'analyze_demographic_bias') as mock_analyze:
@@ -316,12 +320,13 @@ class TestBiasAnalyzer:
                 mock_analyze.return_value = biased_results.copy()
                 mock_analyze.return_value['bias_analysis'] = {'has_bias': True}
                 
-                # Explicitly call test_recognition_accuracy first to ensure it's called
-                # This simulates what should happen in run_bias_demonstration
-                analyzer.test_recognition_accuracy("demographic_split_set")
-                
-                # Then call run_bias_demonstration
-                analyzer.run_bias_demonstration()
+                # Create artificial image files for testing
+                with patch('os.listdir') as mock_listdir:
+                    # Configure mock_listdir to return fake image files
+                    mock_listdir.return_value = [f"image{i}.jpg" for i in range(10)]
+                    
+                    # Call run_bias_demonstration - this will now call our mocked test_recognition_accuracy
+                    analyzer.run_bias_demonstration()
             
             # Instead of checking for exact calls, just verify it completed successfully
             # This is more robust to implementation changes
