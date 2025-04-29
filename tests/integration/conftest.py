@@ -16,7 +16,6 @@ from unittest.mock import MagicMock
 from src.backend.face_detection import FaceDetector
 from src.backend.face_matching import FaceMatcher
 from src.backend.anonymization import FaceAnonymizer
-from src.backend.bias_testing import BiasAnalyzer
 
 # Test pipeline fixture
 @pytest.fixture
