@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for the new logging system.
+Test script for the logging system.
 
 This script demonstrates how to use the logging system and error handling
 features of the Facial Recognition Software Project.
