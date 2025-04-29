@@ -1,6 +1,10 @@
 # Facial Recognition Software Project
 A facial recognition system demonstrating technical capabilities and ethical considerations in AI-based recognition technologies.
 
+[ ] TODO: Refactor README after project is complete
+[ ] TODO: Go through ALL documentation/md files
+
+
 ## Quick Start Guide
 
 ### Installation
