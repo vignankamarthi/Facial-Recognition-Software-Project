@@ -115,10 +115,10 @@ class FaceAnonymizer:
     ----------
     method : str, optional
         Anonymization method to use ('blur', 'pixelate', or 'mask')
-        (default: value from config.DEFAULT_ANONYMIZATION_METHOD)
+        (default: value from config.DEFAULT_ANONYMIZATION_METHOD = blur)
     intensity : int, optional
         Intensity of the anonymization effect, range 1-100
-        (default: value from config.DEFAULT_ANONYMIZATION_INTENSITY)
+        (default: value from config.DEFAULT_ANONYMIZATION_INTENSITY = 90)
         
     Attributes
     ----------
