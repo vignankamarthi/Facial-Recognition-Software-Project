@@ -236,7 +236,7 @@ class TestFaceDetector:
             # Verify error was logged
             mock_log_exception.assert_called_once()
 
-    def test_detect_faces_webcam_with_anonymization(self):
+    def test_detect_faces_webcam_with_anonymization(self, mock_video_capture):
         """Test the webcam face detection with anonymization."""
         detector = FaceDetector()
         mock_anonymizer = MagicMock()

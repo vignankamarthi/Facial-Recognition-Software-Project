@@ -28,7 +28,7 @@ class TestEndToEndWorkflows:
     
     @patch('builtins.print')
     @patch('cv2.destroyAllWindows')
-    def test_face_detection_workflow(self, mock_destroy, mock_print, temp_working_dir):
+    def test_face_detection_workflow(self, mock_destroy, mock_print, temp_working_dir, mock_video_capture):
         """Test the complete face detection workflow."""
         # Create test image in the working directory
         test_image_path = os.path.join(temp_working_dir, "test_images", "test_face.jpg")
@@ -86,7 +86,7 @@ class TestEndToEndWorkflows:
     
     @patch('builtins.print')
     @patch('cv2.destroyAllWindows')
-    def test_face_matching_workflow(self, mock_destroy, mock_print, temp_working_dir):
+    def test_face_matching_workflow(self, mock_destroy, mock_print, temp_working_dir, mock_video_capture):
         """Test the complete face matching workflow."""
         # Set up directory structure
         known_faces_dir = os.path.join(temp_working_dir, "known_faces")
@@ -149,7 +149,7 @@ class TestEndToEndWorkflows:
     
     @patch('builtins.print')
     @patch('cv2.destroyAllWindows')
-    def test_anonymization_workflow(self, mock_destroy, mock_print, temp_working_dir):
+    def test_anonymization_workflow(self, mock_destroy, mock_print, temp_working_dir, mock_video_capture):
         """Test the complete face anonymization workflow."""
         # Set up test image
         test_image_path = os.path.join(temp_working_dir, "test_images", "test_face.jpg")

@@ -10,6 +10,7 @@ import sys
 import pytest
 import numpy as np
 import cv2
+from unittest.mock import MagicMock, patch
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +41,30 @@ def test_data_dir():
         cv2.imwrite(real_face_path, img)
     
     return data_dir
+
+
+def is_ci_environment():
+    """Check if we're running in a CI environment."""
+    return os.environ.get('CI', 'False').lower() in ('true', '1', 't')
+
+
+@pytest.fixture
+def mock_video_capture():
+    """Create a mock for cv2.VideoCapture that behaves like a working camera."""
+    mock_capture = MagicMock()
+    mock_capture.isOpened.return_value = True
+    
+    # Create a simple test frame (black image with a white circle)
+    test_frame = np.zeros((300, 400, 3), dtype=np.uint8)
+    cv2.circle(test_frame, (200, 150), 100, (255, 255, 255), -1)
+    
+    # Mock the read method to return the test frame
+    mock_capture.read.return_value = (True, test_frame)
+    mock_capture.release.return_value = None
+    
+    # Create the patch
+    with patch('cv2.VideoCapture', return_value=mock_capture):
+        yield mock_capture
 
 
 # Pull image from somewhere instead of drawing one if one doesn't exist
