@@ -2,7 +2,7 @@
 
 ## Required Images
 
-To run the test suite, you need to provide several real face images in this directory:
+To run the test suite, you need to provide several real face images in this (.tests/data) directory:
 
 1. **real_face.jpg**: Basic face image for general tests
 2. **reference_face.jpg**: Face image used as a known reference face
