@@ -292,6 +292,15 @@ class TestBiasAnalyzer:
             }
         }
         
+        # Define biased_results to fix the UnboundLocalError
+        biased_results = {
+            "overall": {"detected": 15, "total": 20, "accuracy": 0.75},
+            "by_demographic": {
+                "white": {"detected": 5, "total": 5, "accuracy": 1.0},  # 100%
+                "black": {"detected": 3, "total": 5, "accuracy": 0.6}   # 60% (40% diff)
+            }
+        }
+        
         # Test successful demonstration
         with patch('os.path.exists') as mock_exists, \
              patch('builtins.print') as mock_print:

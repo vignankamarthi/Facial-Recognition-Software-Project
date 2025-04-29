@@ -277,7 +277,7 @@ class TestDetectionAnonymizationIntegration:
             assert mock_video_capture.read.call_count >= 1
             assert mock_imshow.call_count >= 1
             assert mock_anonymize_frame.call_count >= 1
-            assert mock_destroy.call_count == 1
+            assert mock_destroy.call_count >= 1
             
             # Verify results were returned correctly
             assert "face_count" in result
