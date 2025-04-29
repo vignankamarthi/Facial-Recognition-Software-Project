@@ -309,7 +309,16 @@ def set_log_level(level):
             handler, logging.FileHandler
         ):
             handler.setLevel(level)
-            root_logger.info(f"Console log level set to {logging.getLevelName(level)}")
+            level_names = {
+                logging.DEBUG: "DEBUG",
+                logging.INFO: "INFO",
+                logging.WARNING: "WARNING",
+                logging.ERROR: "ERROR",
+                logging.CRITICAL: "CRITICAL",
+            }
+            root_logger.info(
+                f"Console log level set to {level_names.get(level, 'UNKNOWN')}"
+            )
             break
 
 
