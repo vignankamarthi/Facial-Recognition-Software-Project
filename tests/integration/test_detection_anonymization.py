@@ -257,6 +257,7 @@ class TestDetectionAnonymizationIntegration:
         
         with patch('cv2.VideoCapture', return_value=mock_video_capture), \
              patch.object(detector, 'detect_faces', return_value=(mock_face_locations, [np.zeros(128)])), \
+             patch.object(anonymizer, 'anonymize_frame') as mock_anonymize_frame, \
              patch('cv2.imshow') as mock_imshow, \
              patch('cv2.waitKey') as mock_waitkey, \
              patch('cv2.destroyAllWindows') as mock_destroy, \
@@ -275,7 +276,7 @@ class TestDetectionAnonymizationIntegration:
             # Verify the various functions were called as expected
             assert mock_video_capture.read.call_count >= 1
             assert mock_imshow.call_count >= 1
-            assert anonymizer.anonymize_frame.call_count >= 1
+            assert mock_anonymize_frame.call_count >= 1
             assert mock_destroy.call_count == 1
             
             # Verify results were returned correctly

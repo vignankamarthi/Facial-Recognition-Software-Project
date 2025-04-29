@@ -22,6 +22,23 @@ def test_data_dir():
     """Fixture for the test data directory."""
     data_dir = os.path.join(project_root, "tests", "data")
     os.makedirs(data_dir, exist_ok=True)
+    
+    # Create required subdirectories for tests
+    os.makedirs(os.path.join(data_dir, "demographic_split_set", "white"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "demographic_split_set", "black"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "demographic_split_set", "asian"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "demographic_split_set", "indian"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "demographic_split_set", "others"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "results"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "test_images"), exist_ok=True)
+    
+    # Create test image if it doesn't exist
+    real_face_path = os.path.join(data_dir, "real_face.jpg")
+    if not os.path.exists(real_face_path):
+        img = np.zeros((200, 200, 3), dtype=np.uint8)
+        cv2.circle(img, (100, 100), 50, (255, 255, 255), -1)  # Simple face circle
+        cv2.imwrite(real_face_path, img)
+    
     return data_dir
 
 

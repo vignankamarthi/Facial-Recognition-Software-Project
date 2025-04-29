@@ -934,6 +934,7 @@ class ProgressBar:
         self.start_time = time.time()
         self.last_log_time = 0
         self.logger = get_logger(__name__)
+        self.current = 0
 
         # Initial update
         self.update(0)
@@ -965,6 +966,8 @@ class ProgressBar:
         >>> progress.update(50)  # Update to 50% complete
         Processing: |█████████████████████████                   | 50.0% | 50/100 | 10.0 it/s | ETA: 0m 5s
         """
+        # Store current iteration
+        self.current = iteration
         # Only log every second to avoid excessive logging
         current_time = time.time()
         should_log = current_time - self.last_log_time >= 1.0 or iteration == self.total
