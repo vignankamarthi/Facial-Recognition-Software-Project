@@ -15,4 +15,4 @@ from .common_utils import (
     create_resizable_window,
     FaceRecognitionError
 )
-from .api_patch import patch_face_recognition
+from .face_recognition_patch import patch_face_recognition

@@ -45,21 +45,23 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import utilities safely with failover to local defaults
 try:
-    from utils.common_utils import (
+    from src.utils.common_utils import (
         safely_close_windows, handle_opencv_error, CameraError, AnonymizationError,
         format_error, create_resizable_window
     )
-    from utils.config import (
-        WINDOW_NAME,
-        WAIT_KEY_DELAY,
-        DEFAULT_ANONYMIZATION_METHOD,
-        DEFAULT_ANONYMIZATION_INTENSITY,
-        WARNING_COLOR,
-        initialize_opencv_constants,
-    )
-
-    # Initialize OpenCV constants after cv2 is imported
-    initialize_opencv_constants()
+    # Import configuration
+    from src.utils.config import get_config
+    # Get the config singleton instance
+    config = get_config()
+    # Initialize OpenCV constants after cv2 is imported if needed
+    if hasattr(config.ui, 'initialize_opencv_constants'):
+        config.ui.initialize_opencv_constants()
+    # Get UI config values
+    WINDOW_NAME = config.ui.window_name
+    WAIT_KEY_DELAY = config.ui.wait_key_delay
+    DEFAULT_ANONYMIZATION_METHOD = config.anonymization.default_method
+    DEFAULT_ANONYMIZATION_INTENSITY = config.anonymization.default_intensity
+    WARNING_COLOR = config.ui.warning_color
 except ImportError as e:
     # Provide dummy implementations if imports fail
     print(f"Warning: Could not import utils. Using fallback implementations. Error: {e}")

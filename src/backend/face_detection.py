@@ -20,7 +20,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import utilities with logging
-from utils.common_utils import (
+from src.utils.common_utils import (
     safely_close_windows,
     handle_opencv_error,
     CameraError,
@@ -33,12 +33,17 @@ from src.utils.logger import get_logger, log_exception, log_method_call
 # Initialize logger for this module
 logger = get_logger(__name__)
 
-# Import configuration constants
+# Import configuration
 try:
-    from utils.config import WINDOW_NAME, WAIT_KEY_DELAY, initialize_opencv_constants
-
-    # Initialize OpenCV constants after cv2 is imported
-    initialize_opencv_constants()
+    from src.utils.config import get_config
+    # Get the config singleton instance
+    config = get_config()
+    # Initialize OpenCV constants after cv2 is imported if needed
+    if hasattr(config.ui, 'initialize_opencv_constants'):
+        config.ui.initialize_opencv_constants()
+    # Get UI config values
+    WINDOW_NAME = config.ui.window_name
+    WAIT_KEY_DELAY = config.ui.wait_key_delay
 except ImportError as e:
     # Fallback constants if config module is not available
     logger.warning(f"Could not import config module: {e}. Using fallback constants.")

@@ -262,8 +262,9 @@ class TestDetectionAnonymizationIntegration:
              patch('cv2.destroyAllWindows') as mock_destroy, \
              patch('src.backend.face_detection.create_resizable_window') as mock_create_window:
             
-            # Simulate keyboard input - first key doesn't quit, second one does
-            mock_waitkey.side_effect = [255, ord('q')]
+            # Simulate keyboard input - with enough values for all potential calls
+            # Some environments may call waitKey multiple times during cleanup
+            mock_waitkey.side_effect = [255, 255, 255, 255, ord('q'), 255, 255, 255, 255]
             
             # Run the webcam detection with anonymization
             success, result = detector.detect_faces_webcam(anonymize=True, anonymizer=anonymizer)
