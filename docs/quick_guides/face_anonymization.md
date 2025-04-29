@@ -60,4 +60,4 @@ The anonymization system:
 3. Adds visual indicators for anonymized regions
 4. Displays the anonymization mode in the corner of the frame
 
-For more details, see `src/facial_recognition_software/anonymization.py`.
+For more details, see `src/backend/anonymization.py`.

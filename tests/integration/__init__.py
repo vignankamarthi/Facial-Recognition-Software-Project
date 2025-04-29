@@ -1,0 +1,1 @@
+"""Integration tests for component interactions in the Facial Recognition Software Project."""

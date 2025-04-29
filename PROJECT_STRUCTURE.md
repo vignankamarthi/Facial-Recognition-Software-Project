@@ -21,7 +21,7 @@ Facial-Recognition-Software-Project/
 │   ├── info.log                    # Info level messages
 │   └── error.log                   # Error level messages
 ├── src/                            # Source code
-│   ├── core/                       # Core functionality
+│   ├── backend/                    # Backend functionality
 │   │   ├── __init__.py
 │   │   ├── face_detection.py       # Face detection implementation
 │   │   ├── face_matching.py        # Face matching implementation
@@ -54,7 +54,7 @@ Facial-Recognition-Software-Project/
 
 The project has been restructured to clearly separate different concerns:
 
-1. **Core Functionality** (`src/core/`):
+1. **Backend Functionality** (`src/backend/`):
    - Contains the algorithmic implementation of facial recognition features
    - Independent of any specific UI implementation
    - Focused on the business logic and computational aspects
@@ -130,14 +130,14 @@ python run_demo.py --server-address 0.0.0.0
 
 ## Development Guidelines
 
-1. **Core Logic Changes**:
-   - Update files in `src/core/` when changing algorithmic functionality
+1. **Backend Logic Changes**:
+   - Update files in `src/backend/` when changing algorithmic functionality
    - Ensure changes are UI-independent
    - Add appropriate tests in `tests/`
 
 2. **UI Changes**:
    - Update Streamlit components in `src/ui/streamlit/`
-   - Keep UI logic separate from core logic
+   - Keep UI logic separate from backend logic
 
 3. **Configuration Changes**:
    - Update `config/default.json` for universal changes
@@ -145,6 +145,6 @@ python run_demo.py --server-address 0.0.0.0
    - Document new configuration parameters
 
 4. **Testing**:
-   - Test core functionality independently of UI
-   - Test UI components with mock core components when possible
-   - Ensure complete test coverage of core functionality
+   - Test backend functionality independently of UI
+   - Test UI components with mock backend components when possible
+   - Ensure complete test coverage of backend functionality

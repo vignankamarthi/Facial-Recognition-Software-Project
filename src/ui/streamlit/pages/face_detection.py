@@ -17,7 +17,7 @@ import tempfile
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))
 
 # Import core functionality
-from src.core.face_detection import FaceDetector
+from src.backend.face_detection import FaceDetector
 from src.utils.config import get_config
 
 # Get configuration

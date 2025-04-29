@@ -69,4 +69,4 @@ The system uses facial encoding to identify people:
 - **False positives**: Try using better quality reference images
 - **Low confidence scores**: Improve lighting and face positioning
 
-For technical details, see `src/facial_recognition_software/face_matching.py`.
+For technical details, see `src/backend/face_matching.py`.

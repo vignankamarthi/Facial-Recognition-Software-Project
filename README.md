@@ -72,7 +72,7 @@ Facial-Recognition-Software-Project/
 │   ├── info.log
 │   └── error.log
 ├── src/                    # Source code
-│   ├── core/               # Core functionality
+│   ├── backend/            # Backend functionality
 │   ├── utils/              # Utility modules
 │   └── ui/                 # Streamlit user interface
 ├── PROJECT_STRUCTURE.md    # Detailed structure documentation
@@ -87,7 +87,7 @@ For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discus
 ## Recent Improvements
 
 ### 1. Project Restructuring
-- Separated core functionality from user interface
+- Separated backend functionality from user interface
 - Implemented Streamlit web interface for better user experience
 - Created clear directory structure for improved maintainability
 

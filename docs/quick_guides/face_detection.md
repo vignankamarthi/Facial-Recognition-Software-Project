@@ -48,4 +48,4 @@ The face detection module uses the `face_recognition` library which employs a pr
 3. Creates bounding boxes around detected faces
 4. Displays or saves the processed image
 
-For more technical details, see the source code in `src/core/face_detection.py`.
+For more technical details, see the source code in `src/backend/face_detection.py`.

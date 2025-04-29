@@ -150,4 +150,4 @@ You can also add your own images to the system:
 
 For more information on the technical implementation, see:
 - `src/utils/image_processing.py`
-- `src/core/bias_testing.py`
+- `src/backend/bias_testing.py`

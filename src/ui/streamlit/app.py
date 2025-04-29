@@ -2,7 +2,7 @@
 Main Streamlit application entry point for the Facial Recognition Software Project.
 
 This module serves as the entry point for the Streamlit web interface. It handles
-the main layout, navigation, and integration with the core facial recognition
+the main layout, navigation, and integration with the backend facial recognition
 functionality.
 """
 
@@ -13,11 +13,11 @@ import sys
 # Add the project root to the Python path for imports
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
 
-# Import core functionality
-from src.core.face_detection import FaceDetector 
-from src.core.face_matching import FaceMatcher
-from src.core.anonymization import FaceAnonymizer
-from src.core.bias_testing import BiasAnalyzer
+# Import backend functionality
+from src.backend.face_detection import FaceDetector 
+from src.backend.face_matching import FaceMatcher
+from src.backend.anonymization import FaceAnonymizer
+from src.backend.bias_testing import BiasAnalyzer
 from src.utils.image_processing import ImageProcessor
 from src.utils.config import get_config
 

@@ -100,4 +100,4 @@ The bias testing system:
 5. Tests for statistically significant differences
 6. Generates colored visualizations with matplotlib
 
-For implementation details, see `src/facial_recognition_software/bias_testing.py`.
+For implementation details, see `src/backend/bias_testing.py`.
