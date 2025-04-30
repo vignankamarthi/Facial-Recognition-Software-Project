@@ -4,8 +4,8 @@ on:
   push:
     branches: [ main ]
 # For more sophisticated workflows, we can run tests on pull requests
-  #pull_request:
-  #  branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
 
 jobs:
   test:
@@ -15,7 +15,9 @@ jobs:
         python-version: [3.8, 3.9]
     
     env:
-      CI: true  # Set environment variable to detect CI environment
+      GITHUB_ACTIONS: true       # Main CI environment flag
+      FORCE_HEADLESS: true       # Always run in headless mode
+      FORCE_WEBCAM_AVAILABLE: false  # No webcam in CI
 
     steps:
     - uses: actions/checkout@v2
@@ -33,9 +35,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libsm6 libxext6 libxrender-dev
     
+    - name: Create test data directories
+      run: |
+        mkdir -p tests/data/known_faces
+        mkdir -p tests/data/test_images
+        mkdir -p tests/data/results
+    
     - name: Test with pytest
       run: |
-        pytest --cov=src tests/ -v
+        python -m pytest --cov=src tests/ -v
     
     - name: Upload coverage report
       uses: codecov/codecov-action@v1

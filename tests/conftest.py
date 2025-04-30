@@ -12,6 +12,11 @@ import numpy as np
 import cv2
 from unittest.mock import MagicMock, patch
 
+# Project root was already added above
+
+# Import environment utilities
+from src.utils.environment_utils import is_ci_environment, is_headless_environment, is_webcam_available
+
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
@@ -43,27 +48,32 @@ def test_data_dir():
     return data_dir
 
 
-def is_ci_environment():
-    """Check if we're running in a CI environment."""
-    return os.environ.get('CI', 'False').lower() in ('true', '1', 't')
+# Using is_ci_environment from environment_utils module
 
 
 @pytest.fixture
 def mock_video_capture():
-    """Create a mock for cv2.VideoCapture that behaves like a working camera."""
-    mock_capture = MagicMock()
-    mock_capture.isOpened.return_value = True
+    """Create a mock for cv2.VideoCapture that behaves like a working camera.
     
+    This fixture automatically applies in headless environments or when no webcam is available.
+    In environments with a working webcam, it will only apply if explicitly requested.
+    """
     # Create a simple test frame (black image with a white circle)
     test_frame = np.zeros((300, 400, 3), dtype=np.uint8)
     cv2.circle(test_frame, (200, 150), 100, (255, 255, 255), -1)
     
-    # Mock the read method to return the test frame
+    # Configure mock
+    mock_capture = MagicMock()
+    mock_capture.isOpened.return_value = True
     mock_capture.read.return_value = (True, test_frame)
     mock_capture.release.return_value = None
     
-    # Create the patch
-    with patch('cv2.VideoCapture', return_value=mock_capture):
+    # In headless environments or when webcam is not available, always mock
+    if is_headless_environment() or not is_webcam_available():
+        with patch('cv2.VideoCapture', return_value=mock_capture):
+            yield mock_capture
+    else:
+        # In environments with webcam, only mock if tests explicitly use this fixture
         yield mock_capture
 
 
@@ -102,4 +112,25 @@ def cleanup_after_test():
     """Clean up any resources after each test."""
     yield
     # Clean up OpenCV windows that might be left open
-    cv2.destroyAllWindows()
+    # Skip in headless environments where no windows can be created
+    if not is_headless_environment():
+        cv2.destroyAllWindows()
+
+
+@pytest.fixture
+def headless_aware_test():
+    """Fixture that provides information about the test environment.
+    
+    This fixture helps tests adapt to different environments (headless, CI, webcam availability).
+    It can be used to conditionally skip tests or adjust expectations.
+    """
+    env_info = {
+        'headless': is_headless_environment(),
+        'ci': is_ci_environment(),
+        'webcam_available': is_webcam_available()
+    }
+    
+    # Print environment info for better test debugging
+    print(f"\nTest environment: {env_info}")
+    
+    return env_info

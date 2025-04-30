@@ -53,6 +53,7 @@ from pathlib import Path
 # Import our logging system
 from .logger import get_logger, log_exception, log_method_call
 from .config import get_config
+from .environment_utils import is_ci_environment, is_headless_environment, is_webcam_available
 
 # Initialize logger for this module
 logger = get_logger(__name__)
@@ -247,16 +248,7 @@ def get_subdirectories(directory_path):
 
 # ===== OpenCV Window Management =====
 
-def is_headless_environment():
-    """
-    Check if running in a headless environment without a display.
-    
-    Returns
-    -------
-    bool
-        True if in a headless environment (CI or no DISPLAY)
-    """
-    return os.environ.get('CI', 'False').lower() in ('true', '1', 't') or 'DISPLAY' not in os.environ
+# Note: is_headless_environment is now imported from environment_utils
 
 
 def create_resizable_window(window_name, width=800, height=600):
