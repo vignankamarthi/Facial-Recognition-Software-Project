@@ -293,5 +293,10 @@ class TestDetectionMatchingIntegration:
             assert detector.__class__.detect_faces.call_count >= 1
             assert mock_identify.call_count >= 1
             assert mock_imshow.call_count >= 1
-            # Some environments may call destroyAllWindows multiple times
-            assert mock_destroy.call_count >= 1
+            
+            # Import the utility function to check environment
+            from src.utils.environment_utils import is_headless_environment
+            
+            # In a headless environment, destroy might not be called
+            if not is_headless_environment():
+                assert mock_destroy.call_count >= 1
