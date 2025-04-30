@@ -38,11 +38,26 @@ def test_data_dir():
     os.makedirs(os.path.join(data_dir, "results"), exist_ok=True)
     os.makedirs(os.path.join(data_dir, "test_images"), exist_ok=True)
     
-    # Create test image if it doesn't exist
+    # Create test image if it doesn't exist or if in CI environment (always recreate in CI)
     real_face_path = os.path.join(data_dir, "real_face.jpg")
-    if not os.path.exists(real_face_path):
-        img = np.zeros((200, 200, 3), dtype=np.uint8)
-        cv2.circle(img, (100, 100), 50, (255, 255, 255), -1)  # Simple face circle
+    if not os.path.exists(real_face_path) or is_ci_environment():
+        # Create a more recognizable face-like image for unit tests
+        img = np.zeros((300, 300, 3), dtype=np.uint8)
+        img.fill(220)  # Light gray background
+        
+        # Draw face shape (ellipse for more realistic face shape)
+        cv2.ellipse(img, (150, 150), (120, 150), 0, 0, 360, (240, 200, 200), -1)  # Face shape
+        
+        # Add more pronounced features with good contrast
+        cv2.circle(img, (110, 120), 30, (40, 40, 180), -1)  # Left eye
+        cv2.circle(img, (190, 120), 30, (40, 40, 180), -1)  # Right eye
+        cv2.ellipse(img, (150, 190), (60, 30), 0, 0, 180, (40, 40, 180), -1)  # Mouth
+        cv2.ellipse(img, (150, 130), (80, 40), 0, 180, 360, (40, 40, 180), 5)  # Eyebrows
+        
+        # Add a nose for better face detection
+        cv2.ellipse(img, (150, 160), (25, 35), 0, 0, 360, (180, 120, 120), -1)  # Nose
+        
+        print(f"Creating main test face image at {real_face_path}")
         cv2.imwrite(real_face_path, img)
     
     return data_dir
@@ -58,9 +73,24 @@ def mock_video_capture():
     This fixture automatically applies in headless environments or when no webcam is available.
     In environments with a working webcam, it will only apply if explicitly requested.
     """
-    # Create a simple test frame (black image with a white circle)
-    test_frame = np.zeros((300, 400, 3), dtype=np.uint8)
-    cv2.circle(test_frame, (200, 150), 100, (255, 255, 255), -1)
+    # Create a more realistic test frame with a recognizable face
+    test_frame = np.zeros((400, 600, 3), dtype=np.uint8)
+    test_frame.fill(200)  # Light gray background
+    
+    # Face centered in the frame
+    center_x, center_y = 300, 200
+    
+    # Draw face shape
+    cv2.ellipse(test_frame, (center_x, center_y), (120, 160), 0, 0, 360, (255, 220, 200), -1)  # Face shape
+    
+    # Add recognizable features
+    cv2.circle(test_frame, (center_x-40, center_y-30), 30, (60, 60, 170), -1)  # Left eye
+    cv2.circle(test_frame, (center_x+40, center_y-30), 30, (60, 60, 170), -1)  # Right eye
+    cv2.ellipse(test_frame, (center_x, center_y+50), (60, 25), 0, 0, 180, (60, 60, 170), -1)  # Mouth
+    cv2.ellipse(test_frame, (center_x, center_y-40), (90, 40), 0, 180, 360, (60, 60, 170), 5)  # Eyebrows
+    
+    # Add nose
+    cv2.ellipse(test_frame, (center_x, center_y+10), (25, 40), 0, 0, 360, (200, 120, 120), -1)
     
     # Configure mock
     mock_capture = MagicMock()
