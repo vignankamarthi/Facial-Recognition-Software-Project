@@ -8,17 +8,21 @@ data/test_datasets/
 *.tgz
 *.tar.gz
 *.zip
-*.jpg
 
-# Explicitly ignore the large dataset files
-src/data/datasets/utkface/*.zip
-data/datasets/utkface/
+# Image files in general
+*.jpg
+*.jpeg
+*.png
+
+# Exception for test data images
+!tests/data/**/*.jpg
+!tests/data/**/*.jpeg
+!tests/data/**/*.png
 
 # Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyc
 *.so
 .Python
 env/
@@ -54,9 +58,6 @@ env/
 
 # Generated output files
 data/results/
-*.png
-*.jpg
-*.jpeg
 
 # Logs
 *.log
