@@ -32,7 +32,7 @@ def detection_matching_pipeline(test_data_dir):
     # Look for real face images in the test_data_dir
     reference_face_path = os.path.join(test_data_dir, "reference_face.jpg")
     if not os.path.exists(reference_face_path):
-        pytest.skip("Reference face image not found. Please add a reference face image at: " + reference_face_path)
+        pytest.fail("REQUIRED TEST IMAGE MISSING: Reference face image not found. Please add a reference face image at: " + reference_face_path + "\nThis image is required for integration tests.")
     
     # Copy the reference face to the known faces directory
     known_face_path = os.path.join(known_faces_dir, "test_person.jpg")
@@ -45,7 +45,7 @@ def detection_matching_pipeline(test_data_dir):
     # Use another variant of the reference face for testing
     test_face_path = os.path.join(test_data_dir, "test_face.jpg")
     if not os.path.exists(test_face_path):
-        pytest.skip("Test face image not found. Please add a test face image at: " + test_face_path)
+        pytest.fail("REQUIRED TEST IMAGE MISSING: Test face image not found. Please add a test face image at: " + test_face_path + "\nThis image is required for integration tests.")
         
     # Copy to the test location
     test_image_path = os.path.join(test_data_dir, "test_integration.jpg")
@@ -71,7 +71,7 @@ def detection_anonymization_pipeline(test_data_dir):
         # Fall back to using the same test face if available
         test_face_path = os.path.join(test_data_dir, "test_face.jpg")
         if not os.path.exists(test_face_path):
-            pytest.skip("Neither anon_face.jpg nor test_face.jpg found in test data directory.")
+            pytest.fail("REQUIRED TEST IMAGES MISSING: Neither anon_face.jpg nor test_face.jpg found in test data directory.\nAt least one of these images is required for anonymization tests.")
         anon_face_path = test_face_path
         
     # Copy to the test location

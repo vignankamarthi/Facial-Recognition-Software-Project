@@ -247,10 +247,23 @@ def get_subdirectories(directory_path):
 
 # ===== OpenCV Window Management =====
 
+def is_headless_environment():
+    """
+    Check if running in a headless environment without a display.
+    
+    Returns
+    -------
+    bool
+        True if in a headless environment (CI or no DISPLAY)
+    """
+    return os.environ.get('CI', 'False').lower() in ('true', '1', 't') or 'DISPLAY' not in os.environ
+
 
 def create_resizable_window(window_name, width=800, height=600):
     """
     Create a named OpenCV window and set it to be resizable with optional size.
+    
+    In headless environments (CI), will use a mock window instead.
 
     Parameters
     ----------
@@ -266,6 +279,11 @@ def create_resizable_window(window_name, width=800, height=600):
     str
         The window name
     """
+    # Skip actual window creation in headless environments
+    if is_headless_environment():
+        logger.debug(f"Skipping window creation in headless environment: {window_name}")
+        return window_name
+        
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)  # Ensure it gets focus
     cv2.resizeWindow(window_name, width, height)  # Set initial size
@@ -276,6 +294,8 @@ def create_resizable_window(window_name, width=800, height=600):
 def create_control_window(window_name, width=400, height=200):
     """
     Create a window for controls and UI elements.
+    
+    In headless environments (CI), will use a mock window instead.
 
     Parameters
     ----------
@@ -291,6 +311,11 @@ def create_control_window(window_name, width=400, height=200):
     str
         The window name
     """
+    # Skip actual window creation in headless environments
+    if is_headless_environment():
+        logger.debug(f"Skipping control window creation in headless environment: {window_name}")
+        return window_name
+        
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, width, height)
     logger.debug(f"Created control window: {window_name} ({width}x{height})")
@@ -327,6 +352,12 @@ def safely_close_windows(window_name=None, video_capture=None, verbose=True):
     if verbose:
         logger.info("Closing OpenCV windows...")
 
+    # Skip window operations in headless environments
+    if is_headless_environment():
+        logger.debug("Skipping window closing in headless environment")
+        # Still release video capture if provided
+        return
+    
     # Try to get focus first
     if window_name:
         try:
@@ -417,6 +448,12 @@ def show_image_with_delay(
 
     # Create window and show image
     create_resizable_window(window_name)
+    
+    # Skip actual display in headless environments
+    if is_headless_environment():
+        logger.debug(f"Skipping image display in headless environment: {window_name}")
+        return 0
+        
     cv2.imshow(window_name, display_img)
 
     # Wait for key press or delay

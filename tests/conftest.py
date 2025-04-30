@@ -74,16 +74,16 @@ def sample_image(test_data_dir):
     """Use a real face image for testing.
 
     Note: The test will look for a real face image in tests/data/real_face.jpg.
-    If the image doesn't exist, the test will be skipped with a message
-    suggesting to provide a real face image.
+    If the image doesn't exist, the test will fail with a clear message.
     """
     image_path = os.path.join(test_data_dir, "real_face.jpg")
 
     # Check if the real face image exists
     if not os.path.exists(image_path):
-        pytest.skip(
-            "Real face test image not found. Please add a real face image at: "
+        pytest.fail(
+            "REQUIRED TEST IMAGE MISSING: Real face test image not found. Please add a real face image at: "
             + image_path
+            + "\nTests cannot run without required test images."
         )
 
     return image_path
