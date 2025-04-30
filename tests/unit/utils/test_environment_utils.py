@@ -69,8 +69,7 @@ class TestEnvironmentUtils:
             mock_destroy.side_effect = None
             
             # Skip this test in CI environment
-            import os
-            if 'GITHUB_ACTIONS' in os.environ:
+            if os.environ.get('GITHUB_ACTIONS'):
                 assert True
             else:
                 assert is_headless_environment() is False
