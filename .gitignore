@@ -1,6 +1,5 @@
 # Dataset files and directories
 /data/
-/src/data/
 
 # Exception for test data
 !/tests/data/

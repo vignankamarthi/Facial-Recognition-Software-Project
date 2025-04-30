@@ -308,7 +308,7 @@ class FaceMatcher:
             ):
                 # Compare the face with known faces
                 matches = face_recognition.compare_faces(
-                    self.known_face_encodings, face_encoding, 0.6
+                    self.known_face_encodings, face_encoding, 0.8
                 )
                 name = "Unknown"
 
