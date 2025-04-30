@@ -1,23 +1,22 @@
 # Dataset files and directories
-data/datasets/
-src/data/datasets/
-src/data/datasets/utkface/
-data/known_faces/
-data/test_images/
-data/test_datasets/
-*.tgz
-*.tar.gz
-*.zip
+/data/
+/src/data/
 
-# Image files in general
+# Exception for test data
+!/tests/data/
+!/tests/data/**/*
+
+# Image files in general (after the test data exception)
 *.jpg
 *.jpeg
 *.png
+*.gif
 
-# Exception for test data images
+# Exception for test data images (must come after the general image exclusion)
 !tests/data/**/*.jpg
 !tests/data/**/*.jpeg
 !tests/data/**/*.png
+!tests/data/**/*.gif
 
 # Python cache files
 __pycache__/
@@ -58,6 +57,11 @@ env/
 
 # Generated output files
 data/results/
+
+# Archives
+*.tgz
+*.tar.gz
+*.zip
 
 # Logs
 *.log
