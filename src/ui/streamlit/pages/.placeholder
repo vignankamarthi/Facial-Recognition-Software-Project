@@ -1,6 +1,0 @@
-# This is an empty placeholder file
-# 
-# The actual page modules have been moved to the pages_modules directory
-# to prevent Streamlit from auto-generating a navigation menu
-# 
-# Do not delete this file or directory - it's needed to prevent Streamlit errors

@@ -347,7 +347,7 @@ def dataset_management_config_panel(config: Dict[str, Any], key_prefix: str = ""
         sample_size = st.slider(
             "Sample Size",
             min_value=100,
-            max_value=5000,
+            max_value=30000,
             value=config.get("sample_size", 500),
             step=100,
             help="Number of images to download from UTKFace dataset.",
