@@ -26,12 +26,12 @@ from src.utils.image_processing import ImageProcessor
 from src.utils.config import get_config
 from src.utils.logger import get_logger
 
-# Import page modules
-from src.ui.streamlit.pages.face_detection import face_detection_page
-from src.ui.streamlit.pages.face_matching import face_matching_page
-from src.ui.streamlit.pages.face_anonymization import face_anonymization_page
-from src.ui.streamlit.pages.bias_testing import bias_testing_page
-from src.ui.streamlit.pages.dataset_management import dataset_management_page
+# Import all functionality directly
+from src.ui.streamlit.pages_modules.face_detection import face_detection_page, process_detection_frame
+from src.ui.streamlit.pages_modules.face_matching import face_matching_page, process_matching_frame
+from src.ui.streamlit.pages_modules.face_anonymization import face_anonymization_page, process_anonymization_frame
+from src.ui.streamlit.pages_modules.bias_testing import bias_testing_page, run_bias_test
+from src.ui.streamlit.pages_modules.dataset_management import dataset_management_page
 
 # Get configuration and setup logging
 config = get_config()
@@ -164,7 +164,18 @@ def apply_custom_css():
     </style>
     """, unsafe_allow_html=True)
 
-# Apply the custom CSS
+# Import the CSS
+def local_css(file_name):
+    """Load local CSS."""
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# Load the custom CSS
+style_path = os.path.join(os.path.dirname(__file__), "style.css")
+if os.path.exists(style_path):
+    local_css(style_path)
+
+# Apply additional custom CSS
 apply_custom_css()
 
 # Navigation functions
@@ -184,23 +195,41 @@ def render_sidebar():
     st.sidebar.subheader("Features")
     
     # Use buttons for navigation instead of radio
-    if st.sidebar.button("📷 Face Detection", type="primary" if st.session_state.page == "Face Detection" else "secondary"):
+    if st.sidebar.button("🏠 Main", 
+                type="primary" if st.session_state.page == "Home" else "secondary",
+                key="nav_home",
+                use_container_width=True):
+        set_page("Home")
+    
+    if st.sidebar.button("📷 Face Detection", 
+                type="primary" if st.session_state.page == "Face Detection" else "secondary",
+                key="nav_face_detection",
+                use_container_width=True):
         set_page("Face Detection")
     
-    if st.sidebar.button("🔍 Face Matching", type="primary" if st.session_state.page == "Face Matching" else "secondary"):
+    if st.sidebar.button("🔍 Face Matching", 
+                type="primary" if st.session_state.page == "Face Matching" else "secondary",
+                key="nav_face_matching",
+                use_container_width=True):
         set_page("Face Matching")
     
-    if st.sidebar.button("🥸 Face Anonymization", type="primary" if st.session_state.page == "Face Anonymization" else "secondary"):
+    if st.sidebar.button("🥸 Face Anonymization", 
+                type="primary" if st.session_state.page == "Face Anonymization" else "secondary",
+                key="nav_face_anonymization",
+                use_container_width=True):
         set_page("Face Anonymization")
     
-    if st.sidebar.button("📊 Bias Testing", type="primary" if st.session_state.page == "Bias Testing" else "secondary"):
+    if st.sidebar.button("📊 Bias Testing", 
+                type="primary" if st.session_state.page == "Bias Testing" else "secondary",
+                key="nav_bias_testing",
+                use_container_width=True):
         set_page("Bias Testing")
     
-    if st.sidebar.button("💾 Dataset Management", type="primary" if st.session_state.page == "Dataset Management" else "secondary"):
+    if st.sidebar.button("💾 Dataset Management", 
+                type="primary" if st.session_state.page == "Dataset Management" else "secondary",
+                key="nav_dataset_management",
+                use_container_width=True):
         set_page("Dataset Management")
-    
-    if st.sidebar.button("ℹ️ About", type="primary" if st.session_state.page == "About" else "secondary"):
-        set_page("About")
     
     # Add a separator
     st.sidebar.markdown("---")
@@ -314,91 +343,6 @@ def render_home():
     
     if missing_dirs:
         st.warning(f"Some data directories don't exist: {', '.join(missing_dirs)}. Use the Dataset Management feature to set them up.")
-
-# About page
-def render_about():
-    """Render the about page with project details."""
-    st.markdown('<h1 class="main-header">About This Project</h1>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    ## Facial Recognition Software Project
-    
-    This project demonstrates facial recognition technology while exploring ethical 
-    considerations. It provides tools for face detection, matching, anonymization,
-    and bias testing.
-    
-    ### Features
-    
-    - **Face Detection**: Detect faces in images and video streams
-    - **Face Matching**: Match faces against known references
-    - **Face Anonymization**: Apply privacy filters to faces
-    - **Bias Testing**: Analyze accuracy across demographic groups
-    - **Dataset Management**: Prepare datasets for testing
-    
-    ### Project Structure
-    """)
-    
-    with st.expander("Code Organization"):
-        st.code("""
-    Facial-Recognition-Software-Project/
-    ├── config/                 # Configuration files
-    ├── data/                   # Data directory
-    │   ├── datasets/           # Raw datasets
-    │   │   └── utkface/        # UTKFace dataset
-    │   ├── test_datasets/      # Processed test data
-    │   │   └── demographic_split_set/ # Ethnicity-organized images
-    ├── docs/                   # Documentation
-    │   ├── quick_guides/       # Feature-specific guides
-    │   └── ethical_discussion.md
-    ├── logs/                   # System logs
-    │   ├── debug.log
-    │   ├── info.log
-    │   └── error.log
-    ├── src/                    # Source code
-    │   ├── backend/            # Backend functionality
-    │   ├── utils/              # Utility modules
-    │   └── ui/                 # Streamlit user interface
-    ├── PROJECT_STRUCTURE.md    # Detailed structure documentation
-    ├── run_demo.py             # Demo launcher
-    └── requirements.txt        # Dependencies
-        """)
-    
-    st.markdown("""
-    ### Ethical Focus
-    
-    This project emphasizes ethical considerations in facial recognition, including:
-    
-    - **Privacy**: How to protect individual privacy with anonymization techniques
-    - **Bias**: How to detect and measure algorithmic bias across demographics
-    - **Consent**: Respecting individual agency in facial recognition
-    - **Transparency**: Understanding how these systems work
-    """)
-    
-    with st.expander("Technologies Used"):
-        st.markdown("""
-        - **OpenCV**: Computer vision and image processing
-        - **face_recognition**: Python library for face recognition
-        - **Streamlit**: User interface framework
-        - **NumPy/Pandas**: Data processing and analysis
-        - **Matplotlib**: Data visualization
-        - **scikit-learn**: Machine learning utilities
-        """)
-    
-    st.markdown("""
-    ### Software Architecture
-    
-    The project uses a layered architecture with:
-    
-    1. **Backend Layer**: Core face recognition functionality
-    2. **Utilities Layer**: Shared functions and configurations
-    3. **UI Layer**: Streamlit interface with modular components
-    
-    All features are designed to be modular and independently testable.
-    """)
-    
-    # Add timestamp
-    st.markdown(f"Last updated: {time.strftime('%B %d, %Y')}")
-
 # Main application
 def main():
     """Main function to run the Streamlit application."""
@@ -419,8 +363,6 @@ def main():
         bias_testing_page()
     elif st.session_state.page == "Dataset Management":
         dataset_management_page()
-    elif st.session_state.page == "About":
-        render_about()
     else:
         # Default to home
         render_home()

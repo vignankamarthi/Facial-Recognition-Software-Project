@@ -251,7 +251,7 @@ def bias_testing_page():
             "Select Dataset",
             options=dataset_options,
             index=0,
-            key="bt_dataset_select"
+            key="bt_data_dataset_select"
         )
         
         # Construct dataset path

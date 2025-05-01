@@ -43,28 +43,30 @@ def detection_config_panel(config: Dict[str, Any], key_prefix: str = "") -> Dict
     )
     updated_config["confidence"] = confidence
     
-    with st.expander("Advanced Settings"):
-        # Additional parameters could be added here
-        use_hog = st.checkbox(
-            "Use HOG detector (faster but less accurate)",
-            value=config.get("use_hog", False),
-            help="HOG is faster but less accurate. CNN is slower but more accurate.",
-            key=f"{key_prefix}use_hog_checkbox"
+    # Advanced Settings section
+    st.markdown("### Advanced Settings")
+    
+    # Additional parameters could be added here
+    use_hog = st.checkbox(
+        "Use HOG detector (faster but less accurate)",
+        value=config.get("use_hog", False),
+        help="HOG is faster but less accurate. CNN is slower but more accurate.",
+        key=f"{key_prefix}use_hog_checkbox"
+    )
+    updated_config["use_hog"] = use_hog
+    
+    if not use_hog:
+        # Only show CNN batch size if CNN detector is selected
+        batch_size = st.slider(
+            "CNN Batch Size",
+            min_value=1,
+            max_value=16,
+            value=config.get("batch_size", 4),
+            step=1,
+            help="Larger batch sizes can be faster but use more memory.",
+            key=f"{key_prefix}batch_size_slider"
         )
-        updated_config["use_hog"] = use_hog
-        
-        if not use_hog:
-            # Only show CNN batch size if CNN detector is selected
-            batch_size = st.slider(
-                "CNN Batch Size",
-                min_value=1,
-                max_value=16,
-                value=config.get("batch_size", 4),
-                step=1,
-                help="Larger batch sizes can be faster but use more memory.",
-                key=f"{key_prefix}batch_size_slider"
-            )
-            updated_config["batch_size"] = batch_size
+        updated_config["batch_size"] = batch_size
     
     return updated_config
 
@@ -103,25 +105,27 @@ def matching_config_panel(config: Dict[str, Any], key_prefix: str = "") -> Dict[
     )
     updated_config["threshold"] = threshold
     
-    with st.expander("Advanced Settings"):
-        # Comparison mode
-        comparison_mode = st.radio(
-            "Comparison Mode",
-            options=["distance", "similarity"],
-            index=0 if config.get("comparison_mode", "distance") == "distance" else 1,
-            help="Distance measures difference between faces (lower is better match). Similarity measures likeness (higher is better match).",
-            key=f"{key_prefix}comparison_mode_radio"
-        )
-        updated_config["comparison_mode"] = comparison_mode
-        
-        # Use all known faces vs best match only
-        use_best_match_only = st.checkbox(
-            "Use Best Match Only",
-            value=config.get("use_best_match_only", True),
-            help="If checked, only the best matching face is returned. Otherwise, all matches above threshold are returned.",
-            key=f"{key_prefix}best_match_checkbox"
-        )
-        updated_config["use_best_match_only"] = use_best_match_only
+    # Advanced Settings section
+    st.markdown("### Advanced Settings")
+    
+    # Comparison mode
+    comparison_mode = st.radio(
+        "Comparison Mode",
+        options=["distance", "similarity"],
+        index=0 if config.get("comparison_mode", "distance") == "distance" else 1,
+        help="Distance measures difference between faces (lower is better match). Similarity measures likeness (higher is better match).",
+        key=f"{key_prefix}comparison_mode_radio"
+    )
+    updated_config["comparison_mode"] = comparison_mode
+    
+    # Use all known faces vs best match only
+    use_best_match_only = st.checkbox(
+        "Use Best Match Only",
+        value=config.get("use_best_match_only", True),
+        help="If checked, only the best matching face is returned. Otherwise, all matches above threshold are returned.",
+        key=f"{key_prefix}best_match_checkbox"
+    )
+    updated_config["use_best_match_only"] = use_best_match_only
     
     return updated_config
 
@@ -184,24 +188,26 @@ def anonymization_config_panel(config: Dict[str, Any], key_prefix: str = "") -> 
     )
     updated_config["preview"] = preview
     
-    with st.expander("Additional Options"):
-        # Show boxes around anonymized faces
-        show_boxes = st.checkbox(
-            "Show Boxes Around Anonymized Faces",
-            value=config.get("show_boxes", True),
-            help="Display colored outline around anonymized face regions.",
-            key=f"{key_prefix}show_boxes_checkbox"
-        )
-        updated_config["show_boxes"] = show_boxes
-        
-        # Show anonymization method on image
-        show_labels = st.checkbox(
-            "Show Anonymization Labels",
-            value=config.get("show_labels", True),
-            help="Display text labels indicating anonymization method used.",
-            key=f"{key_prefix}show_labels_checkbox"
-        )
-        updated_config["show_labels"] = show_labels
+    # Additional Options section
+    st.markdown("### Additional Options")
+    
+    # Show boxes around anonymized faces
+    show_boxes = st.checkbox(
+        "Show Boxes Around Anonymized Faces",
+        value=config.get("show_boxes", True),
+        help="Display colored outline around anonymized face regions.",
+        key=f"{key_prefix}show_boxes_checkbox"
+    )
+    updated_config["show_boxes"] = show_boxes
+    
+    # Show anonymization method on image
+    show_labels = st.checkbox(
+        "Show Anonymization Labels",
+        value=config.get("show_labels", True),
+        help="Display text labels indicating anonymization method used.",
+        key=f"{key_prefix}show_labels_checkbox"
+    )
+    updated_config["show_labels"] = show_labels
     
     return updated_config
 
@@ -268,32 +274,34 @@ def bias_testing_config_panel(config: Dict[str, Any], key_prefix: str = "") -> D
     updated_config["detailed_analysis"] = detailed_analysis
     
     # Visualization options
-    with st.expander("Visualization Options"):
-        chart_type = st.selectbox(
-            "Chart Type",
-            options=["bar", "line", "scatter"],
-            index=0 if config.get("chart_type", "bar") == "bar" else (1 if config.get("chart_type", "bar") == "line" else 2),
-            help="Type of chart to visualize bias results.",
-            key=f"{key_prefix}chart_type_select"
-        )
-        updated_config["chart_type"] = chart_type
-        
-        show_overall_avg = st.checkbox(
-            "Show Overall Average Line",
-            value=config.get("show_overall_avg", True),
-            help="Display a line showing the overall average across all groups.",
-            key=f"{key_prefix}show_avg_checkbox"
-        )
-        updated_config["show_overall_avg"] = show_overall_avg
-        
-        color_scheme = st.selectbox(
-            "Color Scheme",
-            options=["default", "colorblind_friendly", "custom"],
-            index=0 if config.get("color_scheme", "default") == "default" else (1 if config.get("color_scheme", "default") == "colorblind_friendly" else 2),
-            help="Select color scheme for visualizations.",
-            key=f"{key_prefix}color_scheme_select"
-        )
-        updated_config["color_scheme"] = color_scheme
+    # Visualization Options section
+    st.markdown("### Visualization Options")
+    
+    chart_type = st.selectbox(
+        "Chart Type",
+        options=["bar", "line", "scatter"],
+        index=0 if config.get("chart_type", "bar") == "bar" else (1 if config.get("chart_type", "bar") == "line" else 2),
+        help="Type of chart to visualize bias results.",
+        key=f"{key_prefix}chart_type_select"
+    )
+    updated_config["chart_type"] = chart_type
+    
+    show_overall_avg = st.checkbox(
+        "Show Overall Average Line",
+        value=config.get("show_overall_avg", True),
+        help="Display a line showing the overall average across all groups.",
+        key=f"{key_prefix}show_avg_checkbox"
+    )
+    updated_config["show_overall_avg"] = show_overall_avg
+    
+    color_scheme = st.selectbox(
+        "Color Scheme",
+        options=["default", "colorblind_friendly", "custom"],
+        index=0 if config.get("color_scheme", "default") == "default" else (1 if config.get("color_scheme", "default") == "colorblind_friendly" else 2),
+        help="Select color scheme for visualizations.",
+        key=f"{key_prefix}color_scheme_select"
+    )
+    updated_config["color_scheme"] = color_scheme
     
     return updated_config
 

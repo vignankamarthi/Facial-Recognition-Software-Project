@@ -493,7 +493,6 @@ def dataset_management_page():
                     "success": False,
                     "error": None
                 }
-                st.experimental_rerun()
     
     # Create tabs for browsing different datasets
     st.markdown("## Dataset Browser")

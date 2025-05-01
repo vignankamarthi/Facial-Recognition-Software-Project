@@ -4,3 +4,9 @@ showNetworkOptions = false
 
 [global]
 developmentMode = false
+
+[browser]
+gatherUsageStats = false
+
+[ui]
+hideSidebarNav = true
