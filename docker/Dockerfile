@@ -80,7 +80,8 @@ RUN mkdir -p /app/config \
     /app/src/backend \
     /app/src/ui/streamlit/pages \
     /app/src/utils \
-    /app/.github/workflows
+    /app/.github/workflows \
+    /app/.streamlit
 
 # Create volume mount points for data persistence
 VOLUME ["/app/data", "/app/logs"]
@@ -96,6 +97,7 @@ COPY pytest.ini /app/
 COPY requirements.txt /app/
 COPY README.md /app/
 COPY PROJECT_STRUCTURE.md /app/
+COPY .streamlit /app/.streamlit
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -123,4 +125,4 @@ EXPOSE 8501
 
 # Entry point
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python", "run_demo.py"]
+CMD ["python", "run_demo.py", "--server.headless=true"]

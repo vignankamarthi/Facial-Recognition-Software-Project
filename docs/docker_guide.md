@@ -5,11 +5,14 @@ This guide explains how to use Docker with the Facial Recognition Software Proje
 ## Quick Reference
 
 ```bash
+# Navigate to docker directory
+cd docker
+
 # Start in interactive mode (default)
-./run_docker_demo.sh
+docker-compose up
 
 # Start in detached mode (background)
-./run_docker_demo.sh --detached
+docker-compose up -d
 
 # View logs when running in production mode
 docker-compose logs -f
@@ -20,6 +23,18 @@ docker-compose down
 # Rebuild after Dockerfile changes
 docker-compose build --no-cache
 ```
+
+## Project Organization
+
+All Docker-related files are organized in the `docker/` directory:
+
+- `docker/Dockerfile`: Container definition
+- `docker/docker-compose.yml`: Service configuration
+- `docker/entrypoint.sh`: Container startup script
+- `docker/init_demo_data.py`: Demo data initialization 
+- `docker/.env`: Environment variable defaults
+
+To use Docker, simply navigate to this directory and use standard Docker Compose commands.
 
 ## Docker Setup Benefits
 
@@ -62,14 +77,14 @@ You can set environment variables in several ways:
    UI_PORT=8502 docker-compose up
    ```
 
-2. **In docker-compose.yml**:
+2. **In docker/docker-compose.yml**:
    ```yaml
    environment:
      - DEMO_MODE=true
      - UI_PORT=8502
    ```
 
-3. **.env File**: Create a file named `.env` in the project root:
+3. **docker/.env File**: Edit the file in the docker directory:
    ```
    DEMO_MODE=true
    UI_PORT=8502
@@ -119,6 +134,10 @@ Common Docker-related issues:
 4. **Missing Dataset Directory**:
    - Error: Messages about missing datasets
    - Solution: Create the directory structure or follow README instructions to download datasets
+
+5. **Docker Commands Not Working**:
+   - Error: `Could not find a docker-compose.yml file in the current directory`
+   - Solution: Make sure you're in the docker directory before running commands
 
 ## Performance Considerations
 

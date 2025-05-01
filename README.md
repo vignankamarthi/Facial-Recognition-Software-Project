@@ -31,14 +31,17 @@ Alternatively, you can run the project in a Docker container, which requires no 
 git clone https://github.com/vignankamarthi/Facial-Recognition-Software-Project.git
 cd Facial-Recognition-Software-Project
 
-# Make the run script executable
-chmod +x run_docker_demo.sh
+# Navigate to docker directory
+cd docker
 
 # Start in interactive mode (default)
-./run_docker_demo.sh
+docker-compose up
 
 # OR Start in detached mode (background)
-./run_docker_demo.sh --detached
+docker-compose up -d
+
+# To stop the container
+docker-compose down
 ```
 
 The Docker version will:  
@@ -92,6 +95,11 @@ Facial-Recognition-Software-Project/
 │   │   └── utkface/        # UTKFace dataset
 │   ├── test_datasets/      # Processed test data
 │   │   └── demographic_split_set/ # Ethnicity-organized images
+├── docker/                 # Docker configuration files
+│   ├── Dockerfile          # Container definition
+│   ├── docker-compose.yml  # Service configuration
+│   ├── entrypoint.sh       # Container startup script
+│   └── init_demo_data.py   # Demo data initialization
 ├── docs/                   # Documentation
 │   ├── quick_guides/       # Feature-specific guides
 │   └── ethical_discussion.md
@@ -103,6 +111,7 @@ Facial-Recognition-Software-Project/
 │   ├── backend/            # Backend functionality
 │   ├── utils/              # Utility modules
 │   └── ui/                 # Streamlit user interface
+├── .streamlit/             # Streamlit configuration
 ├── PROJECT_STRUCTURE.md    # Detailed structure documentation
 ├── run_demo.py             # Demo launcher
 └── requirements.txt        # Dependencies
@@ -114,7 +123,7 @@ For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discus
 
 ## Docker Support
 
-The project now includes complete Docker support with several benefits:
+The project includes complete Docker support with several benefits:
 
 ### 1. Simplified Setup
 - No need to install Python or dependencies locally
@@ -136,17 +145,21 @@ The project now includes complete Docker support with several benefits:
 - Non-root user for improved security
 - Environment variable configuration
 
+For detailed Docker information, see [docs/docker_guide.md](docs/docker_guide.md).
+
 ## Recent Improvements
 
 ### 1. Project Restructuring
 - Separated backend functionality from user interface
 - Implemented Streamlit web interface for better user experience
 - Created clear directory structure for improved maintainability
+- Centralized Docker configuration in dedicated directory
 
 ### 2. Enhanced Configuration System
 - Added centralized configuration management
 - Support for environment-specific configuration
 - Configuration via JSON files and environment variables
+- Improved Streamlit user experience by hiding network/external URLs
 
 ### 3. Robust Logging System
 - Comprehensive logging with different severity levels

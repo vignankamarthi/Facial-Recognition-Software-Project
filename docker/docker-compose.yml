@@ -1,22 +1,22 @@
-
-
 services:
   facerec:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: facerec-app
     ports:
       - "${UI_PORT:-8501}:8501"  # Map Streamlit UI port
     volumes:
       # Mount code directories for development
-      - ./src:/app/src
-      - ./config:/app/config
-      - ./docs:/app/docs
+      - ../src:/app/src
+      - ../config:/app/config
+      - ../docs:/app/docs
       # Mount data directory for persistence
-      - ./data:/app/data
+      - ../data:/app/data
       # Mount logs for debugging
-      - ./logs:/app/logs
+      - ../logs:/app/logs
+      # Mount Streamlit config
+      - ../.streamlit:/app/.streamlit
     environment:
       # Application configuration
       - DEMO_MODE=true  # Initialize demo data on startup

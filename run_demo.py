@@ -28,11 +28,13 @@ def main():
     parser = argparse.ArgumentParser(description="Facial Recognition Demo Launcher")
     parser.add_argument("--port", type=int, default=8501, help="Port to run Streamlit on")
     parser.add_argument("--server-address", type=str, default="localhost", help="Server address to listen on")
+    parser.add_argument("--headless", action="store_true", help="Run in headless mode (hide network/external URLs)")
     
     args, app_args = parser.parse_known_args()
     
     # Set up Streamlit-specific arguments
-    streamlit_args = []
+    streamlit_args = ["--server.headless=true"]  # Always run in headless mode to hide external URLs
+    
     if args.port != 8501:
         streamlit_args.extend(["--server.port", str(args.port)])
     if args.server_address != "localhost":
