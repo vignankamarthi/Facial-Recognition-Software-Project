@@ -1,0 +1,6 @@
+[server]
+headless = true
+showNetworkOptions = false
+
+[global]
+developmentMode = false
