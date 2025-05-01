@@ -15,17 +15,29 @@ check_writable() {
 # Create and check essential directories
 echo "Checking essential directories..."
 
+# Create and setup Streamlit home directory
+mkdir -p /app/.streamlit
+chmod -R 777 /app/.streamlit
+
+# Create and setup directories with proper permissions
+mkdir -p /app/logs /app/data /app/data/known_faces /app/data/results /app/data/test_datasets
+chmod -R 777 /app/logs /app/data
+
 # Initialize log files if they don't exist
-mkdir -p /app/logs
-touch /app/logs/debug.log || echo "WARNING: Cannot create debug.log file"
-touch /app/logs/info.log || echo "WARNING: Cannot create info.log file"
-touch /app/logs/error.log || echo "WARNING: Cannot create error.log file"
-chmod 666 /app/logs/*.log || echo "WARNING: Cannot set permissions on log files"
+touch /app/logs/debug.log /app/logs/info.log /app/logs/error.log
+chmod 666 /app/logs/*.log
+
+# Fix potential permissions in data subdirectories
+find /app/data -type d -exec chmod 777 {} \;
+find /app/data -type f -exec chmod 666 {} \;
 
 # Check data directory is writable
 if [ -d "/app/data" ]; then
     check_writable "/app/data" || true
 fi
+
+# Set environment variable to avoid Streamlit trying to create files in /home/facerec
+export HOME=/app
 
 # Check if we're in demo mode
 if [ "$DEMO_MODE" = "true" ]; then

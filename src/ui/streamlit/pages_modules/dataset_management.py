@@ -40,16 +40,20 @@ logger = get_logger(__name__)
 # Get configuration
 config = get_config()
 
-# Background task state
-if "background_task" not in st.session_state:
-    st.session_state.background_task = {
-        "running": False,
-        "progress": 0,
-        "message": "",
-        "complete": False,
-        "success": False,
-        "error": None
-    }
+# Initialize session state variables if they don't exist
+def init_session_state():
+    if "background_task" not in st.session_state:
+        st.session_state["background_task"] = {
+            "running": False,
+            "progress": 0,
+            "message": "",
+            "complete": False,
+            "success": False,
+            "error": None
+        }
+
+# Always call this at the beginning of the script
+init_session_state()
 
 def run_background_task(task_func, *args, **kwargs):
     """
@@ -62,8 +66,11 @@ def run_background_task(task_func, *args, **kwargs):
     *args, **kwargs
         Arguments to pass to the task function
     """
+    # Make sure session state is initialized
+    init_session_state()
+    
     # Reset task state
-    st.session_state.background_task = {
+    st.session_state["background_task"] = {
         "running": True,
         "progress": 0,
         "message": "Starting task...",
@@ -75,23 +82,30 @@ def run_background_task(task_func, *args, **kwargs):
     # Define wrapper function for the thread
     def task_wrapper():
         try:
+            # Make sure we can access session state
+            if "background_task" not in st.session_state:
+                # If we can't access session state, rebuild it
+                init_session_state()
+            
             # Run the task
             result = task_func(*args, **kwargs)
             
             # Update state on completion
-            st.session_state.background_task["complete"] = True
-            st.session_state.background_task["running"] = False
-            st.session_state.background_task["success"] = result
-            st.session_state.background_task["progress"] = 100
-            st.session_state.background_task["message"] = "Task completed successfully."
+            if "background_task" in st.session_state:
+                st.session_state["background_task"]["complete"] = True
+                st.session_state["background_task"]["running"] = False
+                st.session_state["background_task"]["success"] = result
+                st.session_state["background_task"]["progress"] = 100
+                st.session_state["background_task"]["message"] = "Task completed successfully."
         
         except Exception as e:
             # Update state on error
-            st.session_state.background_task["complete"] = True
-            st.session_state.background_task["running"] = False
-            st.session_state.background_task["success"] = False
-            st.session_state.background_task["error"] = str(e)
-            st.session_state.background_task["message"] = f"Error: {str(e)}"
+            if "background_task" in st.session_state:
+                st.session_state["background_task"]["complete"] = True
+                st.session_state["background_task"]["running"] = False
+                st.session_state["background_task"]["success"] = False
+                st.session_state["background_task"]["error"] = str(e)
+                st.session_state["background_task"]["message"] = f"Error: {str(e)}"
             logger.error(f"Background task error: {e}")
     
     # Start thread
@@ -141,9 +155,13 @@ def download_utkface_dataset(sample_size, ethnicity_selection, selected_ethnicit
         else:
             specific_ethnicities = None
         
-        # Update progress
-        st.session_state.background_task["progress"] = 10
-        st.session_state.background_task["message"] = "Starting UTKFace dataset download..."
+        # Initialize session state if needed
+        init_session_state()
+        
+        # Update progress safely with dict-style access
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 10
+            st.session_state["background_task"]["message"] = "Starting UTKFace dataset download..."
         
         # Download and extract the dataset
         result = processor.download_and_extract_utkface_dataset(
@@ -153,8 +171,9 @@ def download_utkface_dataset(sample_size, ethnicity_selection, selected_ethnicit
         )
         
         # Update progress
-        st.session_state.background_task["progress"] = 100
-        st.session_state.background_task["message"] = "UTKFace dataset downloaded and extracted successfully."
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 100
+            st.session_state["background_task"]["message"] = "UTKFace dataset downloaded and extracted successfully."
         
         return result
     
@@ -186,9 +205,13 @@ def setup_bias_testing(images_per_ethnicity):
         if not os.path.exists(utkface_dir):
             raise ValueError("UTKFace dataset not found. Please download it first.")
         
-        # Update progress
-        st.session_state.background_task["progress"] = 10
-        st.session_state.background_task["message"] = "Setting up bias testing dataset..."
+        # Initialize session state if needed
+        init_session_state()
+        
+        # Update progress safely
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 10
+            st.session_state["background_task"]["message"] = "Setting up bias testing dataset..."
         
         # Prepare the dataset for bias testing
         result = processor.prepare_utkface_for_bias_testing(
@@ -198,8 +221,9 @@ def setup_bias_testing(images_per_ethnicity):
         )
         
         # Update progress
-        st.session_state.background_task["progress"] = 100
-        st.session_state.background_task["message"] = "Bias testing dataset prepared successfully."
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 100
+            st.session_state["background_task"]["message"] = "Bias testing dataset prepared successfully."
         
         return result
     
@@ -233,9 +257,13 @@ def prepare_known_faces(num_people, ethnicity_balanced):
         if not os.path.exists(utkface_dir):
             raise ValueError("UTKFace aligned dataset not found. Please download it first.")
         
-        # Update progress
-        st.session_state.background_task["progress"] = 10
-        st.session_state.background_task["message"] = "Preparing known faces..."
+        # Initialize session state if needed
+        init_session_state()
+        
+        # Update progress safely
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 10
+            st.session_state["background_task"]["message"] = "Preparing known faces..."
         
         # Prepare known faces
         result = processor.prepare_known_faces_from_utkface(
@@ -246,8 +274,9 @@ def prepare_known_faces(num_people, ethnicity_balanced):
         )
         
         # Update progress
-        st.session_state.background_task["progress"] = 100
-        st.session_state.background_task["message"] = "Known faces prepared successfully."
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 100
+            st.session_state["background_task"]["message"] = "Known faces prepared successfully."
         
         return result
     
@@ -281,9 +310,13 @@ def prepare_test_dataset(num_known, num_unknown):
         if not os.path.exists(utkface_dir):
             raise ValueError("UTKFace aligned dataset not found. Please download it first.")
         
-        # Update progress
-        st.session_state.background_task["progress"] = 10
-        st.session_state.background_task["message"] = "Preparing test dataset..."
+        # Initialize session state if needed
+        init_session_state()
+        
+        # Update progress safely
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 10
+            st.session_state["background_task"]["message"] = "Preparing test dataset..."
         
         # Prepare test dataset
         result = processor.prepare_test_dataset_from_utkface(
@@ -295,8 +328,9 @@ def prepare_test_dataset(num_known, num_unknown):
         )
         
         # Update progress
-        st.session_state.background_task["progress"] = 100
-        st.session_state.background_task["message"] = "Test dataset prepared successfully."
+        if "background_task" in st.session_state:
+            st.session_state["background_task"]["progress"] = 100
+            st.session_state["background_task"]["message"] = "Test dataset prepared successfully."
         
         return result
     

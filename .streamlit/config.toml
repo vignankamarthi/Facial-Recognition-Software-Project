@@ -1,15 +1,28 @@
 [server]
 headless = true
 showNetworkOptions = false
+enableStaticServing = true
+runOnSave = true
 
 [global]
 developmentMode = false
 
 [browser]
 gatherUsageStats = false
+serverAddress = "localhost"
 
 [ui]
 hideSidebarNav = true
+
+[logger]
+level = "info"
+
+[runner]
+magicEnabled = true
+
+[client]
+toolbarMode = "minimal"
+caching = true
 
 [theme]
 primaryColor = "#4A90E2"

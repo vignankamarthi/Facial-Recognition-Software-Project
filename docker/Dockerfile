@@ -107,7 +107,11 @@ ENV PYTHONUNBUFFERED=1 \
     WEBCAM_ENABLED=false \
     LOG_LEVEL=INFO \
     UI_PORT=8501 \
-    FORCE_HEADLESS=true
+    FORCE_HEADLESS=true \
+    STREAMLIT_HOME_DIR=/app/.streamlit \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    STREAMLIT_SERVER_RUN_ON_SAVE=true \
+    STREAMLIT_RUNTIME_METRICS_ENABLED=false
 
 # Set permissions
 RUN chown -R facerec:facerec /app

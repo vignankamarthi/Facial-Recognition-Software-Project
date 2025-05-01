@@ -49,11 +49,11 @@ st.set_page_config(
 def init_session_state():
     """Initialize Streamlit session state variables."""
     if "page" not in st.session_state:
-        st.session_state.page = "Home"
+        st.session_state["page"] = "Home"
     
     if "config" not in st.session_state:
         # Initialize configuration for each feature
-        st.session_state.config = {
+        st.session_state["config"] = {
             "detection": {
                 "confidence": config.detection.confidence,
                 "use_hog": False,
@@ -95,7 +95,7 @@ def init_session_state():
     
     # Data directories from configuration
     if "paths" not in st.session_state:
-        st.session_state.paths = {
+        st.session_state["paths"] = {
             "known_faces_dir": config.paths.known_faces_dir,
             "datasets_dir": config.paths.datasets_dir,
             "results_dir": config.paths.results_dir,
@@ -105,7 +105,18 @@ def init_session_state():
     
     # Feature instance cache
     if "instances" not in st.session_state:
-        st.session_state.instances = {}
+        st.session_state["instances"] = {}
+        
+    # Initialize background task state if not already present
+    if "background_task" not in st.session_state:
+        st.session_state["background_task"] = {
+            "running": False,
+            "progress": 0,
+            "message": "",
+            "complete": False,
+            "success": False,
+            "error": None
+        }
 
 # Initialize session state
 init_session_state()
@@ -113,18 +124,21 @@ init_session_state()
 # Function to get class instances with caching
 def get_instance(class_name, *args, **kwargs):
     """Get or create an instance of a class with caching."""
-    if class_name not in st.session_state.instances:
+    if "instances" not in st.session_state:
+        st.session_state["instances"] = {}
+        
+    if class_name not in st.session_state["instances"]:
         if class_name == "FaceDetector":
-            st.session_state.instances[class_name] = FaceDetector(*args, **kwargs)
+            st.session_state["instances"][class_name] = FaceDetector(*args, **kwargs)
         elif class_name == "FaceMatcher":
-            st.session_state.instances[class_name] = FaceMatcher(*args, **kwargs)
+            st.session_state["instances"][class_name] = FaceMatcher(*args, **kwargs)
         elif class_name == "FaceAnonymizer":
-            st.session_state.instances[class_name] = FaceAnonymizer(*args, **kwargs)
+            st.session_state["instances"][class_name] = FaceAnonymizer(*args, **kwargs)
         elif class_name == "BiasAnalyzer":
-            st.session_state.instances[class_name] = BiasAnalyzer(*args, **kwargs)
+            st.session_state["instances"][class_name] = BiasAnalyzer(*args, **kwargs)
         elif class_name == "ImageProcessor":
-            st.session_state.instances[class_name] = ImageProcessor(*args, **kwargs)
-    return st.session_state.instances[class_name]
+            st.session_state["instances"][class_name] = ImageProcessor(*args, **kwargs)
+    return st.session_state["instances"][class_name]
 
 # CSS customization
 def apply_custom_css():
@@ -181,7 +195,7 @@ apply_custom_css()
 # Navigation functions
 def set_page(page_name):
     """Set the current page in session state."""
-    st.session_state.page = page_name
+    st.session_state["page"] = page_name
     # Reset temporary UI state for the page
     if f"{page_name}_state" in st.session_state:
         del st.session_state[f"{page_name}_state"]
@@ -191,42 +205,46 @@ def render_sidebar():
     """Render the sidebar navigation menu."""
     st.sidebar.markdown('<div class="sidebar-title">Facial Recognition Demo</div>', unsafe_allow_html=True)
     
+    # Ensure session state is initialized
+    if "page" not in st.session_state:
+        st.session_state["page"] = "Home"
+    
     # Feature selection
     st.sidebar.subheader("Features")
     
     # Use buttons for navigation instead of radio
     if st.sidebar.button("🏠 Main", 
-                type="primary" if st.session_state.page == "Home" else "secondary",
+                type="primary" if st.session_state["page"] == "Home" else "secondary",
                 key="nav_home",
                 use_container_width=True):
         set_page("Home")
     
     if st.sidebar.button("📷 Face Detection", 
-                type="primary" if st.session_state.page == "Face Detection" else "secondary",
+                type="primary" if st.session_state["page"] == "Face Detection" else "secondary",
                 key="nav_face_detection",
                 use_container_width=True):
         set_page("Face Detection")
     
     if st.sidebar.button("🔍 Face Matching", 
-                type="primary" if st.session_state.page == "Face Matching" else "secondary",
+                type="primary" if st.session_state["page"] == "Face Matching" else "secondary",
                 key="nav_face_matching",
                 use_container_width=True):
         set_page("Face Matching")
     
     if st.sidebar.button("🥸 Face Anonymization", 
-                type="primary" if st.session_state.page == "Face Anonymization" else "secondary",
+                type="primary" if st.session_state["page"] == "Face Anonymization" else "secondary",
                 key="nav_face_anonymization",
                 use_container_width=True):
         set_page("Face Anonymization")
     
     if st.sidebar.button("📊 Bias Testing", 
-                type="primary" if st.session_state.page == "Bias Testing" else "secondary",
+                type="primary" if st.session_state["page"] == "Bias Testing" else "secondary",
                 key="nav_bias_testing",
                 use_container_width=True):
         set_page("Bias Testing")
     
     if st.sidebar.button("💾 Dataset Management", 
-                type="primary" if st.session_state.page == "Dataset Management" else "secondary",
+                type="primary" if st.session_state["page"] == "Dataset Management" else "secondary",
                 key="nav_dataset_management",
                 use_container_width=True):
         set_page("Dataset Management")
@@ -244,7 +262,11 @@ def render_sidebar():
     
     # Show paths information in an expander
     with st.sidebar.expander("🔧 Data Directories"):
-        for name, path in st.session_state.paths.items():
+        # Ensure paths is initialized
+        if "paths" not in st.session_state:
+            init_session_state()
+            
+        for name, path in st.session_state["paths"].items():
             st.sidebar.code(f"{name}: {path}")
             
             # Add check if directory exists
@@ -347,21 +369,27 @@ def render_home():
 def main():
     """Main function to run the Streamlit application."""
     
+    # Initialize session state
+    init_session_state()
+    
     # Render sidebar
     render_sidebar()
     
     # Route to the appropriate page
-    if st.session_state.page == "Home":
+    if "page" not in st.session_state:
+        st.session_state["page"] = "Home"
+        
+    if st.session_state["page"] == "Home":
         render_home()
-    elif st.session_state.page == "Face Detection":
+    elif st.session_state["page"] == "Face Detection":
         face_detection_page()
-    elif st.session_state.page == "Face Matching":
+    elif st.session_state["page"] == "Face Matching":
         face_matching_page()
-    elif st.session_state.page == "Face Anonymization":
+    elif st.session_state["page"] == "Face Anonymization":
         face_anonymization_page()
-    elif st.session_state.page == "Bias Testing":
+    elif st.session_state["page"] == "Bias Testing":
         bias_testing_page()
-    elif st.session_state.page == "Dataset Management":
+    elif st.session_state["page"] == "Dataset Management":
         dataset_management_page()
     else:
         # Default to home
