@@ -16,12 +16,13 @@ fi
 
 # Display startup message
 echo "==================================================="
-echo "Facial Recognition Software Project - Docker Edition"
+echo "Facial Recognition Software Project - Local Demo Edition"
 echo "==================================================="
 echo "Environment setup complete."
 echo "Streamlit UI port: $UI_PORT"
 echo "Headless mode: $FORCE_HEADLESS"
 echo "Log level: $LOG_LEVEL"
+echo "Note: This application is configured for LOCAL USE ONLY"
 echo "==================================================="
 
 # Execute passed command
