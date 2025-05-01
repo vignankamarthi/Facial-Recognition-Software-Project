@@ -7,7 +7,7 @@ A facial recognition system demonstrating technical capabilities and ethical con
 
 ## Quick Start Guide
 
-### Installation
+### Standard Installation
 ```bash
 git clone https://github.com/vignankamarthi/Facial-Recognition-Software-Project.git
 cd Facial-Recognition-Software-Project
@@ -15,12 +15,36 @@ pip install -r requirements.txt
 pip install streamlit  # For the web interface
 ```
 
-### Running the Demo
+### Running the Demo (Standard)
 ```bash
 python run_demo.py
 ```
 
 This will launch the Streamlit web interface that provides access to all features.
+
+### Docker Installation
+
+Alternatively, you can run the project in a Docker container, which requires no Python installation:
+
+```bash
+# Clone the repository
+git clone https://github.com/vignankamarthi/Facial-Recognition-Software-Project.git
+cd Facial-Recognition-Software-Project
+
+# Make the run script executable
+chmod +x run_docker_demo.sh
+
+# Start in interactive mode (default)
+./run_docker_demo.sh
+
+# OR Start in detached mode (background)
+./run_docker_demo.sh --detached
+```
+
+The Docker version will:  
+- Create all necessary directories  
+- Set up the environment automatically  
+- Make the Streamlit UI available at http://localhost:8501
 
 ### Features Overview
 
@@ -87,6 +111,30 @@ Facial-Recognition-Software-Project/
 For detailed usage instructions, see [docs/quick_guides/](docs/quick_guides/).
 
 For ethical considerations, see [docs/ethical_discussion.md](docs/ethical_discussion_draft.md).
+
+## Docker Support
+
+The project now includes complete Docker support with several benefits:
+
+### 1. Simplified Setup
+- No need to install Python or dependencies locally
+- All requirements are bundled in the container
+- Consistent environment across different systems
+
+### 2. Development Workflow
+- Live code changes with volume mounts
+- Automatic container restart on code changes
+- Easy environment variable configuration
+
+### 3. Demonstration Options
+- Interactive mode with live feedback
+- Detached mode running in background
+- Health checks for container stability
+
+### 4. Container Architecture
+- Multi-stage build for reduced image size
+- Non-root user for improved security
+- Environment variable configuration
 
 ## Recent Improvements
 

@@ -1,0 +1,47 @@
+
+
+services:
+  facerec:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: facerec-app
+    ports:
+      - "${UI_PORT:-8501}:8501"  # Map Streamlit UI port
+    volumes:
+      # Mount code directories for development
+      - ./src:/app/src
+      - ./config:/app/config
+      - ./docs:/app/docs
+      # Mount data directory for persistence
+      - ./data:/app/data
+      # Mount logs for debugging
+      - ./logs:/app/logs
+    environment:
+      # Application configuration
+      - DEMO_MODE=true  # Initialize demo data on startup
+      - WEBCAM_ENABLED=false  # Disable webcam in container (usually not available)
+      - LOG_LEVEL=INFO  # Set logging verbosity
+      - UI_PORT=8501  # Streamlit UI port
+      - FORCE_HEADLESS=true  # Run in headless mode (no GUI windows)
+      # Optional: Add your custom environment variables here
+      # - CUSTOM_VAR=value
+    healthcheck:
+      # Check if Streamlit UI is responding
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    # Restart policy - always restart unless explicitly stopped
+    restart: unless-stopped
+
+# Configuration notes:
+# - The restart policy ensures the container automatically recovers from crashes
+# - Volume mounts enable real-time code changes without rebuilding the container
+# - Environment variables can be overridden at runtime using .env file or command line
+#
+# Development tips:
+# - For live code changes: Keep the container running and edit code in ./src
+# - To override environment variables: UI_PORT=8502 docker-compose up
+# - To rebuild the container after Dockerfile changes: docker-compose build --no-cache
