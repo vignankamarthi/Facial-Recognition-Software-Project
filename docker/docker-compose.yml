@@ -17,6 +17,8 @@ services:
       - ../logs:/app/logs
       # Mount Streamlit config
       - ../.streamlit:/app/.streamlit
+      # Mount main demo script
+      - ../run_demo.py:/app/run_demo.py
     environment:
       # Application configuration
       - DEMO_MODE=true  # Initialize demo data on startup

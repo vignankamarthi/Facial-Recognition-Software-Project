@@ -34,9 +34,15 @@ DEMOGRAPHIC_SPLIT_DIR = os.path.join(TEST_DATASETS_DIR, "demographic_split_set")
 
 def ensure_dir_exists(directory):
     """Ensure directory exists, create if it doesn't."""
-    if not os.path.exists(directory):
-        os.makedirs(directory, exist_ok=True)
-        logger.info(f"Created directory: {directory}")
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+            logger.info(f"Created directory: {directory}")
+    except PermissionError:
+        logger.error(f"Permission denied when creating directory: {directory}")
+        logger.info("Try running the container with appropriate volume permissions")
+    except Exception as e:
+        logger.error(f"Error creating directory {directory}: {e}")
 
 
 def setup_directory_structure():
@@ -68,13 +74,17 @@ def setup_directory_structure():
     )
 
 
+
+
+
+
 def main():
     """Initialize directory structure for the application."""
     logger.info("Setting up directory structure for the application...")
 
     # Create all necessary directories
     setup_directory_structure()
-
+    
     # Log instructions for downloading the actual dataset
     logger.info("Directory structure created!")
     logger.info(
