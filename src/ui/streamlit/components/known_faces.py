@@ -92,7 +92,7 @@ def known_faces_grid(known_faces_dir: str, page_size: int = 12, key_prefix: str 
     with col1:
         if st.button("←", key=f"{key_prefix}prev_page", disabled=st.session_state[f"{key_prefix}faces_page"] <= 0):
             st.session_state[f"{key_prefix}faces_page"] -= 1
-            st.experimental_rerun()
+            st.rerun()
     
     with col2:
         st.write(f"Page {st.session_state[f'{key_prefix}faces_page'] + 1} of {max(1, total_pages)}")
@@ -103,7 +103,7 @@ def known_faces_grid(known_faces_dir: str, page_size: int = 12, key_prefix: str 
     with col4:
         if st.button("→", key=f"{key_prefix}next_page", disabled=st.session_state[f"{key_prefix}faces_page"] >= total_pages - 1):
             st.session_state[f"{key_prefix}faces_page"] += 1
-            st.experimental_rerun()
+            st.rerun()
     
     # Get faces for current page
     start_idx = st.session_state[f"{key_prefix}faces_page"] * page_size
@@ -252,7 +252,7 @@ def add_known_face(known_faces_dir: str, key_prefix: str = "") -> bool:
                             st.session_state[f"{key_prefix}face_uploader"] = None
                             
                             # Force page refresh to show new face
-                            st.experimental_rerun()
+                            st.rerun()
             
             except Exception as e:
                 st.error(f"Error processing image: {str(e)}")
@@ -275,12 +275,12 @@ def add_known_face(known_faces_dir: str, key_prefix: str = "") -> bool:
             if not st.session_state[f"{key_prefix}webcam_active"]:
                 if st.button("Start Webcam", key=f"{key_prefix}start_webcam_button"):
                     st.session_state[f"{key_prefix}webcam_active"] = True
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 if st.button("Stop Webcam", key=f"{key_prefix}stop_webcam_button"):
                     st.session_state[f"{key_prefix}webcam_active"] = False
                     st.session_state[f"{key_prefix}webcam_frame"] = None
-                    st.experimental_rerun()
+                    st.rerun()
         
         with col2:
             capture_button = st.button(
@@ -360,7 +360,7 @@ def add_known_face(known_faces_dir: str, key_prefix: str = "") -> bool:
                             st.session_state[f"{key_prefix}webcam_frame"] = None
                             
                             # Force page refresh to show new face
-                            st.experimental_rerun()
+                            st.rerun()
             
             except Exception as e:
                 st.error(f"Error processing webcam image: {str(e)}")

@@ -46,48 +46,86 @@ def run_bias_test():
     dict
         Results dictionary from BiasAnalyzer
     """
-    # Get bias analyzer instance
-    analyzer = BiasAnalyzer(test_datasets_dir=st.session_state.paths["test_datasets_dir"])
-    
-    # Get bias testing parameters
-    bias_params = st.session_state.config["bias_testing"]
-    
-    # Check if test dataset directory exists
-    if bias_params["dataset"] == "demographic_split_set":
-        dataset_dir = os.path.join(st.session_state.paths["test_datasets_dir"], "demographic_split_set")
-    else:
-        dataset_dir = bias_params["custom_path"]
-    
-    if not os.path.exists(dataset_dir):
-        st.error(f"Dataset directory not found: {dataset_dir}")
-        st.info("Please set up the dataset first using the Dataset Management feature.")
-        return None
-    
-    # Check if selected groups exist
-    missing_groups = []
-    for group in bias_params["selected_groups"]:
-        group_dir = os.path.join(dataset_dir, group)
-        if not os.path.exists(group_dir):
-            missing_groups.append(group)
-    
-    if missing_groups:
-        st.error(f"Some selected demographic groups don't exist: {', '.join(missing_groups)}")
-        st.info("Please set up the dataset first using the Dataset Management feature.")
-        return None
-    
-    # Show progress message
-    with st.spinner("Running bias testing... This may take a few minutes."):
-        if bias_params["detailed_analysis"]:
-            # Run detailed analysis
-            results = analyzer.analyze_demographic_bias(
-                dataset_name=bias_params["dataset"],
-                detailed=True
-            )
+    try:
+        # Get bias analyzer instance
+        analyzer = BiasAnalyzer(test_datasets_dir=st.session_state.paths["test_datasets_dir"])
+        
+        # Get bias testing parameters
+        bias_params = st.session_state.config["bias_testing"]
+        
+        # Check if test dataset directory exists
+        if bias_params["dataset"] == "demographic_split_set":
+            dataset_dir = os.path.join(st.session_state.paths["test_datasets_dir"], "demographic_split_set")
         else:
-            # Run standard analysis
-            results = analyzer.test_recognition_accuracy(bias_params["dataset"])
-    
-    return results
+            dataset_dir = bias_params["custom_path"]
+        
+        # Create directory if it doesn't exist
+        if not os.path.exists(dataset_dir):
+            st.error(f"Dataset directory not found: {dataset_dir}")
+            st.info("Please set up the dataset first using the Dataset Management feature.")
+            # Create the directory structure to help the user
+            os.makedirs(dataset_dir, exist_ok=True)
+            for group in ["white", "black", "asian", "indian", "others"]:
+                os.makedirs(os.path.join(dataset_dir, group), exist_ok=True)
+            return None
+        
+        # Check if selected groups exist and have images
+        missing_groups = []
+        empty_groups = []
+        for group in bias_params["selected_groups"]:
+            group_dir = os.path.join(dataset_dir, group)
+            if not os.path.exists(group_dir):
+                missing_groups.append(group)
+                # Create the group directory
+                os.makedirs(group_dir, exist_ok=True)
+            else:
+                # Check if directory has images
+                image_files = [f for f in os.listdir(group_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                if not image_files:
+                    empty_groups.append(group)
+        
+        if missing_groups:
+            st.error(f"Created the following missing demographic groups: {', '.join(missing_groups)}")
+            st.info("Please add images to these groups using the Dataset Management feature.")
+            return None
+        
+        if empty_groups:
+            st.error(f"The following demographic groups don't contain any images: {', '.join(empty_groups)}")
+            st.info("Please add images to these groups using the Dataset Management feature.")
+            return None
+        
+        # Show progress message
+        with st.spinner("Running bias testing... This may take a few minutes."):
+            try:
+                if bias_params["detailed_analysis"]:
+                    # Run detailed analysis
+                    results = analyzer.analyze_demographic_bias(
+                        dataset_name=bias_params["dataset"],
+                        detailed=True
+                    )
+                else:
+                    # Run standard analysis
+                    results = analyzer.test_recognition_accuracy(bias_params["dataset"])
+                
+                if not results:
+                    st.error("Bias testing completed but returned no results. Check the console for errors.")
+                    return None
+                
+                # Verify results structure
+                if "by_demographic" not in results or not results["by_demographic"]:
+                    st.error("Bias testing results are missing demographic data.")
+                    return None
+                    
+                return results
+                
+            except Exception as e:
+                st.error(f"Error during bias testing: {str(e)}")
+                logger.error(f"Bias testing error: {e}")
+                return None
+    except Exception as e:
+        st.error(f"Failed to initialize bias testing: {str(e)}")
+        logger.error(f"Bias testing initialization error: {e}")
+        return None
 
 def bias_testing_page():
     """Render the bias testing page."""

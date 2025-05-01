@@ -54,11 +54,11 @@ def webcam_component(
                 st.session_state[f"{key_prefix}webcam_running"] = True
                 st.session_state[f"{key_prefix}frame_count"] = 0
                 st.session_state[f"{key_prefix}start_time"] = time.time()
-                st.experimental_rerun()
+                st.rerun()
         else:
             if st.button("Stop Webcam", key=f"{key_prefix}stop_webcam"):
                 st.session_state[f"{key_prefix}webcam_running"] = False
-                st.experimental_rerun()
+                st.rerun()
     
     # Create placeholders for webcam feed and info
     if use_column:

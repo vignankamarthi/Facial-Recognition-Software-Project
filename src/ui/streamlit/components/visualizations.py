@@ -519,7 +519,7 @@ def dataset_browser(
     with col1:
         if st.button("Previous Page", key=f"{key_prefix}browser_prev", disabled=st.session_state[f"{key_prefix}browser_page"] <= 0):
             st.session_state[f"{key_prefix}browser_page"] -= 1
-            st.experimental_rerun()
+            st.rerun()
     
     with col2:
         st.write(f"Page {st.session_state[f'{key_prefix}browser_page'] + 1} of {max(1, total_pages)}")
@@ -527,7 +527,7 @@ def dataset_browser(
     with col3:
         if st.button("Next Page", key=f"{key_prefix}browser_next", disabled=st.session_state[f"{key_prefix}browser_page"] >= total_pages - 1):
             st.session_state[f"{key_prefix}browser_page"] += 1
-            st.experimental_rerun()
+            st.rerun()
     
     # Get images for current page
     start_idx = st.session_state[f"{key_prefix}browser_page"] * images_per_page
@@ -566,7 +566,7 @@ def dataset_browser(
                             # Add view full size button
                             if st.button("View Full Size", key=f"{key_prefix}view_{idx}"):
                                 st.session_state[f"{key_prefix}view_image"] = img_path
-                                st.experimental_rerun()
+                                st.rerun()
                     
                     except Exception as e:
                         cols[col].error(f"Error loading {img_name}: {str(e)}")
@@ -587,7 +587,7 @@ def dataset_browser(
                 # Add close button
                 if st.button("Close Full View", key=f"{key_prefix}close_view"):
                     st.session_state[f"{key_prefix}view_image"] = None
-                    st.experimental_rerun()
+                    st.rerun()
             
             except Exception as e:
                 st.error(f"Error loading full-size image: {str(e)}")
