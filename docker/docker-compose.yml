@@ -15,8 +15,7 @@ services:
       - ../data:/app/data
       # Mount logs for debugging
       - ../logs:/app/logs
-      # Mount Streamlit config
-      - ../.streamlit:/app/.streamlit
+      # Streamlit config is already part of the src directory mount
       # Mount main demo script
       - ../run_demo.py:/app/run_demo.py
     environment:

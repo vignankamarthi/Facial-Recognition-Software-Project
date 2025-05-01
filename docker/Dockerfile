@@ -81,7 +81,7 @@ RUN mkdir -p /app/config \
     /app/src/ui/streamlit/pages \
     /app/src/utils \
     /app/.github/workflows \
-    /app/.streamlit
+    /app/src/ui/streamlit/.streamlit
 
 # Create volume mount points for data persistence
 VOLUME ["/app/data", "/app/logs"]
@@ -97,7 +97,7 @@ COPY pytest.ini /app/
 COPY requirements.txt /app/
 COPY README.md /app/
 COPY PROJECT_STRUCTURE.md /app/
-COPY .streamlit /app/.streamlit
+# Streamlit config is part of src directory that's already copied
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1 \
