@@ -1,0 +1,19 @@
+[server]
+headless = true
+showNetworkOptions = false
+
+[global]
+developmentMode = false
+
+[browser]
+gatherUsageStats = false
+
+[ui]
+hideSidebarNav = true
+
+[theme]
+primaryColor = "#4A90E2"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F5F5"
+textColor = "#262730"
+font = "sans serif"

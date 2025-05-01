@@ -1,0 +1,56 @@
+/* Hide any automatic navigation sidebar */
+[data-testid="stSidebar"] > div:first-child > div:first-child {
+    display: none;
+}
+
+/* Custom styles for our sidebar */
+.sidebar-title {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Style for main headers */
+.main-header {
+    font-size: 2.5rem !important;
+    color: #4A90E2 !important;
+    margin-bottom: 1rem !important;
+}
+
+.subheader {
+    font-size: 1.5rem !important;
+    color: #3F3F3F !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Style for info boxes */
+.info-box {
+    background-color: #E6F0FF;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.warning-box {
+    background-color: #FFF3E6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Remove padding on some elements */
+.no-padding {
+    padding: 0 !important;
+}
+
+/* Style for buttons */
+button[kind="primary"] {
+    font-weight: bold !important;
+}
+
+/* Make the sidebar navigation buttons more distinct */
+.stButton button {
+    width: 100%;
+    margin-bottom: 5px !important;
+    font-weight: 500;
+}
