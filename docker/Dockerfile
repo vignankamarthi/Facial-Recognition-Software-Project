@@ -65,6 +65,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libswscale-dev \
     libavdevice-dev \
     libavutil-dev \
+    # Additional dependencies for improved webcam support
+    udev \
+    libv4l-0 \
+    libgstreamer1.0-0 \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    x11-xserver-utils \
+    # macOS support
+    libjpeg-dev \
     # Cleanup to reduce image size
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

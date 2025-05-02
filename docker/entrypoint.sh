@@ -36,6 +36,38 @@ if [ -d "/app/data" ]; then
     check_writable "/app/data" || true
 fi
 
+# Setup for webcam access
+if [ "$WEBCAM_ENABLED" = "true" ]; then
+    echo "Setting up webcam access..."
+    
+    # Create video device nodes if they don't exist (mainly for macOS compatibility)
+    if [ ! -e "/dev/video0" ] && [ -e "/dev" ]; then
+        echo "Creating virtual video device nodes..."
+        # Try to create a symlink to the actual camera device if available
+        for cam_device in /dev/video* /dev/avfoundation* /dev/dshow*; do
+            if [ -e "$cam_device" ]; then
+                ln -sf "$cam_device" /dev/video0 2>/dev/null || true
+                echo "Linked $cam_device to /dev/video0"
+                break
+            fi
+        done
+    fi
+    
+    # Set permissions for any video devices
+    for dev in /dev/video*; do
+        if [ -e "$dev" ]; then
+            echo "Setting permissions for $dev"
+            chmod 777 "$dev" 2>/dev/null || true
+        fi
+    done
+    
+    # Create X11 socket directory for GUI windows if needed
+    mkdir -p /tmp/.X11-unix
+    chmod 1777 /tmp/.X11-unix
+    
+    echo "Webcam setup complete."
+fi
+
 # Set environment variable to avoid Streamlit trying to create files in /home/facerec
 export HOME=/app
 

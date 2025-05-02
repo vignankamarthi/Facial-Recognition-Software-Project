@@ -19,13 +19,21 @@ services:
       - ../src/ui/streamlit/.streamlit:/app/src/ui/streamlit/.streamlit:rw
       # Mount main demo script
       - ../run_demo.py:/app/run_demo.py
+      # Device access for webcam (macOS and some Linux systems)
+      - /dev:/dev:rw
     environment:
       # Application configuration
       - DEMO_MODE=true  # Initialize demo data on startup
-      - WEBCAM_ENABLED=false  # Disable webcam in container (usually not available)
+      - WEBCAM_ENABLED=true  # Enable webcam in container
       - LOG_LEVEL=INFO  # Set logging verbosity
       - UI_PORT=8501  # Streamlit UI port
       - FORCE_HEADLESS=true  # Run in headless mode (no GUI windows)
+      # OpenCV webcam settings
+      - OPENCV_VIDEOIO_DEBUG=1  # Enable detailed webcam debug output
+      - OPENCV_VIDEOIO_PRIORITY_V4L2=1000  # Prioritize Video4Linux
+      - OPENCV_VIDEOIO_PRIORITY_MSMF=0  # Lower Microsoft Media Foundation priority
+      - OPENCV_VIDEOIO_PRIORITY_AVFOUNDATION=1000  # Prioritize AVFoundation on macOS
+      - OPENCV_FFMPEG_CAPTURE_OPTIONS=video_device_index=0  # Suggest device 0
       - STREAMLIT_HOME_DIR=/app/src/ui/streamlit/.streamlit
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
       - STREAMLIT_SERVER_RUN_ON_SAVE=true
@@ -33,6 +41,18 @@ services:
       # Optional: Add your custom environment variables here
       # - CUSTOM_VAR=value
     user: "root"  # Run as root temporarily to fix permission issues
+    # Choose the right device mapping based on OS:
+    # Uncomment the appropriate section for your OS
+    
+    # For Linux:
+    # devices:
+    #   - /dev/video0:/dev/video0  # Map primary webcam device
+    #   - /dev/video1:/dev/video1  # Map secondary webcam device (if available)
+    
+    # For macOS & Windows, device mapping doesn't work directly, use privileged mode:
+    privileged: true  # Give extended privileges to the container for hardware access
+    
+    # Additional device mapping will be merged with volumes below
     healthcheck:
       # Check if Streamlit UI is responding
       test: ["CMD", "curl", "-f", "http://localhost:8501"]
