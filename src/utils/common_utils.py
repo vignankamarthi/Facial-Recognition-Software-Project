@@ -253,76 +253,61 @@ def get_subdirectories(directory_path):
 
 def create_resizable_window(window_name, width=800, height=600):
     """
-    Create a named OpenCV window and set it to be resizable with optional size.
+    Deprecated: Window creation is now handled through the Streamlit interface.
     
-    In headless environments (CI), will use a mock window instead.
-
+    This function is kept for backward compatibility with tests.
+    
     Parameters
     ----------
     window_name : str
         Name of the window to create
     width : int, optional
-        Initial window width (default: 800)
+        Window width (default: 800)
     height : int, optional
-        Initial window height (default: 600)
-
+        Window height (default: 600)
+        
     Returns
     -------
     str
-        The window name
+        Window name
     """
-    # Skip actual window creation in headless environments
-    if is_headless_environment():
-        logger.debug(f"Skipping window creation in headless environment: {window_name}")
-        return window_name
-        
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)  # Ensure it gets focus
-    cv2.resizeWindow(window_name, width, height)  # Set initial size
-    logger.debug(f"Created resizable window: {window_name} ({width}x{height})")
+    logger.debug(f"create_resizable_window called (deprecated): {window_name}")
     return window_name
 
 
 def create_control_window(window_name, width=400, height=200):
     """
-    Create a window for controls and UI elements.
+    Deprecated: Control window creation is now handled through the Streamlit interface.
     
-    In headless environments (CI), will use a mock window instead.
-
+    This function is kept for backward compatibility with tests.
+    
     Parameters
     ----------
     window_name : str
         Name of the window to create
     width : int, optional
-        Initial window width (default: 400)
+        Window width (default: 400)
     height : int, optional
-        Initial window height (default: 200)
-
+        Window height (default: 200)
+        
     Returns
     -------
     str
-        The window name
+        Window name
     """
-    # Skip actual window creation in headless environments
-    if is_headless_environment():
-        logger.debug(f"Skipping control window creation in headless environment: {window_name}")
-        return window_name
-        
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window_name, width, height)
-    logger.debug(f"Created control window: {window_name} ({width}x{height})")
+    logger.debug(f"create_control_window called (deprecated): {window_name}")
     return window_name
 
 
 @log_method_call(logger)
 def safely_close_windows(window_name=None, video_capture=None, verbose=True):
     """
-    Safely close OpenCV windows and release video capture resources with multiple attempts.
-
+    Safely release video capture resources.
+    
     Parameters
     ----------
     window_name : str, optional
-        Specific window to close, or None to close all windows
+        Deprecated parameter, kept for backward compatibility
     video_capture : cv2.VideoCapture, optional
         Video capture object to release
     verbose : bool, optional
@@ -340,55 +325,11 @@ def safely_close_windows(window_name=None, video_capture=None, verbose=True):
                     logger.info("Video capture released.")
         except Exception as e:
             logger.warning(f"Error releasing video capture: {e}")
-
+            
+    # Log completion
     if verbose:
-        logger.info("Closing OpenCV windows...")
+        logger.info("Cleanup completed.")
 
-    # Skip window operations in headless environments
-    if is_headless_environment():
-        logger.debug("Skipping window closing in headless environment")
-        # Still release video capture if provided
-        return
-    
-    # Try to get focus first
-    if window_name:
-        try:
-            cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
-        except cv2.error:
-            pass  # Window might already be closed
-
-    cv2.waitKey(200)  # Wait for focus
-
-    # First close attempt
-    try:
-        if window_name:
-            cv2.destroyWindow(window_name)
-        else:
-            cv2.destroyAllWindows()
-    except Exception as e:
-        logger.debug(f"Error in first window close attempt: {e}")
-
-    time.sleep(0.2)  # Give time for windows to close
-
-    # Second attempt with all windows
-    try:
-        cv2.destroyAllWindows()
-    except Exception as e:
-        logger.debug(f"Error in second window close attempt: {e}")
-
-    time.sleep(0.2)
-
-    # Third attempt with a loop and delays
-    for i in range(3):
-        cv2.waitKey(200)  # Longer wait
-        try:
-            cv2.destroyAllWindows()
-        except Exception as e:
-            logger.debug(f"Error in third window close attempt {i+1}: {e}")
-        time.sleep(0.2)  # Direct sleep
-
-    if verbose:
-        logger.info("Windows closed.")
 
 
 @log_method_call(logger)
@@ -396,7 +337,9 @@ def show_image_with_delay(
     image, window_name="Image", delay=0, resize=True, max_dim=800
 ):
     """
-    Display an image with optional resize and wait for a key press or delay.
+    Deprecated: Image display is now handled through the Streamlit interface.
+    
+    This function is kept for backward compatibility with tests.
 
     Parameters
     ----------
@@ -414,46 +357,14 @@ def show_image_with_delay(
     Returns
     -------
     int
-        Key code pressed, or -1 if no key was pressed
+        Mock key code (always returns 0)
     """
     if image is None:
         logger.warning(f"Cannot display None image in window '{window_name}'")
         return -1
 
-    display_img = image.copy()
-
-    # Resize large images for display if needed
-    if resize:
-        h, w = display_img.shape[:2]
-        if max(h, w) > max_dim:
-            # Calculate new dimensions
-            if h > w:
-                new_h = max_dim
-                new_w = int(w * (max_dim / h))
-            else:
-                new_w = max_dim
-                new_h = int(h * (max_dim / w))
-
-            # Resize the image for display
-            display_img = cv2.resize(display_img, (new_w, new_h))
-            logger.debug(f"Resized image from {w}x{h} to {new_w}x{new_h} for display")
-
-    # Create window and show image
-    create_resizable_window(window_name)
-    
-    # Skip actual display in headless environments
-    if is_headless_environment():
-        logger.debug(f"Skipping image display in headless environment: {window_name}")
-        return 0
-        
-    cv2.imshow(window_name, display_img)
-
-    # Wait for key press or delay
-    key = cv2.waitKey(delay) & 0xFF
-    if key != 255:  # If a key was pressed
-        logger.debug(f"Key pressed in window '{window_name}': {key}")
-
-    return key
+    logger.debug(f"show_image_with_delay called (deprecated): {window_name}")
+    return 0
 
 
 # ===== Error Handling =====

@@ -355,177 +355,37 @@ class FaceMatcher:
     @handle_opencv_error
     def match_faces_webcam(self):
         """
-        Start a webcam feed and perform real-time face recognition.
+        Deprecated: Direct webcam access is now handled through the Streamlit interface.
         
-        This method initializes webcam capture, detects faces in real-time,
-        identifies them against known references, and displays the results
-        with labeled bounding boxes.
+        This method is kept for backward compatibility with tests.
 
         Returns
         -------
         tuple
             (success, result_dict) where:
             - success : bool
-              True if operation completed normally, False if an error occurred
+              True if operation completed normally
             - result_dict : dict
-              Contains metadata about the operation (if an error occurred,
-              includes 'error' key with error message)
+              Contains metadata about the operation
               
-        Raises
-        ------
-        CameraError
-            If the webcam cannot be opened or an error occurs during capture
-        MatchingError
-            If an error occurs during the face matching process
-            
         Notes
         -----
-        - Press 'q' to quit the demo
-        - Green boxes indicate matched faces (with name and confidence)
-        - Red boxes indicate unknown faces
-        - This method handles cleanup of all resources
+        - Use the Streamlit interface instead of this method
+        - The returned data is mocked for test compatibility
         
         Examples
         --------
-        >>> matcher = FaceMatcher()
-        >>> matcher.match_faces_webcam()  # Interactive webcam demo
+        >>> # Use Streamlit interface instead of this method
         """
-        # Lazily import and initialize face detector
-        global _FaceDetector
-        if _FaceDetector is None:
-            # Import here to avoid circular dependency
-            from .face_detection import FaceDetector
-            _FaceDetector = FaceDetector
-        detector = _FaceDetector()
-
-        # Initialize webcam
-        video_capture = None
+        print("Direct webcam access is deprecated. Please use the Streamlit interface.")
         
-        try:
-            # Initialize webcam - try multiple indices for macOS compatibility
-            video_capture = None
-            for camera_index in [0, 1, -1]:
-                video_capture = cv2.VideoCapture(camera_index)
-                if video_capture.isOpened():
-                    print(f"Successfully opened webcam with index {camera_index}")
-                    break
-                else:
-                    print(f"Failed to open webcam with index {camera_index}")
-                    
-            if not video_capture or not video_capture.isOpened():
-                error_msg = format_error("Camera", "Could not open webcam")
-                print(error_msg)
-                raise CameraError(error_msg)
-
-            print("Press 'q' to quit...")
-            
-            # Create a resizable window using utility function
-            create_resizable_window(WINDOW_NAME)
-            
-            # Variables for key feedback display
-            last_key = None
-            key_press_time = time.time()
-            show_key_message = False
-
-            while True:
-                # Capture frame-by-frame
-                ret, frame = video_capture.read()
-
-                if not ret:
-                    error_msg = format_error("Camera", "Failed to capture frame")
-                    print(error_msg)
-                    break
-
-                # Detect faces in the frame
-                face_locations, face_encodings = detector.detect_faces(frame)
-
-                # Identify the faces
-                display_frame, face_names = self.identify_faces(
-                    frame, face_locations, face_encodings
-                )
-
-                # Add semi-transparent background for instructions
-                overlay = display_frame.copy()
-                cv2.rectangle(overlay, (5, 5), (270, 95), (0, 0, 0), -1)
-                cv2.addWeighted(overlay, 0.6, display_frame, 0.4, 0, display_frame)
-                
-                # Display information with better visibility
-                text = f"Faces detected: {len(face_locations)}"
-                cv2.putText(
-                    display_frame,
-                    text,
-                    (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7,
-                    (255, 255, 255),
-                    2,
-                )
-                
-                # Add controls reminder with better spacing
-                cv2.putText(
-                    display_frame,
-                    "Press 'q' to quit",
-                    (10, 70),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7,
-                    (255, 255, 255),
-                    2,
-                )
-
-                # Show key press feedback on screen
-                if show_key_message and time.time() - key_press_time < 2.0:  # Show for 2 seconds
-                    key_text = f"KEY PRESSED: {last_key}" if last_key else ""
-                    cv2.rectangle(display_frame, (10, 120), (400, 160), (0, 0, 0), -1)  # Background
-                    cv2.putText(
-                        display_frame,
-                        key_text,
-                        (20, 150),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0,  # Larger font
-                        (0, 255, 255),  # Yellow
-                        2,
-                    )
-
-                # Display the resulting frame
-                cv2.imshow(WINDOW_NAME, display_frame)
-
-                # Use a longer wait time and try to get key input
-                key = cv2.waitKey(WAIT_KEY_DELAY) & 0xFF
-                
-                # Process key presses with debugging
-                if key not in [255, 0]:  # Valid key pressed
-                    # Print key info to console
-                    if 32 <= key <= 126:  # Printable ASCII
-                        key_char = chr(key)
-                        print(f"Key pressed: {key} (ASCII: {key_char})")
-                        last_key = key_char
-                    else:
-                        print(f"Key pressed: {key} (non-printable)")
-                        last_key = f"Code: {key}"
-                        
-                    # Update key display timing
-                    key_press_time = time.time()
-                    show_key_message = True
-                    
-                    # Process specific keys
-                    if key == ord("q") or key == ord("Q") or key == 27:  # q, Q, or ESC
-                        print("Quitting face matching...")
-                        break
-                
-        except KeyboardInterrupt:
-            print("\nFace matching interrupted by user.")
-        except CameraError as e:
-            print(f"Camera error: {e}")
-        except MatchingError as e:
-            print(f"Matching error: {e}")
-        except Exception as e:
-            print(f"Error in face matching: {e}")
-            import traceback
-            traceback.print_exc()
-        finally:
-            # Use the centralized window closing utility
-            safely_close_windows(WINDOW_NAME, video_capture)
-            print("Returned to main menu.")
+        # Return a mock result for testing purposes
+        return True, {
+            'face_count': 0,
+            'frames_processed': 0,
+            'duration': 0,
+            'note': 'Direct webcam access is deprecated. Please use the Streamlit interface.'
+        }
 
 
 if __name__ == "__main__":

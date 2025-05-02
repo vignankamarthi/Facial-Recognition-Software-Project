@@ -414,11 +414,9 @@ _FaceDetector = None
 @handle_opencv_error
 def run_anonymization_demo():
     """
-    Run a standalone anonymization demo.
+    Deprecated: Direct webcam access is now handled through the Streamlit interface.
     
-    This function initializes webcam capture, detects faces in real-time,
-    applies anonymization, and displays the results. It serves as a
-    complete demonstration of the anonymization functionality.
+    This function is kept for backward compatibility with tests.
     
     Returns
     -------
@@ -426,89 +424,10 @@ def run_anonymization_demo():
     
     Notes
     -----
-    - Press 'q' or ESC to quit the demo
-    - The demo uses default anonymization settings (blur method)
-    - This function handles all necessary cleanup of resources
-    
-    Raises
-    ------
-    CameraError
-        If the webcam cannot be opened or an error occurs during capture
-    AnonymizationError
-        If an error occurs during the anonymization process
+    - Use the Streamlit interface instead of this function
     """
-    # Lazily import FaceDetector to avoid circular imports
-    global _FaceDetector
-    if _FaceDetector is None:
-        from .face_detection import FaceDetector
-        _FaceDetector = FaceDetector
-    
-    detector = _FaceDetector()
-    anonymizer = FaceAnonymizer()
-
-    # Initialize webcam
-    video_capture = None
-    
-    try:
-        # Initialize webcam - try multiple indices for macOS compatibility
-        video_capture = None
-        for camera_index in [0, 1, -1]:
-            video_capture = cv2.VideoCapture(camera_index)
-            if video_capture.isOpened():
-                print(f"Successfully opened webcam with index {camera_index}")
-                break
-            else:
-                print(f"Failed to open webcam with index {camera_index}")
-
-        if not video_capture or not video_capture.isOpened():
-            error_msg = format_error("Camera", "Could not open webcam")
-            print(error_msg)
-            raise CameraError(error_msg)
-
-        print("Press Ctrl+C to quit...")
-        
-        # Create a resizable window using utility function
-        create_resizable_window(WINDOW_NAME)
-
-        # Main processing loop
-        while True:
-            # Capture frame-by-frame
-            ret, image = video_capture.read()
-
-            if not ret:
-                error_msg = format_error("Camera", "Failed to capture frame")
-                print(error_msg)
-                break
-
-            # Detect faces in the image
-            face_locations, _ = detector.detect_faces(image)
-
-            # Anonymize the faces
-            display_image = anonymizer.anonymize_frame(image, face_locations)
-
-            # Display the resulting image
-            cv2.imshow(WINDOW_NAME, display_image)
-            
-            # Short wait time
-            key = cv2.waitKey(WAIT_KEY_DELAY) & 0xFF
-            if key == ord("q") or key == ord("Q") or key == 27:  # q, Q, or ESC
-                print("Quitting anonymization...")
-                break
-            
-    except KeyboardInterrupt:
-        print("\nAnonymization interrupted by user.")
-    except CameraError as e:
-        print(f"Camera error: {e}")
-    except AnonymizationError as e:
-        print(f"Anonymization error: {e}")
-    except Exception as e:
-        print(f"Error in anonymization: {e}")
-        import traceback
-        traceback.print_exc()
-    finally:
-        # Use the centralized window closing utility
-        safely_close_windows(WINDOW_NAME, video_capture)
-        print("Returned to main menu.")
+    print("Direct webcam access is deprecated. Please use the Streamlit interface.")
+    return
 
 
 if __name__ == "__main__":
