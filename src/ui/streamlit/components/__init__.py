@@ -7,6 +7,7 @@ that can be used across different pages.
 
 # Export key components for easier imports
 from .webcam import webcam_component, image_upload_component
+from .streamlit_webcam import streamlit_webcam_component
 from .config_panels import (
     detection_config_panel,
     matching_config_panel,

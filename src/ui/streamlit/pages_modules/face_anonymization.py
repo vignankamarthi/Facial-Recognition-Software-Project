@@ -25,6 +25,7 @@ from src.utils.logger import get_logger
 # Import UI components
 from src.ui.streamlit.components import (
     webcam_component,
+    streamlit_webcam_component,
     image_upload_component,
     anonymization_config_panel,
     before_after_comparison
@@ -123,8 +124,16 @@ def face_anonymization_page():
         st.markdown("### Use webcam feed for real-time face anonymization")
         st.markdown("Use your camera to anonymize faces in real-time. Position yourself or others in front of the camera.")
         
-        # Use the webcam component
-        webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
+        # Check if we're running in Docker/container environment
+        use_streamlit_camera = os.environ.get('USE_STREAMLIT_CAMERA', '0') == '1'
+        
+        if use_streamlit_camera:
+            # Use the Streamlit native webcam component for Docker/container environments
+            st.info("Using Streamlit's built-in camera for compatibility with Docker.")
+            streamlit_webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
+        else:
+            # Use the external window webcam component for direct installations
+            webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
     
     # Image upload tab
     with tab2:

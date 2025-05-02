@@ -17,10 +17,12 @@ services:
       - ../logs:/app/logs:rw
       # Mount .streamlit directory
       - ../src/ui/streamlit/.streamlit:/app/src/ui/streamlit/.streamlit:rw
-      # Mount main demo script
+      # Mount main script files
       - ../run_demo.py:/app/run_demo.py
-      # Device access for webcam (macOS and some Linux systems)
+      - ./test_webcam.py:/app/docker/test_webcam.py
+      # Device access for webcam (macOS specific approach)
       - /dev:/dev:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     environment:
       # Application configuration
       - DEMO_MODE=true  # Initialize demo data on startup
@@ -28,12 +30,18 @@ services:
       - LOG_LEVEL=INFO  # Set logging verbosity
       - UI_PORT=8501  # Streamlit UI port
       - FORCE_HEADLESS=true  # Run in headless mode (no GUI windows)
-      # OpenCV webcam settings
+      # OpenCV settings for headless operation
       - OPENCV_VIDEOIO_DEBUG=1  # Enable detailed webcam debug output
-      - OPENCV_VIDEOIO_PRIORITY_V4L2=1000  # Prioritize Video4Linux
-      - OPENCV_VIDEOIO_PRIORITY_MSMF=0  # Lower Microsoft Media Foundation priority
-      - OPENCV_VIDEOIO_PRIORITY_AVFOUNDATION=1000  # Prioritize AVFoundation on macOS
-      - OPENCV_FFMPEG_CAPTURE_OPTIONS=video_device_index=0  # Suggest device 0
+      - OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS=0  # Disable hardware transforms
+      - DISPLAY=:0  # Set dummy display
+      - QT_X11_NO_MITSHM=1  # Disable MIT-SHM extension
+      - OPENCV_GUI_FORCE_HEADLESS=1  # Force OpenCV to run in headless mode
+      - PYTHONUNBUFFERED=1  # Don't buffer Python output
+      - WEBCAM_DEVICE_INDEX=0  # Use default camera
+      - USE_STREAMLIT_CAMERA=1  # Use Streamlit's native camera
+      # WebRTC related settings for browser camera access
+      - STREAMLIT_ENABLE_WEBRTC=1
+      - STREAMLIT_SERVER_ENABLE_STATIC_SERVING=1
       - STREAMLIT_HOME_DIR=/app/src/ui/streamlit/.streamlit
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
       - STREAMLIT_SERVER_RUN_ON_SAVE=true
@@ -49,9 +57,13 @@ services:
     #   - /dev/video0:/dev/video0  # Map primary webcam device
     #   - /dev/video1:/dev/video1  # Map secondary webcam device (if available)
     
-    # For macOS & Windows, device mapping doesn't work directly, use privileged mode:
-    privileged: true  # Give extended privileges to the container for hardware access
+    # For macOS, use this configuration:
+    privileged: false  # Change to false for macOS - we'll use the host.docker.internal approach
     
+    # Apple M1/M2 camera mapping for virtualization compatibility
+    devices:
+      - "/dev/null:/dev/video0"
+      
     # Additional device mapping will be merged with volumes below
     healthcheck:
       # Check if Streamlit UI is responding
@@ -72,3 +84,5 @@ services:
 # - For live code changes: Keep the container running and edit code in ./src
 # - To override environment variables: UI_PORT=8502 docker-compose up
 # - To rebuild the container after Dockerfile changes: docker-compose build --no-cache
+# - To test webcam access directly: docker-compose exec facerec python /app/docker/test_webcam.py
+#   This will help diagnose camera access issues without going through Streamlit

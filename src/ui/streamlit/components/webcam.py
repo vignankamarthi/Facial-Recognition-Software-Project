@@ -247,22 +247,50 @@ def launch_external_window(
         cap = None
 
         # Try multiple camera sources with OS-specific optimizations
-        camera_sources = [
-            0,  # Default camera
-            1,  # Secondary camera (external/USB cameras on many systems)
-            -1,  # Any available camera (works on some systems)
-            # Platform-specific APIs
-            "avfoundation://0",  # macOS primary camera
-            "avfoundation://1",  # macOS secondary camera
-            "v4l2:///dev/video0",  # Linux Video4Linux
-            "dshow://0",  # DirectShow (Windows)
-            "msmf://0",  # Microsoft Media Foundation (Windows)
-            # Camera indexes in different formats
-            "camera:0",
-            "camera:1",  # Alternative camera syntax
-            # Try with backend settings
-            "camera",  # Generic camera API
-        ]
+        camera_sources = []
+        
+        # For MacOS, we use a specialized approach with AVFoundation
+        if sys.platform == "darwin":
+            # These sources work best for macOS
+            camera_sources = [
+                0,  # Default camera - usually works with AVFoundation
+                "avfoundation://0",  # Primary camera explicit
+                "avfoundation://1",  # Secondary camera explicit
+                1,  # Secondary camera index
+                "avfoundation://0:0",  # Alternative syntax with audio channel
+                -1,  # Any available camera
+            ]
+            print("macOS detected, using AVFoundation sources:")
+            print(camera_sources)
+        elif sys.platform == "win32":
+            # Windows-specific sources
+            camera_sources = [
+                0,  # Default camera
+                1,  # Secondary camera
+                "dshow://0",  # DirectShow primary
+                "msmf://0",  # Media Foundation primary
+                "dshow://video=0",  # Alternative DirectShow syntax
+                -1,  # Any available camera
+            ]
+        elif sys.platform.startswith("linux"):
+            # Linux-specific sources
+            camera_sources = [
+                0,  # Default camera
+                1,  # Secondary camera
+                "v4l2:///dev/video0",  # Video4Linux primary
+                "v4l2:///dev/video1",  # Video4Linux secondary
+                -1,  # Any available camera
+            ]
+        else:
+            # Generic fallback for other platforms
+            camera_sources = [
+                0,  # Default camera
+                1,  # Secondary camera (external/USB cameras on many systems)
+                -1,  # Any available camera (works on some systems)
+                "camera:0",
+                "camera:1",  # Alternative camera syntax
+                "camera",  # Generic camera API
+            ]
 
         # Set OpenCV backend preferences for better compatibility
         # This helps with macOS and Linux compatibility
@@ -273,17 +301,29 @@ def launch_external_window(
             "1"  # Enable debug output for camera issues
         )
 
-        # On macOS, prioritize AVFoundation backend
+        # On macOS, prioritize AVFoundation backend and optimize settings
         if sys.platform == "darwin":
             # Set environment variables for macOS camera access
             os.environ["OPENCV_AVFOUNDATION_SKIP_AUTH"] = "1"
             os.environ["OPENCV_VIDEOIO_PRIORITY_AVFOUNDATION"] = "1000"
             os.environ["OPENCV_VIDEOIO_PRIORITY_QT"] = "0"
             os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
-            camera_sources = ["avfoundation://0", 0, 1, "*", -1] + camera_sources
-
+            os.environ["OPENCV_VIDEOIO_PRIORITY_V4L"] = "0"
+            os.environ["OPENCV_VIDEOIO_PRIORITY_V4L2"] = "0"
+            os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
+            
+            print("Applied macOS-specific OpenCV backend settings")
+            
+            # Create directory for macOS camera access
+            os.makedirs("/tmp/webcam", exist_ok=True)
+            
             # Try to reset QuickTime/AVFoundation
-            os.system("killall VDCAssistant 2>/dev/null")
+            try:
+                print("Attempting to reset VDCAssistant (camera service)...")
+                os.system("killall VDCAssistant 2>/dev/null")
+                time.sleep(1)  # Give time for the service to restart
+            except Exception as e:
+                print(f"Error resetting VDCAssistant: {e}")
 
         # On Windows, prioritize DirectShow/MediaFoundation
         elif sys.platform == "win32":
@@ -310,7 +350,20 @@ def launch_external_window(
         for idx, source in enumerate(camera_sources):
             try:
                 # Try with default parameters first
-                cap = cv2.VideoCapture(source)
+                print(f"Trying camera source: {source}")
+                
+                # Apply specific settings for different source types
+                if sys.platform == "darwin" and isinstance(source, int):
+                    # On macOS with numeric index, explicitly use AVFoundation backend
+                    cap = cv2.VideoCapture(source, cv2.CAP_AVFOUNDATION)
+                    print(f"Using explicit AVFoundation backend for source {source}")
+                elif sys.platform == "darwin" and isinstance(source, str) and "avfoundation" in source:
+                    # For AVFoundation URL format
+                    cap = cv2.VideoCapture(source)
+                    print(f"Using AVFoundation URL: {source}")
+                else:
+                    # Default approach for other platforms/sources
+                    cap = cv2.VideoCapture(source)
 
                 # Check if opened successfully
                 if cap and cap.isOpened():

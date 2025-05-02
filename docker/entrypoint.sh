@@ -40,26 +40,43 @@ fi
 if [ "$WEBCAM_ENABLED" = "true" ]; then
     echo "Setting up webcam access..."
     
-    # Create video device nodes if they don't exist (mainly for macOS compatibility)
-    if [ ! -e "/dev/video0" ] && [ -e "/dev" ]; then
-        echo "Creating virtual video device nodes..."
-        # Try to create a symlink to the actual camera device if available
-        for cam_device in /dev/video* /dev/avfoundation* /dev/dshow*; do
-            if [ -e "$cam_device" ]; then
-                ln -sf "$cam_device" /dev/video0 2>/dev/null || true
-                echo "Linked $cam_device to /dev/video0"
-                break
+    # Detect OS type for webcam setup
+    if [ "$(uname)" = "Darwin" ] || [ -e "/proc/sys/kernel/ostype" ] && [ "$(cat /proc/sys/kernel/ostype)" = "Darwin" ]; then
+        echo "MacOS detected - using AVFoundation backend for webcam"
+        # Configure webcam for macOS
+        export OPENCV_VIDEOIO_PRIORITY_AVFOUNDATION=1000
+        export OPENCV_VIDEOIO_PRIORITY_V4L2=0
+        export OPENCV_VIDEOIO_PRIORITY_MSMF=0
+        export OPENCV_AVFOUNDATION_SKIP_AUTH=1
+        export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+        
+        # Try to enable better macOS camera compatibility
+        mkdir -p /tmp/webcam
+        chmod 777 /tmp/webcam
+        
+        echo "MacOS webcam configuration complete"
+    else
+        # Create video device nodes if they don't exist (mainly for Linux compatibility)
+        if [ ! -e "/dev/video0" ] && [ -e "/dev" ]; then
+            echo "Creating virtual video device nodes..."
+            # Try to create a symlink to the actual camera device if available
+            for cam_device in /dev/video* /dev/avfoundation* /dev/dshow*; do
+                if [ -e "$cam_device" ]; then
+                    ln -sf "$cam_device" /dev/video0 2>/dev/null || true
+                    echo "Linked $cam_device to /dev/video0"
+                    break
+                fi
+            done
+        fi
+        
+        # Set permissions for any video devices
+        for dev in /dev/video*; do
+            if [ -e "$dev" ]; then
+                echo "Setting permissions for $dev"
+                chmod 777 "$dev" 2>/dev/null || true
             fi
         done
     fi
-    
-    # Set permissions for any video devices
-    for dev in /dev/video*; do
-        if [ -e "$dev" ]; then
-            echo "Setting permissions for $dev"
-            chmod 777 "$dev" 2>/dev/null || true
-        fi
-    done
     
     # Create X11 socket directory for GUI windows if needed
     mkdir -p /tmp/.X11-unix
