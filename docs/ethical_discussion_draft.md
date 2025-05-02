@@ -1,15 +1,14 @@
 # Ethical Discussion: Facial Recognition Technology
-[ ] TODO: Format this well according to final presentation
 
 ## Introduction
 
-Facial recognition technology represents a significant advancement in computer vision with widespread applications across security, convenience, and social media. However, these technologies raise profound ethical questions that this project aims to explore through both technical implementation and philosophical analysis. By incorporating the UTKFace dataset with demographic labels, we provide a practical demonstration of potential algorithmic bias.
+Facial recognition technology represents a significant advancement in computer vision with widespread applications across security, convenience, and social media. However, these technologies raise profound ethical questions that this project aims to explore through both technical implementation and philosophical analysis. By incorporating the UTKFace dataset with demographic labels, I provide a practical demonstration of potential algorithmic bias.
 
 ## Core Ethical Concerns
 
 ### Privacy Issues
 
-Facial recognition systems collect and process biometric data, often without explicit consent. Our project demonstrates:
+Facial recognition systems collect and process biometric data, often without explicit consent. My project demonstrates:
 - How facial data can be captured in real-time
 - Methods to anonymize this data (blurring/masking/pixelation)
 - The importance of consent mechanisms in facial recognition systems
@@ -17,8 +16,7 @@ Facial recognition systems collect and process biometric data, often without exp
 
 ### Bias and Fairness
 
-Many facial recognition systems exhibit varying accuracy rates across different demographic groups. Our enhanced bias testing module with UTKFace dataset demonstrates:
-- How recognition accuracy can vary based on ethnicity, gender, and age
+Many facial recognition systems exhibit varying accuracy rates across different demographic groups. My enhanced bias testing module with UTKFace dataset demonstrates:
 - Quantifiable measurements of bias across different demographic groups
 - Statistical methods to analyze and measure bias in systems
 - The importance of diverse and well-labeled training datasets
@@ -26,7 +24,7 @@ Many facial recognition systems exhibit varying accuracy rates across different 
 
 ### Consent and Agency
 
-A fundamental ethical question is whether individuals can meaningfully consent to facial recognition in an increasingly surveilled society. Our project explores:
+A fundamental ethical question is whether individuals can meaningfully consent to facial recognition in an increasingly surveilled society. My project explores:
 - The concept of informed consent in biometric data collection
 - How opt-in vs. opt-out models affect individual agency
 - The challenges of implementing genuine consent mechanisms
@@ -42,7 +40,7 @@ Facial recognition presents a classic tension between security benefits and indi
 
 ## UTKFace Dataset Integration
 
-Our project now incorporates the UTKFace dataset, which provides:
+My project now incorporates the UTKFace dataset, which provides:
 
 ### Demographic Labels and Ethical Testing
 - Age, gender, and ethnicity annotations for facial images
@@ -98,16 +96,10 @@ The ethical analysis of facial recognition can be approached through multiple ph
 
 ## Practical Ethical Applications
 
-Our project demonstrates practical ethical considerations through:
+My project demonstrates practical ethical considerations through:
 
 1. **Anonymization Features**: Multiple methods to protect privacy
 2. **Bias Detection Tools**: Statistical frameworks to measure disparate impact
 3. **Demographic Analysis**: Real measurements of performance across groups
 4. **Educational Visualization**: Clear representation of bias detection results
 5. **Transparent Documentation**: Acknowledgment of limitations and ethical concerns
-
-## Conclusion
-
-This project provides both an educational tool and an ethical framework for understanding facial recognition technologies. By directly measuring and visualizing bias across demographic groups using the UTKFace dataset, we offer concrete examples of how ethical concerns manifest in real systems. This approach grounds philosophical discussions in practical demonstrations, making abstract ethical concepts tangible and measurable.
-
-The integration of properly labeled demographic data allows us to move beyond theoretical discussions of bias to quantifiable measurements and visual representations. This empirical approach strengthens ethical arguments with concrete evidence and provides clear pathways for improvement in facial recognition systems.
