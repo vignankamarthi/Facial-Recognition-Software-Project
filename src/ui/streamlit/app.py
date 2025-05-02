@@ -15,10 +15,15 @@ import cv2
 import numpy as np
 
 # Add the project root to the Python path for imports
-sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
+sys.path.insert(
+    0,
+    os.path.abspath(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    ),
+)
 
 # Import backend functionality
-from src.backend.face_detection import FaceDetector 
+from src.backend.face_detection import FaceDetector
 from src.backend.face_matching import FaceMatcher
 from src.backend.anonymization import FaceAnonymizer
 from src.backend.bias_testing import BiasAnalyzer
@@ -27,9 +32,18 @@ from src.utils.config import get_config
 from src.utils.logger import get_logger
 
 # Import all functionality directly
-from src.ui.streamlit.pages_modules.face_detection import face_detection_page, process_detection_frame
-from src.ui.streamlit.pages_modules.face_matching import face_matching_page, process_matching_frame
-from src.ui.streamlit.pages_modules.face_anonymization import face_anonymization_page, process_anonymization_frame
+from src.ui.streamlit.pages_modules.face_detection import (
+    face_detection_page,
+    process_detection_frame,
+)
+from src.ui.streamlit.pages_modules.face_matching import (
+    face_matching_page,
+    process_matching_frame,
+)
+from src.ui.streamlit.pages_modules.face_anonymization import (
+    face_anonymization_page,
+    process_anonymization_frame,
+)
 from src.ui.streamlit.pages_modules.bias_testing import bias_testing_page, run_bias_test
 from src.ui.streamlit.pages_modules.dataset_management import dataset_management_page
 
@@ -42,34 +56,35 @@ st.set_page_config(
     page_title="Facial Recognition Demo",
     page_icon="📷",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
+
 
 # Initialize session state
 def init_session_state():
     """Initialize Streamlit session state variables."""
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
-    
+
     if "config" not in st.session_state:
         # Initialize configuration for each feature
         st.session_state["config"] = {
             "detection": {
                 "confidence": config.detection.confidence,
                 "use_hog": False,
-                "batch_size": 4
+                "batch_size": 4,
             },
             "matching": {
                 "threshold": config.matching.threshold,
                 "comparison_mode": "distance",
-                "use_best_match_only": True
+                "use_best_match_only": True,
             },
             "anonymization": {
                 "method": config.anonymization.default_method,
                 "intensity": config.anonymization.default_intensity,
                 "preview": True,
                 "show_boxes": True,
-                "show_labels": True
+                "show_labels": True,
             },
             "bias_testing": {
                 "dataset": "demographic_split_set",
@@ -78,7 +93,7 @@ def init_session_state():
                 "detailed_analysis": False,
                 "chart_type": "bar",
                 "show_overall_avg": True,
-                "color_scheme": "default"
+                "color_scheme": "default",
             },
             "dataset_management": {
                 "action": "Download UTKFace Dataset",
@@ -89,10 +104,10 @@ def init_session_state():
                 "num_people": 20,
                 "ethnicity_balanced": True,
                 "num_known": 5,
-                "num_unknown": 5
-            }
+                "num_unknown": 5,
+            },
         }
-    
+
     # Data directories from configuration
     if "paths" not in st.session_state:
         st.session_state["paths"] = {
@@ -100,13 +115,13 @@ def init_session_state():
             "datasets_dir": config.paths.datasets_dir,
             "results_dir": config.paths.results_dir,
             "test_datasets_dir": config.paths.test_datasets_dir,
-            "demographic_split_dir": config.paths.demographic_split_set_dir
+            "demographic_split_dir": config.paths.demographic_split_set_dir,
         }
-    
+
     # Feature instance cache
     if "instances" not in st.session_state:
         st.session_state["instances"] = {}
-        
+
     # Initialize background task state if not already present
     if "background_task" not in st.session_state:
         st.session_state["background_task"] = {
@@ -115,18 +130,20 @@ def init_session_state():
             "message": "",
             "complete": False,
             "success": False,
-            "error": None
+            "error": None,
         }
+
 
 # Initialize session state
 init_session_state()
+
 
 # Function to get class instances with caching
 def get_instance(class_name, *args, **kwargs):
     """Get or create an instance of a class with caching."""
     if "instances" not in st.session_state:
         st.session_state["instances"] = {}
-        
+
     if class_name not in st.session_state["instances"]:
         if class_name == "FaceDetector":
             st.session_state["instances"][class_name] = FaceDetector(*args, **kwargs)
@@ -140,10 +157,12 @@ def get_instance(class_name, *args, **kwargs):
             st.session_state["instances"][class_name] = ImageProcessor(*args, **kwargs)
     return st.session_state["instances"][class_name]
 
+
 # CSS customization
 def apply_custom_css():
     """Apply custom CSS styles to the Streamlit app."""
-    st.markdown("""
+    st.markdown(
+        """
     <style>
     .main-header {
         font-size: 2.5rem !important;
@@ -176,13 +195,17 @@ def apply_custom_css():
         padding: 0 !important;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
+
 
 # Import the CSS
 def local_css(file_name):
     """Load local CSS."""
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 
 # Load the custom CSS
 style_path = os.path.join(os.path.dirname(__file__), "style.css")
@@ -192,6 +215,7 @@ if os.path.exists(style_path):
 # Apply additional custom CSS
 apply_custom_css()
 
+
 # Navigation functions
 def set_page(page_name):
     """Set the current page in session state."""
@@ -200,136 +224,185 @@ def set_page(page_name):
     if f"{page_name}_state" in st.session_state:
         del st.session_state[f"{page_name}_state"]
 
+
 # Sidebar navigation
 def render_sidebar():
     """Render the sidebar navigation menu."""
-    st.sidebar.markdown('<div class="sidebar-title">Facial Recognition Demo</div>', unsafe_allow_html=True)
-    
+    st.sidebar.markdown(
+        '<div class="sidebar-title">Facial Recognition Demo</div>',
+        unsafe_allow_html=True,
+    )
+
     # Ensure session state is initialized
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
-    
+
     # Feature selection
     st.sidebar.subheader("Features")
-    
+
     # Use buttons for navigation instead of radio
-    if st.sidebar.button("🏠 Main", 
-                type="primary" if st.session_state["page"] == "Home" else "secondary",
-                key="nav_home",
-                use_container_width=True):
+    if st.sidebar.button(
+        "🏠 Main",
+        type="primary" if st.session_state["page"] == "Home" else "secondary",
+        key="nav_home",
+        use_container_width=True,
+    ):
         set_page("Home")
-    
-    if st.sidebar.button("📷 Face Detection", 
-                type="primary" if st.session_state["page"] == "Face Detection" else "secondary",
-                key="nav_face_detection",
-                use_container_width=True):
+
+    if st.sidebar.button(
+        "📷 Face Detection",
+        type="primary" if st.session_state["page"] == "Face Detection" else "secondary",
+        key="nav_face_detection",
+        use_container_width=True,
+    ):
         set_page("Face Detection")
-    
-    if st.sidebar.button("🔍 Face Matching", 
-                type="primary" if st.session_state["page"] == "Face Matching" else "secondary",
-                key="nav_face_matching",
-                use_container_width=True):
+
+    if st.sidebar.button(
+        "🔍 Face Matching",
+        type="primary" if st.session_state["page"] == "Face Matching" else "secondary",
+        key="nav_face_matching",
+        use_container_width=True,
+    ):
         set_page("Face Matching")
-    
-    if st.sidebar.button("🥸 Face Anonymization", 
-                type="primary" if st.session_state["page"] == "Face Anonymization" else "secondary",
-                key="nav_face_anonymization",
-                use_container_width=True):
+
+    if st.sidebar.button(
+        "🥸 Face Anonymization",
+        type=(
+            "primary"
+            if st.session_state["page"] == "Face Anonymization"
+            else "secondary"
+        ),
+        key="nav_face_anonymization",
+        use_container_width=True,
+    ):
         set_page("Face Anonymization")
-    
-    if st.sidebar.button("📊 Bias Testing", 
-                type="primary" if st.session_state["page"] == "Bias Testing" else "secondary",
-                key="nav_bias_testing",
-                use_container_width=True):
+
+    if st.sidebar.button(
+        "📊 Bias Testing",
+        type="primary" if st.session_state["page"] == "Bias Testing" else "secondary",
+        key="nav_bias_testing",
+        use_container_width=True,
+    ):
         set_page("Bias Testing")
-    
-    if st.sidebar.button("💾 Dataset Management", 
-                type="primary" if st.session_state["page"] == "Dataset Management" else "secondary",
-                key="nav_dataset_management",
-                use_container_width=True):
+
+    if st.sidebar.button(
+        "💾 Dataset Management",
+        type=(
+            "primary"
+            if st.session_state["page"] == "Dataset Management"
+            else "secondary"
+        ),
+        key="nav_dataset_management",
+        use_container_width=True,
+    ):
         set_page("Dataset Management")
-    
+
     # Add a separator
     st.sidebar.markdown("---")
-    
+
     # Add info section
     st.sidebar.markdown('<div class="info-box">', unsafe_allow_html=True)
     st.sidebar.info(
         "This application demonstrates facial recognition capabilities "
         "while exploring ethical considerations such as privacy and bias."
     )
-    st.sidebar.markdown('</div>', unsafe_allow_html=True)
-    
+    st.sidebar.markdown("</div>", unsafe_allow_html=True)
+
     # Show paths information in an expander
     with st.sidebar.expander("🔧 Data Directories"):
         # Ensure paths is initialized
         if "paths" not in st.session_state:
             init_session_state()
-            
+
         for name, path in st.session_state["paths"].items():
             st.sidebar.code(f"{name}: {path}")
-            
+
             # Add check if directory exists
             if not os.path.exists(path):
                 st.sidebar.warning(f"Directory doesn't exist: {path}")
             elif name == "known_faces_dir":
                 # Count known faces
                 try:
-                    face_count = len([f for f in os.listdir(path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+                    face_count = len(
+                        [
+                            f
+                            for f in os.listdir(path)
+                            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+                        ]
+                    )
                     st.sidebar.text(f"Contains {face_count} known faces")
                 except:
                     st.sidebar.text("Error reading directory")
 
+
 # Home page
 def render_home():
     """Render the home page with introduction and feature overview."""
-    st.markdown('<h1 class="main-header">Facial Recognition Software Project</h1>', unsafe_allow_html=True)
-    st.markdown('<h2 class="subheader">Demonstration and Ethical Exploration</h2>', unsafe_allow_html=True)
-    
+    st.markdown(
+        '<h1 class="main-header">Facial Recognition Software Project</h1>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<h2 class="subheader">Demonstration and Ethical Exploration</h2>',
+        unsafe_allow_html=True,
+    )
+
     # Introduction
-    st.markdown("""
+    st.markdown(
+        """
     Welcome to the Facial Recognition Software Project. This application demonstrates 
     facial recognition technology while exploring important ethical considerations 
     around privacy, bias, and consent.
     
     ## 🌟 Key Features
-    """)
-    
+    """
+    )
+
     # Feature highlights in columns
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
         ### 📷 Face Detection
         Detect faces in images and webcam feeds using computer vision algorithms.
         
         ### 🔍 Face Matching
         Match detected faces against known references for identification.
-        """)
-    
+        """
+        )
+
     with col2:
-        st.markdown("""
+        st.markdown(
+            """
         ### 🥸 Face Anonymization
         Apply privacy filters to faces with methods like blurring and pixelation.
         
         ### 📊 Bias Testing
         Analyze algorithm performance across demographic groups to detect bias.
-        """)
-    
+        """
+        )
+
     # Ethical focus
-    st.markdown("""
+    st.markdown(
+        """
     ## 🤔 Ethical Focus
-    
+                
     This project emphasizes important ethical considerations in facial recognition:
     
     - **Privacy**: How to balance utility with protecting individual privacy
     - **Bias**: Measuring and addressing algorithmic bias across demographics
     - **Consent**: Respecting individual agency and informed consent
     - **Transparency**: Understanding how these systems work and their limitations
-    """)
-    
+                
+    #### For a comprehensive ethical analysis, please refer to the ./docs/ethical_discussion.md file.
+
+    """
+    )
+
     # Getting started instructions
-    st.markdown("""
+    st.markdown(
+        """
     ## 🚀 Getting Started
     
     1. Use the sidebar navigation to explore different features
@@ -340,11 +413,13 @@ def render_home():
     
     For a complete experience, you'll need to set up required datasets using the 
     Dataset Management feature.
-    """)
-    
+    """
+    )
+
     # UTKFace dataset info
     with st.expander("About the UTKFace Dataset"):
-        st.markdown("""
+        st.markdown(
+            """
         ### UTKFace Dataset
         
         This project uses the UTKFace (University of Tennessee, Knoxville Face) dataset for demographic bias testing.
@@ -355,30 +430,35 @@ def render_home():
         - Ethnicity categories: White, Black, Asian, Indian, and Others
         
         To download and set up the dataset, use the Dataset Management feature.
-        """)
-    
+        """
+        )
+
     # Check data directories
     missing_dirs = []
     for name, path in st.session_state.paths.items():
         if not os.path.exists(path):
             missing_dirs.append(name)
-    
+
     if missing_dirs:
-        st.warning(f"Some data directories don't exist: {', '.join(missing_dirs)}. Use the Dataset Management feature to set them up.")
+        st.warning(
+            f"Some data directories don't exist: {', '.join(missing_dirs)}. Use the Dataset Management feature to set them up."
+        )
+
+
 # Main application
 def main():
     """Main function to run the Streamlit application."""
-    
+
     # Initialize session state
     init_session_state()
-    
+
     # Render sidebar
     render_sidebar()
-    
+
     # Route to the appropriate page
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
-        
+
     if st.session_state["page"] == "Home":
         render_home()
     elif st.session_state["page"] == "Face Detection":
@@ -394,6 +474,7 @@ def main():
     else:
         # Default to home
         render_home()
+
 
 if __name__ == "__main__":
     main()
