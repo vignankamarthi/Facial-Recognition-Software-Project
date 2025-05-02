@@ -1,42 +1,60 @@
 #!/bin/bash
-# Make this script executable with: chmod +x webcam_setup.sh
-# Docker webcam setup script for browser-based camera access
+# Facial Recognition Docker Static Camera Setup Script
+# Configures and validates static photo capture for facial recognition in Docker
 
-# Make sure the script is executable
+# Make test script executable
 chmod +x ./webcam/test_webcam.py 
 
-# Stop and remove any existing containers
+# Reset container state for clean setup
+echo "Stopping any existing containers..."
 docker-compose down
 
-# Build a fresh container
+# Build optimized container for facial recognition
+echo "Building facial recognition container with static photo capture support..."
 docker-compose build --no-cache
 
-# Start the container in the background
+# Start container with Streamlit camera configuration
+echo "Starting container with browser-based static photo capture..."
 docker-compose up -d
 
-# Wait for container to initialize
-echo "Waiting for container to initialize..."
+# Allow time for facial recognition systems to initialize
+echo "Initializing facial recognition modules (static photo mode only)..."
 sleep 5
 
-# Test webcam access directly
-echo "Testing webcam access..."
+# Validate basic camera access (not live streaming)
+echo "Testing camera accessibility for static photo capture..."
 docker-compose exec facerec python /app/docker/webcam/test_webcam.py
 
-# Show container status
+# Display container status with resource allocation
 docker-compose ps
 
 echo ""
-echo "Setup complete! Container is running in the background."
-echo "Visit http://localhost:8501 to access the application."
+echo "╔═════════════════════════════════════════════════════════════╗"
+echo "║ Facial Recognition Docker Photo Capture Setup Complete      ║"
+echo "╚═════════════════════════════════════════════════════════════╝"
 echo ""
-echo "THE NEW BROWSER-BASED CAMERA APPROACH:"
+echo "The application is running at: http://localhost:8501"
+echo ""
+echo "To use facial recognition features with static photo capture:"
+echo ""
 echo "1. Open http://localhost:8501 in your browser"
-echo "2. Navigate to any feature with webcam functionality"
-echo "3. Click the 'Use Webcam' tab"
-echo "4. Allow camera access when prompted by your browser"
-echo "5. Use the 'Take Photo' button to capture frames for processing"
+echo "2. Navigate to one of the facial recognition features (static photo only):"
+echo "   - Face Detection: Locate and identify faces in photos"
+echo "   - Face Matching: Compare photos against known references"
+echo "   - Face Anonymization: Apply privacy filters to photos"
+echo "3. Select the 'Use Webcam' tab in the feature"
+echo "4. Allow camera access when prompted"
+echo "5. Position your face for optimal photo capture:"
+echo "   - Center in the frame"
+echo "   - Well-lit from the front"
+echo "   - Limited background complexity"
+echo "6. Click the 'Take Photo' button to capture and process a single frame"
+echo "7. Note that live webcam features are NOT available in Docker"
+echo "8. You must click 'Take Photo' for each new frame you want to process"
 echo ""
-echo "If issues persist, try these commands to troubleshoot:"
-echo "1. Check container logs: docker-compose logs"
-echo "2. View the documentation: open docker/webcam/DOCKER_WEBCAM.md"
-echo "3. Stop the container: docker-compose down"
+echo "Troubleshooting photo capture issues:"
+echo "1. Check camera detection: docker-compose exec facerec python /app/docker/webcam/test_webcam.py"
+echo "2. Verify browser permissions: chrome://settings/content/camera"
+echo "3. View recognition logs: docker-compose logs | grep 'detector'"
+echo "4. See detailed documentation: docker/webcam/DOCKER_WEBCAM.md"
+echo "5. For live webcam features: exit Docker and run 'python run_demo.py' directly on your host"
