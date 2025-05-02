@@ -149,14 +149,14 @@ class FaceAnonymizer:
         self.method = method if method is not None else DEFAULT_ANONYMIZATION_METHOD
         self.intensity = intensity if intensity is not None else DEFAULT_ANONYMIZATION_INTENSITY
 
-    def anonymize_face(self, frame, face_location, method=None):
+    def anonymize_face(self, image, face_location, method=None):
         """
         Apply anonymization to a single face.
 
         Parameters
         ----------
-        frame : numpy.ndarray
-            Image frame containing the face to anonymize
+        image : numpy.ndarray
+            Image containing the face to anonymize
         face_location : tuple
             Face location tuple (top, right, bottom, left)
         method : str, optional
@@ -175,12 +175,12 @@ class FaceAnonymizer:
         >>> face_location = (50, 200, 150, 100)  # (top, right, bottom, left)
         >>> result = anonymizer.anonymize_face(frame, face_location)
         """
-        # Make a copy of the frame to avoid modifying the original
-        result_frame = frame.copy()
+        # Make a copy of the image to avoid modifying the original
+        result_image = image.copy()
 
         # Extract face location coordinates
         top, right, bottom, left = face_location
-        face_img = frame[top:bottom, left:right]
+        face_img = image[top:bottom, left:right]
 
         # Use specified method or default
         current_method = method if method else self.method
@@ -192,7 +192,7 @@ class FaceAnonymizer:
                 self.intensity if self.intensity % 2 == 1 else self.intensity + 1
             )
             blurred_face = cv2.GaussianBlur(face_img, (kernel_size, kernel_size), 0)
-            result_frame[top:bottom, left:right] = blurred_face
+            result_image[top:bottom, left:right] = blurred_face
 
         elif current_method == "pixelate":
             # Pixelate by downscaling and upscaling
@@ -213,12 +213,12 @@ class FaceAnonymizer:
                 temp, (width, height), interpolation=cv2.INTER_NEAREST
             )
 
-            result_frame[top:bottom, left:right] = pixelated_face
+            result_image[top:bottom, left:right] = pixelated_face
 
         elif current_method == "mask":
             # Create a solid color mask
             mask_color = (0, 0, 0)  # Black mask
-            cv2.rectangle(result_frame, (left, top), (right, bottom), mask_color, -1)
+            cv2.rectangle(result_image, (left, top), (right, bottom), mask_color, -1)
 
             # Optional: Draw a face icon or text
             center_x = (left + right) // 2
@@ -226,23 +226,23 @@ class FaceAnonymizer:
             radius = min(right - left, bottom - top) // 4
 
             # Draw a simple face icon
-            cv2.circle(result_frame, (center_x, center_y), radius, (255, 255, 255), -1)
+            cv2.circle(result_image, (center_x, center_y), radius, (255, 255, 255), -1)
             cv2.circle(
-                result_frame,
+                result_image,
                 (center_x - radius // 2, center_y - radius // 3),
                 radius // 5,
                 (0, 0, 0),
                 -1,
             )  # Left eye
             cv2.circle(
-                result_frame,
+                result_image,
                 (center_x + radius // 2, center_y - radius // 3),
                 radius // 5,
                 (0, 0, 0),
                 -1,
             )  # Right eye
             cv2.ellipse(
-                result_frame,
+                result_image,
                 (center_x, center_y + radius // 3),
                 (radius // 2, radius // 3),
                 0,
@@ -253,9 +253,9 @@ class FaceAnonymizer:
             )  # Mouth
 
         # Add a visual indicator that this face is anonymized
-        cv2.rectangle(result_frame, (left, top), (right, bottom), WARNING_COLOR, 2)
+        cv2.rectangle(result_image, (left, top), (right, bottom), WARNING_COLOR, 2)
         cv2.putText(
-            result_frame,
+            result_image,
             "Anonymized",
             (left, top - 10),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -264,16 +264,16 @@ class FaceAnonymizer:
             2,
         )
 
-        return result_frame
+        return result_image
 
-    def anonymize_frame(self, frame, face_locations):
+    def anonymize_frame(self, image, face_locations):
         """
         Apply anonymization to all faces in a frame.
 
         Parameters
         ----------
-        frame : numpy.ndarray
-            Image frame containing faces to anonymize
+        image : numpy.ndarray
+            Image containing faces to anonymize
         face_locations : list
             List of face location tuples (top, right, bottom, left)
 
@@ -290,24 +290,24 @@ class FaceAnonymizer:
         Examples
         --------
         >>> # Anonymize all faces in an image
-        >>> frame = cv2.imread('image.jpg')
+        >>> image = cv2.imread('image.jpg')
         >>> # Assume face_locations has been obtained from a FaceDetector
-        >>> result = anonymizer.anonymize_frame(frame, face_locations)
+        >>> result = anonymizer.anonymize_frame(image, face_locations)
         """
-        result_frame = frame.copy()
+        result_image = image.copy()
 
         for face_location in face_locations:
-            result_frame = self.anonymize_face(result_frame, face_location)
+            result_image = self.anonymize_face(result_image, face_location)
 
         # Add semi-transparent background for menu text
-        overlay = result_frame.copy()
+        overlay = result_image.copy()
         # Make the box for showing information
         cv2.rectangle(overlay, (5, 5), (400, 40), (0, 0, 0), -1)
-        cv2.addWeighted(overlay, 0.6, result_frame, 0.4, 0, result_frame)
+        cv2.addWeighted(overlay, 0.6, result_image, 0.4, 0, result_image)
         
         # Add indicator for anonymization mode
         cv2.putText(
-            result_frame,
+            result_image,
             f"Anonymization: {self.method.capitalize()}",
             (10, 30),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -316,7 +316,7 @@ class FaceAnonymizer:
             2,
         )
 
-        return result_frame
+        return result_image
 
     def set_method(self, method):
         """
@@ -368,14 +368,14 @@ class FaceAnonymizer:
         else:
             print("Intensity must be between 1 and 100")
 
-    def demonstrate_methods(self, frame, face_location):
+    def demonstrate_methods(self, image, face_location):
         """
         Demonstrate different anonymization methods on a single face.
 
         Parameters
         ----------
-        frame : numpy.ndarray
-            Image frame containing the face
+        image : numpy.ndarray
+            Image containing the face
         face_location : tuple
             Face location tuple (top, right, bottom, left)
 
@@ -391,18 +391,18 @@ class FaceAnonymizer:
         Examples
         --------
         >>> # Compare all anonymization methods
-        >>> frame = cv2.imread('image.jpg')
+        >>> image = cv2.imread('image.jpg')
         >>> face_location = (50, 200, 150, 100)  # (top, right, bottom, left)
-        >>> results = anonymizer.demonstrate_methods(frame, face_location)
+        >>> results = anonymizer.demonstrate_methods(image, face_location)
         >>> # Display results
         >>> cv2.imshow('Original', results['original'])
         >>> cv2.imshow('Blur', results['blur'])
         """
         methods = {
-            "original": frame.copy(),
-            "blur": self.anonymize_face(frame, face_location, "blur"),
-            "pixelate": self.anonymize_face(frame, face_location, "pixelate"),
-            "mask": self.anonymize_face(frame, face_location, "mask"),
+            "original": image.copy(),
+            "blur": self.anonymize_face(image, face_location, "blur"),
+            "pixelate": self.anonymize_face(image, face_location, "pixelate"),
+            "mask": self.anonymize_face(image, face_location, "mask"),
         }
 
         return methods
@@ -473,21 +473,21 @@ def run_anonymization_demo():
         # Main processing loop
         while True:
             # Capture frame-by-frame
-            ret, frame = video_capture.read()
+            ret, image = video_capture.read()
 
             if not ret:
                 error_msg = format_error("Camera", "Failed to capture frame")
                 print(error_msg)
                 break
 
-            # Detect faces in the frame
-            face_locations, _ = detector.detect_faces(frame)
+            # Detect faces in the image
+            face_locations, _ = detector.detect_faces(image)
 
             # Anonymize the faces
-            display_frame = anonymizer.anonymize_frame(frame, face_locations)
+            display_image = anonymizer.anonymize_frame(image, face_locations)
 
-            # Display the resulting frame
-            cv2.imshow(WINDOW_NAME, display_frame)
+            # Display the resulting image
+            cv2.imshow(WINDOW_NAME, display_image)
             
             # Short wait time
             key = cv2.waitKey(WAIT_KEY_DELAY) & 0xFF

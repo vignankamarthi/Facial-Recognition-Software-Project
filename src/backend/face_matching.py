@@ -234,14 +234,14 @@ class FaceMatcher:
 
         print(f"Loaded {len(self.known_face_names)} known faces")
 
-    def identify_faces(self, frame, face_locations, face_encodings):
+    def identify_faces(self, image, face_locations, face_encodings):
         """
         Compare detected faces against known faces to identify them.
 
         Parameters
         ----------
-        frame : numpy.ndarray
-            Image frame containing the detected faces
+        image : numpy.ndarray
+            Image containing the detected faces
         face_locations : list
             List of face location tuples (top, right, bottom, left)
         face_encodings : list
@@ -267,8 +267,8 @@ class FaceMatcher:
         >>> result_frame, names = matcher.identify_faces(frame, face_locations, face_encodings)
         >>> print(f"Identified {len(names)} faces: {names}")
         """
-        # Create a copy of the frame
-        display_frame = frame.copy()
+        # Create a copy of the image
+        display_image = image.copy()
         face_names = []
 
         # Check if we have known faces to compare against
@@ -279,19 +279,19 @@ class FaceMatcher:
 
                 # Draw a box around the face
                 cv2.rectangle(
-                    display_frame, (left, top), (right, bottom), (0, 0, 255), 2
+                    display_image, (left, top), (right, bottom), (0, 0, 255), 2
                 )
 
                 # Draw a label with the name below the face
                 cv2.rectangle(
-                    display_frame,
+                    display_image,
                     (left, bottom - 35),
                     (right, bottom),
                     (0, 0, 255),
                     cv2.FILLED,
                 )
                 cv2.putText(
-                    display_frame,
+                    display_image,
                     name,
                     (left + 6, bottom - 6),
                     cv2.FONT_HERSHEY_DUPLEX,
@@ -330,18 +330,18 @@ class FaceMatcher:
                 face_names.append(name)
 
                 # Draw a box around the face
-                cv2.rectangle(display_frame, (left, top), (right, bottom), box_color, 2)
+                cv2.rectangle(display_image, (left, top), (right, bottom), box_color, 2)
 
                 # Draw a label with the name below the face
                 cv2.rectangle(
-                    display_frame,
+                    display_image,
                     (left, bottom - 35),
                     (right, bottom),
                     box_color,
                     cv2.FILLED,
                 )
                 cv2.putText(
-                    display_frame,
+                    display_image,
                     name,
                     (left + 6, bottom - 6),
                     cv2.FONT_HERSHEY_DUPLEX,
@@ -350,7 +350,7 @@ class FaceMatcher:
                     1,
                 )
 
-        return display_frame, face_names
+        return display_image, face_names
 
     @handle_opencv_error
     def match_faces_webcam(self):

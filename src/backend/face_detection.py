@@ -70,14 +70,14 @@ class FaceDetector:
         logger.debug("FaceDetector initialized")
 
     @log_method_call(logger)
-    def detect_faces(self, frame):
+    def detect_faces(self, image):
         """
         Detect faces in a given frame.
 
         Parameters
         ----------
-        frame : numpy.ndarray
-            Image frame to process
+        image : numpy.ndarray
+            Image to process
 
         Returns
         -------
@@ -102,28 +102,28 @@ class FaceDetector:
         >>> face_locations, face_encodings = detector.detect_faces(image)
         >>> print(f"Found {len(face_locations)} faces")
         """
-        # Validate input frame
-        if frame is None:
-            error_msg = "Cannot detect faces in None frame"
+        # Validate input image
+        if image is None:
+            error_msg = "Cannot detect faces in None image"
             logger.error(error_msg)
             raise ValueError(error_msg)
             
-        if frame.size == 0:
-            error_msg = "Empty frame provided for face detection"
+        if image.size == 0:
+            error_msg = "Empty image provided for face detection"
             logger.error(error_msg)
             raise ValueError(error_msg)
         
         try:
             # Convert the image from BGR color (OpenCV's default format) to RGB (face_recognition)
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
             # Find all the faces in the current frame
-            self.face_locations = face_recognition.face_locations(rgb_frame)
+            self.face_locations = face_recognition.face_locations(rgb_image)
             self.face_encodings = face_recognition.face_encodings(
-                rgb_frame, self.face_locations
+                rgb_image, self.face_locations
             )
             
-            logger.debug(f"Detected {len(self.face_locations)} faces in frame")
+            logger.debug(f"Detected {len(self.face_locations)} faces in image")
             return self.face_locations, self.face_encodings
             
         except Exception as e:
@@ -132,14 +132,14 @@ class FaceDetector:
             raise DetectionError(error_msg, str(e), e)
 
     @log_method_call(logger)
-    def draw_face_boxes(self, frame, face_locations, color=(0, 255, 0), thickness=2):
+    def draw_face_boxes(self, image, face_locations, color=(0, 255, 0), thickness=2):
         """
         Draw colored boxes around detected faces.
 
         Parameters
         ----------
-        frame : numpy.ndarray
-            Image frame to draw on
+        image : numpy.ndarray
+            Image to draw on
         face_locations : list
             List of face location tuples (top, right, bottom, left)
         color : tuple, optional
@@ -165,9 +165,9 @@ class FaceDetector:
         >>> result = detector.draw_face_boxes(image, face_locations)
         >>> cv2.imshow("Faces", result)
         """
-        # Validate input frame
-        if frame is None:
-            error_msg = "Cannot draw boxes on None frame"
+        # Validate input image
+        if image is None:
+            error_msg = "Cannot draw boxes on None image"
             logger.error(error_msg)
             raise ValueError(error_msg)
             
@@ -176,15 +176,15 @@ class FaceDetector:
             logger.warning(f"face_locations is not a list: {type(face_locations)}")
             face_locations = list(face_locations) if face_locations else []
         
-        # Create a copy of the frame to avoid modifying the original
-        display_frame = frame.copy()
+        # Create a copy of the image to avoid modifying the original
+        display_image = image.copy()
 
         # Draw a box around each detected face
         for i, (top, right, bottom, left) in enumerate(face_locations):
-            cv2.rectangle(display_frame, (left, top), (right, bottom), color, thickness)
+            cv2.rectangle(display_image, (left, top), (right, bottom), color, thickness)
             logger.debug(f"Drew face box {i+1} at location ({left}, {top}, {right}, {bottom})")
 
-        return display_frame
+        return display_image
 
     @handle_opencv_error
     @log_method_call(logger)
@@ -429,7 +429,7 @@ class FaceDetector:
             return success, result_dict
             
     @log_method_call(logger)
-    def process_image(self, image_path):
+    def process_image_file(self, image_path):
         """
         Process a single image file, detecting and displaying faces.
         

@@ -121,7 +121,7 @@ class ImageProcessor:
         """
         if self._detector is None:
             # Import here to avoid circular dependency
-            from ..backend.face_detection import FaceDetector
+            from src.backend.face_detection import FaceDetector
             self._detector = FaceDetector()
         return self._detector
         
@@ -142,7 +142,7 @@ class ImageProcessor:
         """
         if self._matcher is None:
             # Import here to avoid circular dependency
-            from ..backend.face_matching import FaceMatcher
+            from src.backend.face_matching import FaceMatcher
             self._matcher = FaceMatcher(self.known_faces_dir)
         return self._matcher
         
@@ -163,7 +163,7 @@ class ImageProcessor:
         """
         if self._anonymizer is None:
             # Import here to avoid circular dependency
-            from ..backend.anonymization import FaceAnonymizer
+            from src.backend.anonymization import FaceAnonymizer
             self._anonymizer = FaceAnonymizer()
         return self._anonymizer
 
