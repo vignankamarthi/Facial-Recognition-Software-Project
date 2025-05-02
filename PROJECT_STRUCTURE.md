@@ -77,6 +77,7 @@ Facial-Recognition-Software-Project/
 │   └── unit/                       # Unit tests
 ├── PROJECT_STRUCTURE.md            # This file
 ├── README.md                       # Project overview
+├── pytest.ini                      # pytest configuration
 ├── requirements.txt                # Python dependencies
 ├── run_demo.py                     # Launcher script
 └── run_tests.py                    # Test runner script
