@@ -24,12 +24,12 @@ class TestFaceDetector:
         detector = FaceDetector()
 
         # Test with None input
-        with pytest.raises(ValueError, match="Cannot detect faces in None frame"):
+        with pytest.raises(ValueError, match="Cannot detect faces in None image"):
             detector.detect_faces(None)
 
         # Test with empty frame
         empty_frame = np.array([])
-        with pytest.raises(ValueError, match="Empty frame provided for face detection"):
+        with pytest.raises(ValueError, match="Empty image provided for face detection"):
             detector.detect_faces(empty_frame)
 
     @patch("src.backend.face_detection.face_recognition.face_locations")
@@ -89,7 +89,7 @@ class TestFaceDetector:
                 )
 
         # Test with invalid input (None frame)
-        with pytest.raises(ValueError, match="Cannot draw boxes on None frame"):
+        with pytest.raises(ValueError, match="Cannot draw boxes on None image"):
             detector.draw_face_boxes(None, face_locations)
 
         # Test with non-list face_locations
@@ -173,7 +173,7 @@ class TestFaceDetector:
             mock_detect.return_value = ([(50, 350, 250, 50)], [np.ones(128)])
 
             # Process the image
-            success, result = detector.process_image(sample_image)
+            success, result = detector.process_image_file(sample_image)
 
             # Verify results
             assert success is True
@@ -194,7 +194,7 @@ class TestFaceDetector:
         non_existent_path = "/non/existent/path.jpg"
         with patch("os.path.exists") as mock_exists:
             mock_exists.return_value = False
-            success, result = detector.process_image(non_existent_path)
+            success, result = detector.process_image_file(non_existent_path)
 
             # Verify error handling
             assert success is False
@@ -206,7 +206,7 @@ class TestFaceDetector:
             mock_exists.return_value = True
             mock_imread.return_value = None
 
-            success, result = detector.process_image(sample_image)
+            success, result = detector.process_image_file(sample_image)
 
             # Verify error handling
             assert success is False

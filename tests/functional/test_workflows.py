@@ -46,7 +46,7 @@ class TestEndToEndWorkflows:
         
         # Mock the face detection to avoid actual processing
         with patch.object(FaceDetector, 'detect_faces') as mock_detect_faces, \
-             patch.object(FaceDetector, 'process_image') as mock_process_image, \
+             patch.object(FaceDetector, 'process_image_file') as mock_process_image, \
              patch('cv2.imshow') as mock_imshow, \
              patch('cv2.waitKey') as mock_waitkey:
             
@@ -69,7 +69,7 @@ class TestEndToEndWorkflows:
             assert result['face_count'] >= 0
             
             # Process an image file
-            success, result = detector.process_image(test_image_path)
+            success, result = detector.process_image_file(test_image_path)
             
             # Verify image processing was successful
             assert success is True
