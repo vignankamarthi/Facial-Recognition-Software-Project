@@ -350,7 +350,7 @@ def render_home():
         This project uses the UTKFace (University of Tennessee, Knoxville Face) dataset for demographic bias testing.
         
         **Key features of the dataset:**
-        - Contains over 20,000 face images with age, gender, and ethnicity annotations
+        - Contains close to 30,000 face images with age, gender, and ethnicity annotations
         - Age ranges from 0 to 116 years
         - Ethnicity categories: White, Black, Asian, Indian, and Others
         

@@ -592,7 +592,7 @@ def dataset_management_page():
         st.markdown("""
         ### UTKFace Dataset
         
-        The UTKFace dataset (University of Tennessee, Knoxville Face Dataset) is a large-scale face dataset with long age span (range from 0 to 116 years old). The dataset consists of over 20,000 face images with annotations of age, gender, and ethnicity. The images cover large variation in pose, facial expression, illumination, occlusion, resolution, etc.
+        The UTKFace dataset (University of Tennessee, Knoxville Face Dataset) is a large-scale face dataset with long age span (range from 0 to 116 years old). The dataset consists of almost 30,000 face images with annotations of age, gender, and ethnicity. The images cover large variation in pose, facial expression, illumination, occlusion, resolution, etc.
         
         ### Dataset Structure
         

@@ -14,7 +14,14 @@ from PIL import Image
 import time
 
 # Add the project root to the Python path for imports
-sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))
+sys.path.insert(
+    0,
+    os.path.abspath(
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        )
+    ),
+)
 
 # Import core functionality
 from src.backend.face_detection import FaceDetector
@@ -28,7 +35,7 @@ from src.ui.streamlit.components import (
     streamlit_webcam_component,
     image_upload_component,
     anonymization_config_panel,
-    before_after_comparison
+    before_after_comparison,
 )
 
 # Setup logging
@@ -37,15 +44,16 @@ logger = get_logger(__name__)
 # Get configuration
 config = get_config()
 
+
 def process_anonymization_frame(frame):
     """
     Process a frame for face anonymization.
-    
+
     Parameters
     ----------
     frame : numpy.ndarray
         Input frame in BGR format
-    
+
     Returns
     -------
     tuple
@@ -53,110 +61,119 @@ def process_anonymization_frame(frame):
     """
     # Get detector and anonymizer instances
     detector = FaceDetector()
-    
+
     # Get anonymization parameters from session state
     anon_params = st.session_state.config["anonymization"]
-    
+
     # Create anonymizer with current settings
     anonymizer = FaceAnonymizer(
-        method=anon_params["method"],
-        intensity=anon_params["intensity"]
+        method=anon_params["method"], intensity=anon_params["intensity"]
     )
-    
+
     # Start timing for performance measurement
     start_time = time.time()
-    
+
     try:
         # Make a copy of the original frame for later
         original_frame = frame.copy()
-        
+
         # Detect faces
         face_locations, _ = detector.detect_faces(frame)
-        
+
         # Anonymize faces if any detected
         if face_locations:
             processed_frame = anonymizer.anonymize_frame(frame, face_locations)
         else:
             # No faces detected, just use the input frame
             processed_frame = frame
-        
+
         # Calculate processing time
         processing_time = time.time() - start_time
-        
+
         # Create metadata dictionary
         metadata = {
             "face_count": len(face_locations),
-            "method": anon_params["method"].capitalize(), 
+            "method": anon_params["method"].capitalize(),
             "intensity": anon_params["intensity"],
-            "processing_time": f"{processing_time*1000:.1f} ms"
+            "processing_time": f"{processing_time*1000:.1f} ms",
         }
-        
+
         # Store original frame for preview if needed
         if anon_params["preview"] and len(face_locations) > 0:
             st.session_state["original_frame"] = original_frame
             st.session_state["anonymized_frame"] = processed_frame
-        
+
         return processed_frame, metadata
-    
+
     except Exception as e:
         logger.error(f"Error in face anonymization: {e}")
         return frame, {"error": str(e)}
 
+
 def face_anonymization_page():
     """Render the face anonymization page."""
-    
+
     st.markdown("# Face Anonymization")
     st.markdown("Apply privacy-preserving filters to faces in images or webcam feed.")
-    
+
     # Anonymization settings
     with st.expander("Anonymization Settings", expanded=True):
         updated_config = anonymization_config_panel(
-            st.session_state.config["anonymization"], 
-            key_prefix="fa_"
+            st.session_state.config["anonymization"], key_prefix="fa_"
         )
         st.session_state.config["anonymization"] = updated_config
-    
+
     # Create tabs for webcam vs image upload
     tab1, tab2 = st.tabs(["Use Webcam", "Upload Image"])
-    
+
     # Webcam tab
     with tab1:
         st.markdown("### Use webcam feed for real-time face anonymization")
-        st.markdown("Use your camera to anonymize faces in real-time. Position yourself or others in front of the camera.")
-        
+        st.markdown(
+            "Use your camera to anonymize faces in real-time. Position yourself or others in front of the camera."
+        )
+
         # Check if we're running in Docker/container environment
-        use_streamlit_camera = os.environ.get('USE_STREAMLIT_CAMERA', '0') == '1'
-        
+        use_streamlit_camera = os.environ.get("USE_STREAMLIT_CAMERA", "0") == "1"
+
         if use_streamlit_camera:
             # Use the Streamlit native webcam component for Docker/container environments
             st.info("Using Streamlit's built-in camera for compatibility with Docker.")
-            streamlit_webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
+            streamlit_webcam_component(
+                process_anonymization_frame, key_prefix="fa_webcam_"
+            )
         else:
             # Use the external window webcam component for direct installations
             webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
-    
+
     # Image upload tab
     with tab2:
         st.markdown("### Upload an image to anonymize faces")
-        st.markdown("Upload an image containing one or more faces to apply privacy filters.")
-        
+        st.markdown(
+            "Upload an image containing one or more faces to apply privacy filters."
+        )
+
         # Use the image upload component
         image_upload_component(process_anonymization_frame, key_prefix="fa_")
-        
+
         # If we have stored frames for preview, show them
-        if "original_frame" in st.session_state and "anonymized_frame" in st.session_state:
+        if (
+            "original_frame" in st.session_state
+            and "anonymized_frame" in st.session_state
+        ):
             if st.session_state.config["anonymization"]["preview"]:
                 # Show before/after comparison
                 before_after_comparison(
                     st.session_state["original_frame"],
                     st.session_state["anonymized_frame"],
                     title=f"Before/After: {st.session_state.config['anonymization']['method'].capitalize()} Method",
-                    key_prefix="fa_comparison_"
+                    key_prefix="fa_comparison_",
                 )
-    
+
     # Information panel
     with st.expander("About Face Anonymization", expanded=False):
-        st.markdown("""
+        st.markdown(
+            """
         ### How Face Anonymization Works
         
         Face anonymization applies privacy-preserving filters to detected faces to protect individuals' identities while preserving the overall context of the image. This application offers three anonymization methods:
@@ -164,7 +181,7 @@ def face_anonymization_page():
         1. **Blur**: Applies a Gaussian blur filter to face regions
            - Higher intensity creates a stronger blur effect
            - Preserves general facial structure while hiding identifying details
-           
+            
         2. **Pixelate**: Creates a blocky, pixelated effect over faces
            - Higher intensity creates larger, more obscuring pixels
            - Creates a "censored" appearance commonly used in media
@@ -195,7 +212,9 @@ def face_anonymization_page():
         - For blur method, intensity 70+ typically ensures privacy
         - For pixelate method, intensity 50+ creates an effective anonymization
         - The mask method provides the most complete anonymization
-        """)
+        """
+        )
+
 
 if __name__ == "__main__":
     face_anonymization_page()

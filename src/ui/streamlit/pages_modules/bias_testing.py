@@ -362,12 +362,7 @@ def bias_testing_page():
         3. **Regular Testing**: Continuous evaluation across demographic groups
         4. **User Education**: Informing users about limitations and potential biases
         """)
-        
-        # Add a note about the ethical discussion document
-        st.info("""
-        For a more comprehensive discussion of ethical considerations, see the
-        'Ethical Discussion' document in the project documentation.
-        """)
+    
 
 if __name__ == "__main__":
     bias_testing_page()
