@@ -405,10 +405,17 @@ class FaceMatcher:
         video_capture = None
         
         try:
-            # Initialize webcam
-            video_capture = cv2.VideoCapture(0)
-
-            if not video_capture.isOpened():
+            # Initialize webcam - try multiple indices for macOS compatibility
+            video_capture = None
+            for camera_index in [0, 1, -1]:
+                video_capture = cv2.VideoCapture(camera_index)
+                if video_capture.isOpened():
+                    print(f"Successfully opened webcam with index {camera_index}")
+                    break
+                else:
+                    print(f"Failed to open webcam with index {camera_index}")
+                    
+            if not video_capture or not video_capture.isOpened():
                 error_msg = format_error("Camera", "Could not open webcam")
                 print(error_msg)
                 raise CameraError(error_msg)

@@ -71,10 +71,98 @@ def webcam_component(
     
     # If webcam is running, capture and process frames
     if st.session_state[f"{key_prefix}webcam_running"]:
-        cap = cv2.VideoCapture(0)
+        cap = None
+        success = False
         
-        if not cap.isOpened():
-            st.error("Could not open webcam. Please check your camera connection.")
+        # Try multiple camera capture methods for cross-OS compatibility
+        camera_sources = [
+            0,     # Default camera
+            1,     # Secondary camera
+            -1,    # Any available camera
+            "avfoundation://0",  # macOS AVFoundation primary camera
+            "avfoundation://1",  # macOS AVFoundation secondary camera
+            "v4l2:///dev/video0", # Linux V4L2 explicit
+            "avfoundation:///dev/video0", # Another variation to try
+            "*",    # Any available camera (another syntax)
+            # Docker & custom URLs
+            "http://localhost:8090/video", # If using a video streaming setup
+            "/tmp/camera_feed.mp4"  # For systems using virtual video devices
+        ]
+        
+        # Try each camera source until one works
+        error_messages = []
+        for idx, source in enumerate(camera_sources):
+            try:
+                cap = cv2.VideoCapture(source)
+                if cap and cap.isOpened():
+                    success = True
+                    info_placeholder.success(f"Successfully connected to camera {source}")
+                    break
+                else:
+                    cap.release() if cap else None
+                    error_messages.append(f"Could not open camera source: {source}")
+            except Exception as e:
+                error_messages.append(f"Error with camera source {source}: {str(e)}")
+                cap = None
+        
+        if not success:
+            # Show clearer webcam error information
+            st.warning("Direct webcam access failed. Trying Streamlit's built-in camera feature...")
+            
+            # Display error messages in a formatted error box
+            st.error("\n".join([
+                "Could not connect directly to your webcam. Possible reasons:",
+                "1. Your camera is in use by another application",
+                "2. Camera permissions are not granted to the browser",
+                "3. Docker configuration may need adjustment",
+            ]))
+            
+            # Header for the Streamlit camera fallback
+            st.markdown("### Streamlit Camera Fallback")
+            st.info("Take a photo using your camera to apply anonymization effects")
+            
+            # Use Streamlit's built-in camera input with a clearer name
+            camera_image = st.camera_input("Take Photo", key=f"{key_prefix}streamlit_camera")
+            
+            if camera_image is not None:
+                # Process the captured image
+                try:
+                    # Convert to numpy array for processing
+                    image = Image.open(camera_image)
+                    image_np = np.array(image)
+                    
+                    # Convert RGB to BGR (OpenCV format)
+                    if len(image_np.shape) == 3 and image_np.shape[2] == 3:
+                        frame = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+                    else:
+                        frame = image_np
+                    
+                    # Process frame with callback function
+                    processed_frame, metadata = callback_func(frame)
+                    
+                    # Convert back to RGB for display
+                    if len(processed_frame.shape) == 3 and processed_frame.shape[2] == 3:
+                        rgb_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
+                    else:
+                        rgb_frame = processed_frame
+                    
+                    # Display processed frame
+                    frame_placeholder.image(rgb_frame, channels='RGB', use_column_width=True)
+                    
+                    # Display metadata
+                    if metadata:
+                        info_text = ""
+                        for key, value in metadata.items():
+                            if isinstance(value, (str, int, float, bool)):
+                                info_text += f"**{key}**: {value}\n\n"
+                        
+                        if info_text:
+                            info_placeholder.markdown(info_text)
+                
+                except Exception as e:
+                    info_placeholder.error(f"Error processing image: {str(e)}")
+            
+            # We'll use the Streamlit camera instead of our webcam loop
             st.session_state[f"{key_prefix}webcam_running"] = False
             return
         

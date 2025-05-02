@@ -248,8 +248,15 @@ class FaceDetector:
         try:
             # Initialize webcam
             logger.info("Opening webcam")
-            video_capture = cv2.VideoCapture(0)
-
+            # Try different camera indices as macOS might use different indices
+            for camera_index in [0, 1, -1]:
+                video_capture = cv2.VideoCapture(camera_index)
+                if video_capture.isOpened():
+                    logger.info(f"Successfully opened webcam with index {camera_index}")
+                    break
+                else:
+                    logger.warning(f"Failed to open webcam with index {camera_index}")
+            
             if not video_capture.isOpened():
                 error_msg = format_error("Camera", "Could not open webcam")
                 logger.error(error_msg)

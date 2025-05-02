@@ -55,12 +55,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libopenblas-dev \
+    # Additional packages for webcam access
+    libv4l-dev \
+    v4l-utils \
+    ffmpeg \
+    curl \
+    libavformat-dev \
+    libavcodec-dev \
+    libswscale-dev \
+    libavdevice-dev \
+    libavutil-dev \
     # Cleanup to reduce image size
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user for security
-RUN groupadd -r facerec && useradd -r -g facerec facerec
+# Create non-root user for security and add to video group for webcam access
+RUN groupadd -r facerec && useradd -r -g facerec facerec && \
+    getent group video || groupadd -r video && \
+    usermod -a -G video facerec
 
 # Create directory structure matching the project
 RUN mkdir -p /app/config \
@@ -104,14 +116,23 @@ COPY PROJECT_STRUCTURE.md /app/
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DEMO_MODE=true \
-    WEBCAM_ENABLED=false \
+    WEBCAM_ENABLED=true \
     LOG_LEVEL=INFO \
     UI_PORT=8501 \
     FORCE_HEADLESS=true \
     STREAMLIT_HOME_DIR=/app/.streamlit \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
     STREAMLIT_SERVER_RUN_ON_SAVE=true \
-    STREAMLIT_RUNTIME_METRICS_ENABLED=false
+    STREAMLIT_RUNTIME_METRICS_ENABLED=false \
+    # OpenCV webcam configuration
+    OPENCV_VIDEOIO_DEBUG=1 \
+    OPENCV_VIDEOIO_PRIORITY_MSMF=0 \
+    OPENCV_VIDEOIO_PRIORITY_QT=0 \
+    OPENCV_VIDEOIO_PRIORITY_AVFOUNDATION=1000 \
+    OPENCV_FFMPEG_CAPTURE_OPTIONS=video_device_index=0 \
+    OPENCV_AVFOUNDATION_SKIP_AUTH=1 \
+    # macOS specific webcam settings
+    OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 # Set permissions
 RUN chown -R facerec:facerec /app
@@ -120,10 +141,20 @@ RUN chown -R facerec:facerec /app
 COPY docker/init_demo_data.py /app/
 COPY docker/entrypoint.sh /app/
 
-# Make entry point executable
+# Create directory for camera access on macOS
+RUN mkdir -p /tmp/.X11-unix && \
+    chmod 1777 /tmp/.X11-unix
+
+# Make entry point executable and ensure proper permissions
 USER root
 RUN chmod +x /app/entrypoint.sh
-USER facerec
+
+# Add permissions for webcam access
+RUN chmod -R 777 /tmp/.X11-unix
+RUN chmod 777 /app
+
+# Stay as root for webcam access in Docker
+# USER facerec
 
 # Expose Streamlit port
 EXPOSE 8501

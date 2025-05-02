@@ -115,11 +115,19 @@ def face_anonymization_page():
         )
         st.session_state.config["anonymization"] = updated_config
     
-    # Create tabs for image upload vs webcam
-    tab1, tab2 = st.tabs(["Upload Image", "Use Webcam"])
+    # Create tabs for webcam vs image upload
+    tab1, tab2 = st.tabs(["Use Webcam", "Upload Image"])
+    
+    # Webcam tab
+    with tab1:
+        st.markdown("### Use webcam feed for real-time face anonymization")
+        st.markdown("Use your camera to anonymize faces in real-time. Position yourself or others in front of the camera.")
+        
+        # Use the webcam component
+        webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
     
     # Image upload tab
-    with tab1:
+    with tab2:
         st.markdown("### Upload an image to anonymize faces")
         st.markdown("Upload an image containing one or more faces to apply privacy filters.")
         
@@ -136,14 +144,6 @@ def face_anonymization_page():
                     title=f"Before/After: {st.session_state.config['anonymization']['method'].capitalize()} Method",
                     key_prefix="fa_comparison_"
                 )
-    
-    # Webcam tab
-    with tab2:
-        st.markdown("### Use webcam feed for real-time face anonymization")
-        st.markdown("Use your camera to anonymize faces in real-time. Position yourself or others in front of the camera.")
-        
-        # Use the webcam component
-        webcam_component(process_anonymization_frame, key_prefix="fa_webcam_")
     
     # Information panel
     with st.expander("About Face Anonymization", expanded=False):
