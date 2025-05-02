@@ -25,20 +25,32 @@ def function_name(param1, param2, optional_param=None):
     
     Returns
     -------
-    type
+    type or tuple
         Description of return value.
+        For tuple returns, describe each component:
+        - first_component : type
+          Description of first component
+        - second_component : type
+          Description of second component
     
     Raises
     ------
     ExceptionType
         Description of when this exception is raised.
+    ValueError
+        Description of specific validation errors that trigger this exception.
     
     Examples
     --------
-    >>> # Example showing how to use the function
+    >>> # Simple usage example
     >>> result = function_name(1, 2)
     >>> print(result)
     3
+    
+    >>> # Example with optional parameter
+    >>> result = function_name(1, 2, optional_param='value')
+    >>> print(result)
+    {'value': 3}
     
     Notes
     -----
@@ -139,12 +151,33 @@ class ClassName:
    - `error_dict` should contain at minimum:
      - `'error'`: Error message
      - `'type'`: Error type (e.g., 'OpenCV', 'Camera', etc.)
+     - `'details'`: Additional context when available
+     - `'timestamp'`: When the error occurred, if relevant
 3. For collection methods, always return empty collections (not None) when no results are found:
    - Return `[]` for empty lists
    - Return `{}` for empty dictionaries
 4. For boolean operations (success/failure), return:
    - `(True, result_dict)` for success
    - `(False, error_dict)` for failure
+
+### Documenting Complex Return Values
+
+When methods return tuples with multiple components, always document each component fully:
+
+```python
+Returns
+-------
+tuple
+    (result_data, metadata) where:
+    - result_data : np.ndarray or None
+      The processed data, or None if processing failed
+    - metadata : dict
+      Dictionary with processing information:
+      - 'count' : int
+        Number of items processed
+      - 'success' : bool
+        Whether processing completed successfully
+```
 
 ### Method Naming Conventions
 
@@ -158,6 +191,9 @@ class ClassName:
    - `save_`: Methods that save data to files
    - `process_`: Methods that transform data
    - `analyze_`: Methods that examine data without modifying it
+   - `handle_`: Methods that manage exceptions or errors
+   - `validate_`: Methods that check input validity
+   - `format_`: Methods that format data for display or output
 
 ## Examples
 
