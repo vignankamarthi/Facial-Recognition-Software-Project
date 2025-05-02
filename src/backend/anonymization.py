@@ -40,17 +40,14 @@ _DEFAULT_ANONYMIZATION_METHOD = "blur"
 _DEFAULT_ANONYMIZATION_INTENSITY = 90
 _WARNING_COLOR = (0, 255, 255)  # Yellow
 
-# Add parent directory to path to ensure imports work in all contexts
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # Import utilities safely with failover to local defaults
 try:
-    from src.utils.common_utils import (
+    from ..utils.common_utils import (
         safely_close_windows, handle_opencv_error, CameraError, AnonymizationError,
         format_error, create_resizable_window
     )
     # Import configuration
-    from src.utils.config import get_config
+    from ..utils.config import get_config
     # Get the config singleton instance
     config = get_config()
     # Initialize OpenCV constants after cv2 is imported if needed

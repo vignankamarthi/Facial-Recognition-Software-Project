@@ -11,7 +11,7 @@ import cv2
 import logging
 
 # Initialize logger
-from src.utils.logger import get_logger
+from .logger import get_logger
 logger = get_logger(__name__)
 
 def is_ci_environment():

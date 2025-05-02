@@ -29,7 +29,17 @@ import os
 import face_recognition
 import matplotlib.pyplot as plt
 import numpy as np
+import time
+import sys
+import traceback
 from sklearn.metrics import confusion_matrix, classification_report
+
+# Import utilities with logging - use relative imports for sibling packages
+from ..utils.logger import get_logger
+from ..utils.common_utils import DatasetError
+
+# Initialize logger for this module
+logger = get_logger(__name__)
 
 
 class BiasAnalyzer:
@@ -128,8 +138,9 @@ class BiasAnalyzer:
         dataset_path = os.path.join(self.test_datasets_dir, dataset_name)
 
         if not os.path.exists(dataset_path):
-            print(f"Dataset directory not found: {dataset_path}")
-            return None
+            error_msg = f"Dataset directory not found: {dataset_path}"
+            logger.error(error_msg)
+            raise DatasetError(error_msg)
 
         dataset = {"images": [], "demographics": []}
 
@@ -259,26 +270,24 @@ class BiasAnalyzer:
         ...     for group, stats in results['by_demographic'].items():
         ...         print(f"{group}: {stats['accuracy']*100:.2f}%")
         """
-        dataset = self.load_test_dataset(dataset_name)
-
-        if not dataset:
-            print(f"Error: Could not load dataset '{dataset_name}'")
+        try:
+            dataset = self.load_test_dataset(dataset_name)
+        except DatasetError as e:
+            logger.error(f"Could not load dataset '{dataset_name}': {e}")
             return None
 
         if len(dataset["images"]) == 0:
-            print(f"Error: Dataset '{dataset_name}' contains no images")
-            print(
-                f"Please add test images to each demographic group directory in: {os.path.join(self.test_datasets_dir, dataset_name)}"
-            )
-            return None
+            error_msg = f"Dataset '{dataset_name}' contains no images"
+            details = f"Please add test images to each demographic group directory in: {os.path.join(self.test_datasets_dir, dataset_name)}"
+            logger.error(f"{error_msg} - {details}")
+            raise DatasetError(error_msg, details)
 
         # Check if we have images for each demographic group
         demographics = set(dataset["demographics"])
         if len(demographics) == 0:
-            print(
-                f"Error: No valid demographic groups found in dataset '{dataset_name}'"
-            )
-            return None
+            error_msg = f"No valid demographic groups found in dataset '{dataset_name}'"
+            logger.error(error_msg)
+            raise DatasetError(error_msg)
 
         print(
             f"Found {len(demographics)} demographic groups: {', '.join(demographics)}"
@@ -666,9 +675,20 @@ class BiasAnalyzer:
 
             # Test recognition accuracy
             print("\nRunning recognition accuracy tests...")
-            results = self.test_recognition_accuracy("demographic_split_set")
+            try:
+                results = self.test_recognition_accuracy("demographic_split_set")
+            except DatasetError as e:
+                logger.error(f"Bias testing failed: {e}")
+                print(f"\nBias testing failed: {e}")
+                return
+            except Exception as e:
+                logger.error(f"Unexpected error during bias testing: {e}")
+                print(f"\nBias testing failed with unexpected error: {e}")
+                traceback.print_exc()
+                return
 
             if not results:
+                logger.error("Bias testing failed with no results")
                 print("\nBias testing failed. Please check the error messages above.")
                 return
 
