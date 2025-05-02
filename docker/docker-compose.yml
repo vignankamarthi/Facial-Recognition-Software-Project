@@ -19,7 +19,7 @@ services:
       - ../src/ui/streamlit/.streamlit:/app/src/ui/streamlit/.streamlit:rw
       # Mount main script files
       - ../run_demo.py:/app/run_demo.py
-      - ./test_webcam.py:/app/docker/test_webcam.py
+      - ./webcam/test_webcam.py:/app/docker/webcam/test_webcam.py
       # Device access for webcam (macOS specific approach)
       - /dev:/dev:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
@@ -84,5 +84,5 @@ services:
 # - For live code changes: Keep the container running and edit code in ./src
 # - To override environment variables: UI_PORT=8502 docker-compose up
 # - To rebuild the container after Dockerfile changes: docker-compose build --no-cache
-# - To test webcam access directly: docker-compose exec facerec python /app/docker/test_webcam.py
+# - To test webcam access directly: docker-compose exec facerec python /app/docker/webcam/test_webcam.py
 #   This will help diagnose camera access issues without going through Streamlit
