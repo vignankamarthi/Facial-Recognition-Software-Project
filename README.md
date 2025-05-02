@@ -1,6 +1,5 @@
 # Facial Recognition Software Project
 A facial recognition system demonstrating technical capabilities and ethical considerations in AI-based recognition technologies.
-[ ] TODO: Check CONFIDENCE levels for MATCHING and DETECTION throughout project
 [ ] TODO: Refactor README after project is complete
 [ ] TODO: Go through ALL documentation/md files
 

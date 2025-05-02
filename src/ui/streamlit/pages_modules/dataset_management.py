@@ -367,6 +367,37 @@ def dataset_management_page():
             The dataset will be used for bias testing and other face recognition features.
             """)
             
+            # Add detailed download instructions
+            with st.expander("📥 UTKFace Dataset Download Instructions", expanded=True):
+                st.markdown("""
+                ### Download Instructions
+                
+                1. **Visit the official UTKFace dataset page**: [UTKFace Dataset on Kaggle](https://www.kaggle.com/datasets/jangedoo/utkface-new)
+                
+                2. **Download the following ZIP files**:
+                   - `UTKFace.tar.gz` (main dataset, ~225MB)
+                   - `utkface_aligned.tar.gz` (aligned faces, ~300MB)
+                
+                3. **Place the downloaded files in the correct location**:
+                   - Move the downloaded files to the `data/datasets` directory in your project root
+                   - The exact required path is: `/Users/vkamarthi24/Desktop/Personal Projects/Facial-Recognition-Software-Project/data/datasets/`
+                   - The system will automatically find and extract files from this location
+                   - Do not rename the files - keep the original filenames
+                   
+                4. **After downloading**:
+                   - Click the "Execute Action" button on the right
+                   - The system will process the dataset according to your settings
+                   - You'll see progress updates here in the UI
+                
+                ### Important Notes
+                
+                - The complete dataset contains **over 20,000 images** (24GB uncompressed)
+                - The download process can be lengthy depending on your internet connection
+                - You need a Kaggle account to download the dataset
+                - Select a reasonable `Sample Size` in the settings above based on your system's capabilities
+                - For bias testing, we need the demographic information included in filenames
+                """)
+            
             # Check if the dataset already exists
             utkface_dir = os.path.join(st.session_state.paths["datasets_dir"], "utkface")
             if os.path.exists(utkface_dir):
