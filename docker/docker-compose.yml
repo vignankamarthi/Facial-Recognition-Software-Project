@@ -16,7 +16,7 @@ services:
       # Mount logs for debugging
       - ../logs:/app/logs:rw
       # Mount .streamlit directory
-      - ../.streamlit:/app/.streamlit:rw
+      - ../src/ui/streamlit/.streamlit:/app/src/ui/streamlit/.streamlit:rw
       # Mount main demo script
       - ../run_demo.py:/app/run_demo.py
     environment:
@@ -26,7 +26,7 @@ services:
       - LOG_LEVEL=INFO  # Set logging verbosity
       - UI_PORT=8501  # Streamlit UI port
       - FORCE_HEADLESS=true  # Run in headless mode (no GUI windows)
-      - STREAMLIT_HOME_DIR=/app/.streamlit
+      - STREAMLIT_HOME_DIR=/app/src/ui/streamlit/.streamlit
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
       - STREAMLIT_SERVER_RUN_ON_SAVE=true
       - STREAMLIT_RUNTIME_METRICS_ENABLED=false

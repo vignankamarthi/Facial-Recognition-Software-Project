@@ -16,8 +16,8 @@ check_writable() {
 echo "Checking essential directories..."
 
 # Create and setup Streamlit home directory
-mkdir -p /app/.streamlit
-chmod -R 777 /app/.streamlit
+mkdir -p /app/src/ui/streamlit/.streamlit
+chmod -R 777 /app/src/ui/streamlit/.streamlit
 
 # Create and setup directories with proper permissions
 mkdir -p /app/logs /app/data /app/data/known_faces /app/data/results /app/data/test_datasets
