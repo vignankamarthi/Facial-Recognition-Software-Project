@@ -379,8 +379,14 @@ def dataset_management_page():
                    - `utkface_aligned.tar.gz` (aligned faces, ~300MB)
                 
                 3. **Place the downloaded files in the correct location**:
-                   - Move the downloaded files to the `data/datasets` directory in your project root
-                   - The exact required path is: `/Users/vkamarthi24/Desktop/Personal Projects/Facial-Recognition-Software-Project/data/datasets/`
+                   - Since you're running with Docker, place the downloaded files in the `data/datasets` directory
+                   - This directory is mounted to the Docker container at `/app/data/datasets`
+                   - On your host machine, create a directory structure like this if it doesn't exist:
+                     ```
+                     data/
+                     └── datasets/
+                     ```
+                   - Place the downloaded `.tar.gz` files directly in this `datasets` directory
                    - The system will automatically find and extract files from this location
                    - Do not rename the files - keep the original filenames
                    
@@ -392,7 +398,7 @@ def dataset_management_page():
                 ### Important Notes
                 
                 - The complete dataset contains **over 20,000 images** (24GB uncompressed)
-                - The download process can be lengthy depending on your internet connection
+                - Make sure your host machine has enough disk space in the mounted volume
                 - You need a Kaggle account to download the dataset
                 - Select a reasonable `Sample Size` in the settings above based on your system's capabilities
                 - For bias testing, we need the demographic information included in filenames
@@ -425,7 +431,20 @@ def dataset_management_page():
             utkface_dir = os.path.join(st.session_state.paths["datasets_dir"], "utkface", "demographic_split")
             if not os.path.exists(utkface_dir):
                 st.warning(f"UTKFace demographic split dataset not found at: {utkface_dir}")
-                st.info("Please download the UTKFace dataset first.")
+                st.info("Please download the UTKFace dataset first using the 'Download UTKFace Dataset' action.")
+                
+                # Add container-specific guidance
+                st.markdown("""
+                ### Docker Setup Reminder
+                Remember that this application is running in a Docker container with mounted volumes.
+                
+                The dataset should be downloaded to your host machine and placed in the correct directory:
+                ```
+                data/datasets/
+                ```
+                
+                This directory is mounted to the Docker container at `/app/data/datasets`.
+                """)
             
             # Check if the target directory already has content
             target_dir = st.session_state.paths["demographic_split_dir"]
@@ -453,7 +472,15 @@ def dataset_management_page():
             utkface_dir = os.path.join(st.session_state.paths["datasets_dir"], "utkface", "utkface_aligned")
             if not os.path.exists(utkface_dir):
                 st.warning(f"UTKFace aligned dataset not found at: {utkface_dir}")
-                st.info("Please download the UTKFace dataset first.")
+                st.info("Please download the UTKFace dataset first using the 'Download UTKFace Dataset' action.")
+                
+                # Add container-specific guidance
+                st.markdown("""
+                ### Docker Setup Reminder
+                The dataset files need to be downloaded to your host machine in the `data/datasets/` directory, 
+                which is mounted to the Docker container. After downloading, run the 'Download UTKFace Dataset' action 
+                to extract and prepare the files.
+                """)
             
             # Check if the target directory already has content
             target_dir = st.session_state.paths["known_faces_dir"]
@@ -472,13 +499,26 @@ def dataset_management_page():
             utkface_dir = os.path.join(st.session_state.paths["datasets_dir"], "utkface", "utkface_aligned")
             if not os.path.exists(utkface_dir):
                 st.warning(f"UTKFace aligned dataset not found at: {utkface_dir}")
-                st.info("Please download the UTKFace dataset first.")
+                st.info("Please download the UTKFace dataset first using the 'Download UTKFace Dataset' action.")
+                
+                # Add container-specific guidance for Docker users
+                st.markdown("""
+                ### Docker Setup Instructions
+                To properly set up the dataset in Docker:
+                
+                1. Download the dataset files on your host machine
+                2. Place them in the `data/datasets/` directory
+                3. Run the 'Download UTKFace Dataset' action in this UI
+                4. Then proceed with this action
+                
+                All data will be persisted in the mounted volume on your host machine.
+                """)
             
             # Check if the known faces directory has content
             known_dir = st.session_state.paths["known_faces_dir"]
             if not os.path.exists(known_dir) or not os.listdir(known_dir):
                 st.warning(f"Known faces directory is empty: {known_dir}")
-                st.info("Please prepare known faces first.")
+                st.info("Please prepare known faces first using the 'Prepare Known Faces from UTKFace' action.")
             
             # Check if the target directory already has content
             test_dir = os.path.join(st.session_state.paths["test_datasets_dir"], "test_images")

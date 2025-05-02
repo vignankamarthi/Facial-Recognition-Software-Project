@@ -7,8 +7,6 @@ This script:
 2. Sets up the basic structure needed for the application
 3. Adds a log message guiding users to download the actual UTKFace dataset
 
-# TODO: Implement a message in the UI directing users to follow README instructions
-# for downloading the UTKFace dataset for proper demonstration
 """
 
 import os
@@ -92,7 +90,6 @@ def main():
     )
     logger.info("to download the UTKFace dataset and prepare it for bias testing.")
 
-    # TODO: Add UI message directing users to download the proper dataset
 
     logger.info("Initialization complete!")
 
