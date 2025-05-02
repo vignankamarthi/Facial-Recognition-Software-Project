@@ -352,47 +352,23 @@ class FaceMatcher:
 
         return display_image, face_names
 
-    @handle_opencv_error
-    def match_faces_webcam(self):
-        """
-        Deprecated: Direct webcam access is now handled through the Streamlit interface.
-        
-        This method is kept for backward compatibility with tests.
 
-        Returns
-        -------
-        tuple
-            (success, result_dict) where:
-            - success : bool
-              True if operation completed normally
-            - result_dict : dict
-              Contains metadata about the operation
-              
-        Notes
-        -----
-        - Use the Streamlit interface instead of this method
-        - The returned data is mocked for test compatibility
-        
-        Examples
-        --------
-        >>> # Use Streamlit interface instead of this method
-        """
-        print("Direct webcam access is deprecated. Please use the Streamlit interface.")
-        
-        # Return a mock result for testing purposes
-        return True, {
-            'face_count': 0,
-            'frames_processed': 0,
-            'duration': 0,
-            'note': 'Direct webcam access is deprecated. Please use the Streamlit interface.'
-        }
 
 
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
     try:
+        print("Face matching is now handled through the Streamlit interface.")
+        print("Please run the Streamlit app to use face matching functionality.")
+        print("Run: streamlit run app/main.py")
+        
+        # Still load known faces to show information
         matcher = FaceMatcher()
-        matcher.match_faces_webcam()
+        print(f"Loaded {len(matcher.known_face_names)} known faces")
+        if matcher.known_face_names:
+            print("Known faces:")
+            for name in matcher.known_face_names:
+                print(f"  - {name}")
     except KeyboardInterrupt:
         print("\nProcess interrupted by user. Exiting.")
     finally:

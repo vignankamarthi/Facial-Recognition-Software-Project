@@ -411,25 +411,27 @@ class FaceAnonymizer:
 # Variable to store the FaceDetector class once imported
 _FaceDetector = None
 
-@handle_opencv_error
-def run_anonymization_demo():
-    """
-    Deprecated: Direct webcam access is now handled through the Streamlit interface.
-    
-    This function is kept for backward compatibility with tests.
-    
-    Returns
-    -------
-    None
-    
-    Notes
-    -----
-    - Use the Streamlit interface instead of this function
-    """
-    print("Direct webcam access is deprecated. Please use the Streamlit interface.")
-    return
-
 
 if __name__ == "__main__":
-    # Run the demo function if this module is executed directly
-    run_anonymization_demo()
+    # Run a simple test if this module is executed directly
+    try:
+        print("Face anonymization is now handled through the Streamlit interface.")
+        print("Please run the Streamlit app to use face anonymization functionality.")
+        print("Run: streamlit run app/main.py")
+        
+        # Show available anonymization methods
+        anonymizer = FaceAnonymizer()
+        print(f"\nAvailable anonymization methods:")
+        print(f"  - blur: Apply Gaussian blur to faces")
+        print(f"  - pixelate: Apply pixelation effect to faces")
+        print(f"  - mask: Apply solid mask with face icon")
+        print(f"\nCurrent settings:")
+        print(f"  - Method: {anonymizer.method}")
+        print(f"  - Intensity: {anonymizer.intensity}")
+    except KeyboardInterrupt:
+        print("\nProcess interrupted by user. Exiting.")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    finally:
+        # Make sure to release any OpenCV resources
+        safely_close_windows()

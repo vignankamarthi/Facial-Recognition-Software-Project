@@ -296,55 +296,7 @@ class TestFaceAnonymizer:
             # Verify original is a copy (not the same as input)
             assert result["original"] is not image
 
-    def test_run_anonymization_demo(self):
-        """Test the standalone anonymization demo function."""
-        # Test with mocked dependencies to avoid actual webcam usage
-        with patch(
-            "src.backend.anonymization.FaceAnonymizer"
-        ) as mock_anonymizer_class, patch(
-            "src.backend.anonymization._FaceDetector", create=True
-        ) as mock_detector_class, patch(
-            "cv2.VideoCapture"
-        ) as mock_video_capture, patch(
-            "src.backend.anonymization.create_resizable_window"
-        ) as mock_create_window, patch(
-            "cv2.imshow"
-        ) as mock_imshow, patch(
-            "cv2.waitKey"
-        ) as mock_waitkey, patch(
-            "src.backend.anonymization.safely_close_windows"
-        ) as mock_close_windows:
 
-            # Configure mocks
-            mock_detector = MagicMock()
-            mock_detector.detect_faces.return_value = (
-                [(50, 200, 150, 100)],
-                [np.ones(128)],
-            )
-            mock_detector_class.return_value = mock_detector
-
-            mock_anonymizer = MagicMock()
-            mock_anonymizer_class.return_value = mock_anonymizer
-
-            # Video capture returns a valid frame then simulates pressing 'q'
-            mock_video_capture.return_value.isOpened.return_value = True
-            mock_video_capture.return_value.read.return_value = (
-                True,
-                np.zeros((300, 400, 3), dtype=np.uint8),
-            )
-            mock_waitkey.return_value = ord("q")  # Simulate pressing 'q' to quit
-
-            # Run the demo
-            from src.backend.anonymization import run_anonymization_demo
-
-            run_anonymization_demo()
-
-            # Verify the appropriate functions were called
-            mock_detector_class.assert_called_once()
-            mock_anonymizer_class.assert_called_once()
-            mock_detector.detect_faces.assert_called()
-            mock_anonymizer.anonymize_frame.assert_called()
-            mock_close_windows.assert_called_once()
 
     def test_anonymize_face_with_even_intensity(self):
         """Test that blur method works with even intensity values (kernel size must be odd)."""

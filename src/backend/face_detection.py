@@ -186,131 +186,18 @@ class FaceDetector:
 
         return display_image
 
-    @handle_opencv_error
-    @log_method_call(logger)
-    def detect_faces_webcam(self, anonymize=False, anonymizer=None):
-        """
-        Deprecated: Direct webcam access is now handled through the Streamlit interface.
-        
-        This method is kept for backward compatibility with tests.
 
-        Parameters
-        ----------
-        anonymize : bool, optional
-            Whether to anonymize detected faces (default: False)
-        anonymizer : FaceAnonymizer, optional
-            Instance of FaceAnonymizer to use for anonymization.
+            
 
-        Returns
-        -------
-        tuple
-            (success, result_dict) where:
-            - success : bool
-              True if operation completed normally, False if an error occurred
-            - result_dict : dict
-              Contains metadata about the operation:
-              - "face_count" : int
-                Total number of faces detected during the session
-              - "frames_processed" : int
-                Number of frames processed
-              - "duration" : float
-                Duration of the session in seconds
-              - "note" : str
-                Information about the deprecation
-        
-        Examples
-        --------
-        >>> detector = FaceDetector()
-        >>> # Use Streamlit interface instead of this method
-        """
-        logger.warning("detect_faces_webcam is deprecated - use Streamlit interface instead")
-        print("Direct webcam access is deprecated. Please use the Streamlit interface.")
-        
-        # Return a mock result for testing purposes
-        return True, {
-            'face_count': 0,
-            'frames_processed': 0,
-            'duration': 0,
-            'note': 'Direct webcam access is deprecated. Please use the Streamlit interface.'
-        }
-            
-    @log_method_call(logger)
-    def process_image_file(self, image_path):
-        """
-        Process a single image file, detecting faces.
-        
-        Parameters
-        ----------
-        image_path : str
-            Path to the image file
-            
-        Returns
-        -------
-        tuple
-            (success, result_dict) where:
-            - success : bool
-              True if processing was successful, False otherwise
-            - result_dict : dict
-              Dictionary containing metadata about the processing:
-              - "face_count" : int
-                Number of faces detected
-              - "face_locations" : list
-                List of face location tuples
-              - "error" : str, optional
-                Error message if an error occurred
-        """
-        try:
-            logger.info(f"Processing image: {image_path}")
-            
-            # Validate image path
-            if not os.path.exists(image_path):
-                error_msg = f"Image file not found: {image_path}"
-                logger.error(error_msg)
-                return False, {"error": error_msg}
-            
-            # Load the image
-            image = cv2.imread(image_path)
-            if image is None:
-                error_msg = f"Failed to load image: {image_path}"
-                logger.error(error_msg)
-                return False, {"error": error_msg}
-            
-            # Detect faces
-            face_locations, _ = self.detect_faces(image)
-            logger.info(f"Detected {len(face_locations)} faces in {image_path}")
-            
-            # Draw boxes around faces (for processing only, not display)
-            display_image = self.draw_face_boxes(image, face_locations)
-            
-            # Return results (no GUI display)
-            return True, {
-                "face_count": len(face_locations),
-                "face_locations": face_locations,
-                "image_path": image_path
-            }
-            
-        except Exception as e:
-            error_msg = f"Error processing image: {e}"
-            log_exception(logger, error_msg, e)
-            return False, {"error": error_msg}
 
 
 if __name__ == "__main__":
     # Run a simple test if this module is executed directly
     try:
         logger.info("Running face detection test")
-        detector = FaceDetector()
-        success, result = detector.detect_faces_webcam()
-        
-        if success:
-            logger.info(f"Face detection test completed successfully with {result['face_count']} faces detected")
-            print(f"Test completed successfully:")
-            print(f"- Processed {result['frames_processed']} frames")
-            print(f"- Detected {result['face_count']} faces total")
-            print(f"- Session duration: {result['duration']:.2f} seconds")
-        else:
-            logger.error(f"Face detection test failed: {result.get('error', 'Unknown error')}")
-            print(f"Test failed: {result.get('error', 'Unknown error')}")
+        print("Face detection is now handled through the Streamlit interface.")
+        print("Please run the Streamlit app to use face detection functionality.")
+        print("Run: streamlit run app/main.py")
     except KeyboardInterrupt:
         logger.info("Test interrupted by user")
         print("\nTest interrupted by user. Exiting.")

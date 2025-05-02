@@ -235,77 +235,7 @@ class TestFaceMatcher:
             assert mock_rectangle.call_count >= 4  # 2 boxes + 2 label backgrounds
             assert mock_putText.call_count >= 2  # 2 labels
 
-    def test_match_faces_webcam(self, mock_cv2, mock_face_recognition):
-        """Test the webcam face matching method."""
-        # Create matcher
-        matcher = FaceMatcher()
 
-        # Setup additional mocks
-        with patch(
-            "src.backend.face_matching._FaceDetector", create=True
-        ) as mock_detector_class, patch(
-            "src.backend.face_matching.create_resizable_window"
-        ) as mock_create_window, patch(
-            "src.backend.face_matching.cv2.imshow"
-        ) as mock_imshow, patch(
-            "src.backend.face_matching.cv2.waitKey"
-        ) as mock_waitkey, patch(
-            "src.backend.face_matching.safely_close_windows"
-        ) as mock_close_windows, patch.object(
-            matcher, "identify_faces"
-        ) as mock_identify:
-
-            # Configure mocks
-            mock_detector = MagicMock()
-            mock_detector.detect_faces.return_value = (
-                [(50, 200, 150, 100)],
-                [np.ones(128)],
-            )
-            mock_detector_class.return_value = mock_detector
-
-            # Provide multiple values to avoid StopIteration
-            mock_waitkey.side_effect = [ord("q"), ord("q"), ord("q"), ord("q"), ord("q")]  # Simulate pressing 'q' to quit
-
-            mock_identify.return_value = (
-                np.zeros((300, 400, 3), dtype=np.uint8),
-                ["Test Person"],
-            )
-
-            # Call match_faces_webcam
-            result = matcher.match_faces_webcam()
-
-            # Verify detector was initialized and used
-            mock_detector_class.assert_called_once()
-            mock_detector.detect_faces.assert_called()
-
-            # Verify matcher was used
-            mock_identify.assert_called()
-
-            # Verify display was set up
-            mock_create_window.assert_called_once()
-            mock_imshow.assert_called()
-
-            # Just verify the function completes and returns expected values
-            # without checking specific cleanups that may vary by environment
-
-        # Test camera error handling
-        mock_cv2["VideoCapture"].return_value.isOpened.return_value = False
-        with patch(
-            "src.backend.face_matching.format_error"
-        ) as mock_format_error, patch(
-            "src.backend.face_matching.safely_close_windows"
-        ) as mock_close_windows, patch(
-            "builtins.print"
-        ) as mock_print:
-
-            # Call match_faces_webcam with camera error
-            result = matcher.match_faces_webcam()
-
-            # Verify error was handled
-            mock_format_error.assert_called_once()
-            mock_close_windows.assert_called_once()
-            # Don't check for specific print message as it might vary
-            assert mock_print.call_count > 0
 
     def test_identify_faces_with_threshold(self):
         """Test face identification using the confidence threshold."""
