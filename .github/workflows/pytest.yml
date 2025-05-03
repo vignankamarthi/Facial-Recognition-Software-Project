@@ -2,10 +2,10 @@ name: Facial Recognition Tests
 
 on:
   push:
-    branches: [ main ]
-# For more sophisticated workflows, we can run tests on pull requests
+    branches: [main]
+  # For more sophisticated workflows, we can run tests on pull requests
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
 
 jobs:
   test:
@@ -13,39 +13,40 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.9]
-    
+
     env:
-      GITHUB_ACTIONS: true       # Main CI environment flag
-      FORCE_HEADLESS: true       # Always run in headless mode
-      FORCE_WEBCAM_AVAILABLE: false  # No webcam in CI
+      GITHUB_ACTIONS: true # Main CI environment flag
+      FORCE_HEADLESS: true # Always run in headless mode
+      FORCE_WEBCAM_AVAILABLE: false # No webcam in CI
 
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # Install system dependencies for OpenCV
-        sudo apt-get update
-        sudo apt-get install -y libsm6 libxext6 libxrender-dev
-    
-    - name: Create test data directories
-      run: |
-        mkdir -p tests/data/known_faces
-        mkdir -p tests/data/test_images
-        mkdir -p tests/data/results
-    
-    - name: Test with pytest
-      run: |
-        python -m pytest --cov=src tests/ -v
-    
-    - name: Upload coverage report
-      uses: codecov/codecov-action@v1
-      with:
-        fail_ci_if_error: false
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Install system dependencies for OpenCV
+          sudo apt-get update
+          sudo apt-get install -y libsm6 libxext6 libxrender-dev
+
+      - name: Create test data directories
+        run: |
+          mkdir -p tests/data/known_faces
+          mkdir -p tests/data/test_images
+          mkdir -p tests/data/results
+
+      - name: Test with pytest
+        run: |
+          python -m pytest --cov=src tests/ --cov-report=xml -v
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODE_COV_SECRET }}
+          fail_ci_if_error: false
